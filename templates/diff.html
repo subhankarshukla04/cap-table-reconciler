@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Cap-table diff — Cap Table Reconciler{% endblock %}
+
+{% block content %}
+<div class="card">
+  <p class="section-title">Snapshot diff</p>
+  <h2 style="margin: 0 0 8px;">Cap-table snapshot diff</h2>
+  <p class="description">Upload two .xlsx snapshots — for example, the cap table at year-end vs. the cap table at the valuation date — and the tool produces a structured diff for the audit memo's <em>subsequent events</em> section. Class names are fuzzy-matched (Levenshtein) to handle minor renaming.</p>
+
+  <form method="post" action="{{ url_for('diff_run') }}" enctype="multipart/form-data" class="resolve-form" style="border-left: none; padding-left: 0;">
+    <div class="row">
+      <div>
+        <label>Left snapshot (prior)</label>
+        <input type="file" name="left" accept=".xlsx" required>
+      </div>
+      <div>
+        <label>Right snapshot (current)</label>
+        <input type="file" name="right" accept=".xlsx" required>
+      </div>
+      <button class="btn" type="submit">Compute diff</button>
+    </div>
+  </form>
+
+  {% if error %}
+  <div class="finding blocker" style="margin-top: 16px;">
+    <div class="header-row"><span class="tag blocker">error</span></div>
+    <div class="summary">{{ error }}</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if diff %}
+<div class="card">
+  <h2>Diff result</h2>
+  <p class="description">{{ diff.summary }}</p>
+  <p class="muted" style="font-size: 12px;">Left: <strong>{{ diff.left_company }}</strong> · Right: <strong>{{ diff.right_company }}</strong></p>
+
+  <h3 style="margin-top: 18px;">Share classes</h3>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Left</th>
+        <th>Right</th>
+        <th>Similarity</th>
+        <th>Field deltas</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cd in diff.class_diffs %}
+      <tr>
+        <td>
+          {% if cd.match.status == 'matched' %}<span class="tag success">matched</span>
+          {% elif cd.match.status == 'renamed' %}<span class="tag warning">renamed</span>
+          {% elif cd.match.status == 'added' %}<span class="tag info">added</span>
+          {% elif cd.match.status == 'removed' %}<span class="tag blocker">removed</span>
+          {% endif %}
+        </td>
+        <td>{{ cd.match.left_name or '—' }}</td>
+        <td>{{ cd.match.right_name or '—' }}</td>
+        <td class="num">{{ "%.0f"|format(cd.match.similarity * 100) }}%</td>
+        <td>
+          {% if cd.deltas %}
+          <ul style="margin: 0; padding-left: 16px;">
+            {% for d in cd.deltas %}
+            <li><code>{{ d.field }}</code>: <span class="muted">{{ d.left }}</span> &rarr; <strong>{{ d.right }}</strong></li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <span class="muted">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if diff.side_letters_added or diff.side_letters_removed or diff.safes_added or diff.safes_removed or diff.warrants_added or diff.warrants_removed %}
+  <h3 style="margin-top: 18px;">Other instruments</h3>
+  <ul style="font-size: 13px; line-height: 1.8;">
+    {% if diff.side_letters_added %}<li><strong>Side letters added:</strong> {{ diff.side_letters_added|join(", ") }}</li>{% endif %}
+    {% if diff.side_letters_removed %}<li><strong>Side letters removed:</strong> {{ diff.side_letters_removed|join(", ") }}</li>{% endif %}
+    {% if diff.safes_added %}<li><strong>SAFEs added:</strong> {{ diff.safes_added|join(", ") }}</li>{% endif %}
+    {% if diff.safes_removed %}<li><strong>SAFEs removed:</strong> {{ diff.safes_removed|join(", ") }}</li>{% endif %}
+    {% if diff.warrants_added %}<li><strong>Warrants added:</strong> {{ diff.warrants_added|join(", ") }}</li>{% endif %}
+    {% if diff.warrants_removed %}<li><strong>Warrants removed:</strong> {{ diff.warrants_removed|join(", ") }}</li>{% endif %}
+  </ul>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

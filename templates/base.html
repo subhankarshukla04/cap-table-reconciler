@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cap Table Reconciler{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <h1>Cap Table Reconciler <span class="app-version">v0.1 — internal preview</span></h1>
+      <nav>
+        <a href="{{ url_for('index') }}">Upload</a>
+        <a href="{{ url_for('demo', fixture_id='fixture_01_clean') }}">Clean baseline</a>
+        <a href="{{ url_for('demo', fixture_id='fixture_02_typical_messy') }}">Typical messy</a>
+        <a href="{{ url_for('demo', fixture_id='fixture_03_edge_case') }}">SEA edge case</a>
+        <a href="{{ url_for('demo', fixture_id='fixture_04_down_round_ratchet') }}">Down-round ratchet</a>
+        <a href="{{ url_for('demo', fixture_id='fixture_05_delaware_double_cap') }}">Delaware double-cap</a>
+        <a href="{{ url_for('diff_index') }}">Diff</a>
+        <a href="{{ url_for('sessions_index') }}">Sessions</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  <footer class="app-footer">
+    <div class="container">
+      <div>
+        Cap Table Reconciler — outputs structured cap-table data only. No valuation judgments.
+      </div>
+      <div class="muted">Built for the Qapita interview, 2026-05.</div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,117 @@
+{
+  "company": {
+    "name": "AeroFreight Inc.",
+    "jurisdiction": "Delaware, USA",
+    "sector": "AI-driven cargo logistics",
+    "stage": "Series B",
+    "valuation_date": "2026-04-30",
+    "currency": "USD",
+    "currency_symbol": "$",
+    "summary": "Fictional Delaware C-corp Series B with the unusual but documented double-participating-cap structure: BOTH Series A and Series B carry participating-with-cap LPs at different cap multiples (Series A 2x, Series B 3x). The cap-reach sequence runs through two regime transitions, then both seniors pure-convert at the high end. This exercises the engine's senior-above-capped pathway and the regime-state algorithm under stacked caps. All clauses trace to NVCA Model Charter §2.2 (Participation) and §2.3 (Conversion), with the participating-with-cap mechanics directly mirroring Eqvista's worked-example treatment."
+  },
+  "share_classes": [
+    {
+      "name": "Founders Common",
+      "type": "common",
+      "shares_outstanding": 4000000,
+      "issue_price_usd": 0.001,
+      "issue_date": "2022-03-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "voting_differential": null,
+      "instrument_subtype": "common"
+    },
+    {
+      "name": "Series A Preferred",
+      "type": "preferred",
+      "shares_outstanding": 2000000,
+      "issue_price_usd": 1.50,
+      "issue_date": "2024-04-15",
+      "seniority_rank": 2,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 3000000.0,
+        "type": "participating_capped",
+        "cap_multiple": 2.0
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average",
+        "notes": "NVCA Model Charter §4.4(c) BBWA. No down-round trigger to date — Series B priced up at $4.00."
+      },
+      "conversion_ratio": 1.0,
+      "participation": {
+        "mode": "with_cap",
+        "cap_multiple_of_lp": 2.0
+      },
+      "voting_differential": null,
+      "instrument_subtype": "preferred"
+    },
+    {
+      "name": "Series B Preferred",
+      "type": "preferred",
+      "shares_outstanding": 3000000,
+      "issue_price_usd": 4.00,
+      "issue_date": "2026-04-15",
+      "seniority_rank": 1,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 12000000.0,
+        "type": "participating_capped",
+        "cap_multiple": 3.0
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average",
+        "notes": "NVCA Model Charter §4.4(c) BBWA, no trigger."
+      },
+      "conversion_ratio": 1.0,
+      "participation": {
+        "mode": "with_cap",
+        "cap_multiple_of_lp": 3.0
+      },
+      "voting_differential": null,
+      "instrument_subtype": "preferred"
+    },
+    {
+      "name": "Option Pool (Granted)",
+      "type": "option_pool_granted",
+      "shares_outstanding": 800000,
+      "issue_price_usd": 0.10,
+      "issue_date": "2025-12-01",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "voting_differential": null,
+      "instrument_subtype": "option_pool_granted"
+    },
+    {
+      "name": "Option Pool (Reserved)",
+      "type": "option_pool_reserved",
+      "shares_outstanding": 400000,
+      "issue_price_usd": null,
+      "issue_date": null,
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "voting_differential": null,
+      "instrument_subtype": "option_pool_reserved"
+    }
+  ],
+  "safes_outstanding": [],
+  "warrants_outstanding": [],
+  "side_letters": [
+    {
+      "id": "SL05-01",
+      "title": "Series B lead-investor MFN clause",
+      "summary": "Series B lead has a most-favored-nation right tied to LP cap re-negotiation in any future Series C round. No present-day cap-table impact; flagged to the analyst for awareness if this is a snapshot prior to a contemplated Series C.",
+      "body": "If, in any subsequent priced round, the Company grants any holder of preferred stock a participation cap less restrictive than the Series B 3x cap, the Series B holders shall automatically receive the benefit of such less-restrictive cap on a no-action basis. Source: AeroFreight Series B Stockholders' Agreement §4.7 (MFN — economic terms).",
+      "unresolved_questions": []
+    }
+  ]
+}

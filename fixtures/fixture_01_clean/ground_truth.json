@@ -1,0 +1,188 @@
+{
+  "fixture": "fixture_01_clean",
+  "company": "Solstice Labs Pte. Ltd.",
+  "verification": {
+    "method": "hand_computed",
+    "computed_by": "claude_code_session_2026-05-07",
+    "cross_check_status": "to_be_verified_against_python_solver_day3",
+    "notes": "Non-participating preferred. Each class elects LP or convert (not both). Waterfall computed by (a) finding each class's conversion threshold assuming junior classes have already converted, (b) sorting thresholds in ascending order, (c) confirming consistency at each threshold."
+  },
+  "shares_summary": {
+    "founders_common": 4500000,
+    "series_seed_preferred": 2000000,
+    "series_a_preferred": 2500000,
+    "series_b_preferred": 3000000,
+    "option_pool_granted": 1500000,
+    "option_pool_reserved_excluded": 500000,
+    "total_fully_diluted_for_waterfall": 13500000
+  },
+  "liquidation_preferences_total_usd": 21000000,
+  "liquidation_preferences_by_class_usd": {
+    "series_b_preferred": 15000000,
+    "series_a_preferred": 5000000,
+    "series_seed_preferred": 1000000
+  },
+  "conversion_thresholds_usd": {
+    "series_seed_preferred": 24000000,
+    "series_a_preferred": 36000000,
+    "series_b_preferred": 67500000
+  },
+  "breakpoints": [
+    {
+      "id": "BP1",
+      "value_usd": 0,
+      "event": "origin"
+    },
+    {
+      "id": "BP2",
+      "value_usd": 15000000,
+      "event": "series_b_lp_satisfied"
+    },
+    {
+      "id": "BP3",
+      "value_usd": 20000000,
+      "event": "series_a_lp_satisfied"
+    },
+    {
+      "id": "BP4",
+      "value_usd": 21000000,
+      "event": "series_seed_lp_satisfied_all_lps_paid"
+    },
+    {
+      "id": "BP5",
+      "value_usd": 24000000,
+      "event": "series_seed_converts_to_common"
+    },
+    {
+      "id": "BP6",
+      "value_usd": 36000000,
+      "event": "series_a_converts_to_common"
+    },
+    {
+      "id": "BP7",
+      "value_usd": 67500000,
+      "event": "series_b_converts_to_common"
+    }
+  ],
+  "tranche_allocations": [
+    {
+      "tranche_id": "T1",
+      "range_low_usd": 0,
+      "range_high_usd": 15000000,
+      "description": "Series B LP being paid",
+      "marginal_allocation_pct": {
+        "series_b_preferred": 100.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 0.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T2",
+      "range_low_usd": 15000000,
+      "range_high_usd": 20000000,
+      "description": "Series A LP being paid",
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 100.0,
+        "series_seed_preferred": 0.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T3",
+      "range_low_usd": 20000000,
+      "range_high_usd": 21000000,
+      "description": "Series Seed LP being paid",
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 100.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T4",
+      "range_low_usd": 21000000,
+      "range_high_usd": 24000000,
+      "description": "All LPs paid; Seed has not yet converted; marginal value to common only (founders + granted options)",
+      "common_pool_shares": 6000000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 0.0,
+        "founders_common": 75.0,
+        "option_pool_granted": 25.0
+      }
+    },
+    {
+      "tranche_id": "T5",
+      "range_low_usd": 24000000,
+      "range_high_usd": 36000000,
+      "description": "Series Seed converted; common pool now includes Seed",
+      "common_pool_shares": 8000000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 25.0,
+        "founders_common": 56.25,
+        "option_pool_granted": 18.75
+      }
+    },
+    {
+      "tranche_id": "T6",
+      "range_low_usd": 36000000,
+      "range_high_usd": 67500000,
+      "description": "Series A converted; common pool now includes Seed and A",
+      "common_pool_shares": 10500000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 23.809524,
+        "series_seed_preferred": 19.047619,
+        "founders_common": 42.857143,
+        "option_pool_granted": 14.285714
+      }
+    },
+    {
+      "tranche_id": "T7",
+      "range_low_usd": 67500000,
+      "range_high_usd": null,
+      "description": "Series B converted; common pool now includes everyone",
+      "common_pool_shares": 13500000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 22.222222,
+        "series_a_preferred": 18.518519,
+        "series_seed_preferred": 14.814815,
+        "founders_common": 33.333333,
+        "option_pool_granted": 11.111111
+      }
+    }
+  ],
+  "consistency_checks": {
+    "tranche_pcts_sum_to_100_each": true,
+    "lp_total_equals_bp4": true,
+    "conversion_thresholds_strictly_increasing": true,
+    "conversion_thresholds_above_lp_total": true,
+    "seed_payout_continuous_at_bp5": {
+      "lp_value_usd": 1000000,
+      "converted_value_at_bp5_usd": 1000000,
+      "match": true,
+      "calc": "0.25 * (24000000 - 20000000) = 1000000"
+    },
+    "a_payout_continuous_at_bp6": {
+      "lp_value_usd": 5000000,
+      "converted_value_at_bp6_usd": 5000000,
+      "match": true,
+      "calc": "0.238095 * (36000000 - 15000000) = 5000000"
+    },
+    "b_payout_continuous_at_bp7": {
+      "lp_value_usd": 15000000,
+      "converted_value_at_bp7_usd": 15000000,
+      "match": true,
+      "calc": "0.222222 * 67500000 = 15000000"
+    }
+  }
+}

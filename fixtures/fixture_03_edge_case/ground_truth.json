@@ -1,0 +1,214 @@
+{
+  "fixture": "fixture_03_edge_case",
+  "company": "Bandhan Ventures Pvt. Ltd.",
+  "currency": "INR",
+  "verification": {
+    "method": "hand_computed_then_verified_by_pytest",
+    "computed_by": "claude_code_session_2026-05-07",
+    "notes": "Participating-with-cap on Series A makes this materially harder than fixtures 01-02. The waterfall has eight regions because we must track (a) when each non-participating preferred elects to convert, (b) when Series A's participation cap is reached, and (c) when Series A elects pure conversion (forgoing LP+participation entirely). Verifier in tests/test_fixture_03_participating.py codes this end-to-end and confirms each breakpoint.",
+    "amounts_in_inr": "All amounts in Indian Rupees (INR) per the company's jurisdiction."
+  },
+  "shares_summary": {
+    "founders_common": 4000000,
+    "series_seed_ccps": 1000000,
+    "series_a_ccps": 2500000,
+    "series_b_ccps": 3500000,
+    "option_pool_granted": 1200000,
+    "option_pool_reserved_excluded": 800000,
+    "total_fully_diluted_for_waterfall": 12200000
+  },
+  "liquidation_preferences_total_inr": 1175000000,
+  "liquidation_preferences_by_class_inr": {
+    "series_b_ccps": 875000000,
+    "series_a_ccps": 250000000,
+    "series_seed_ccps": 50000000
+  },
+  "series_a_participation_cap_inr": 750000000,
+  "breakpoints": [
+    {"id": "BP1", "value_inr": 0, "event": "origin"},
+    {"id": "BP2", "value_inr": 875000000, "event": "series_b_lp_satisfied"},
+    {"id": "BP3", "value_inr": 1125000000, "event": "series_a_lp_satisfied"},
+    {"id": "BP4", "value_inr": 1175000000, "event": "series_seed_lp_satisfied_all_lps_paid"},
+    {"id": "BP5", "value_inr": 1560000000, "event": "series_seed_converts_to_common"},
+    {"id": "BP6", "value_inr": 2865000000, "event": "series_a_participation_cap_reached"},
+    {"id": "BP7", "value_inr": 3175000000, "event": "series_b_converts_to_common"},
+    {"id": "BP8", "value_inr": 3660000000, "event": "series_a_pure_converts_to_common"}
+  ],
+  "tranche_allocations": [
+    {
+      "tranche_id": "T1",
+      "range_low_inr": 0,
+      "range_high_inr": 875000000,
+      "description": "Series B LP being paid",
+      "regime": "all_preferred_in_lp_state",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 100.0,
+        "series_a_ccps": 0.0,
+        "series_seed_ccps": 0.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T2",
+      "range_low_inr": 875000000,
+      "range_high_inr": 1125000000,
+      "description": "Series A LP being paid",
+      "regime": "all_preferred_in_lp_state",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 0.0,
+        "series_a_ccps": 100.0,
+        "series_seed_ccps": 0.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T3",
+      "range_low_inr": 1125000000,
+      "range_high_inr": 1175000000,
+      "description": "Series Seed LP being paid",
+      "regime": "all_preferred_in_lp_state",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 0.0,
+        "series_a_ccps": 0.0,
+        "series_seed_ccps": 100.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T4",
+      "range_low_inr": 1175000000,
+      "range_high_inr": 1560000000,
+      "description": "All LPs paid; Seed not converted; A participating uncapped; B preferred. Common pool = founders + options + A.",
+      "common_pool_shares": 7700000,
+      "regime": "seed_in_lp_a_participating_b_preferred",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 0.0,
+        "series_a_ccps": 32.467532,
+        "series_seed_ccps": 0.0,
+        "founders_common": 51.948052,
+        "option_pool_granted": 15.584416
+      }
+    },
+    {
+      "tranche_id": "T5",
+      "range_low_inr": 1560000000,
+      "range_high_inr": 2865000000,
+      "description": "Seed converted; A participating uncapped; B preferred. Common pool = founders + options + Seed + A.",
+      "common_pool_shares": 8700000,
+      "regime": "seed_converted_a_participating_b_preferred",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 0.0,
+        "series_a_ccps": 28.735632,
+        "series_seed_ccps": 11.494253,
+        "founders_common": 45.977011,
+        "option_pool_granted": 13.793103
+      }
+    },
+    {
+      "tranche_id": "T6",
+      "range_low_inr": 2865000000,
+      "range_high_inr": 3175000000,
+      "description": "A's participation cap reached (₹750M); A frozen, B preferred, Seed converted. Marginal $1 to founders + options + Seed only.",
+      "common_pool_shares_for_marginal": 6200000,
+      "regime": "seed_converted_a_capped_b_preferred",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 0.0,
+        "series_a_ccps": 0.0,
+        "series_seed_ccps": 16.129032,
+        "founders_common": 64.516129,
+        "option_pool_granted": 19.354839
+      }
+    },
+    {
+      "tranche_id": "T7",
+      "range_low_inr": 3175000000,
+      "range_high_inr": 3660000000,
+      "description": "B converts to common; A still capped; Seed converted. Marginal pool = founders + options + Seed + B (no A — capped).",
+      "common_pool_shares_for_marginal": 9700000,
+      "regime": "seed_converted_a_capped_b_converted",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 36.082474,
+        "series_a_ccps": 0.0,
+        "series_seed_ccps": 10.309278,
+        "founders_common": 41.237113,
+        "option_pool_granted": 12.371134
+      }
+    },
+    {
+      "tranche_id": "T8",
+      "range_low_inr": 3660000000,
+      "range_high_inr": null,
+      "description": "A pure-converts to common (forgoes LP + participation cap). All five classes pure-common.",
+      "common_pool_shares": 12200000,
+      "regime": "all_classes_pure_common",
+      "marginal_allocation_pct": {
+        "series_b_ccps": 28.688525,
+        "series_a_ccps": 20.491803,
+        "series_seed_ccps": 8.196721,
+        "founders_common": 32.786885,
+        "option_pool_granted": 9.836066
+      }
+    }
+  ],
+  "expected_checklist_findings": [
+    {
+      "id": "G03-A",
+      "severity": "info",
+      "category": "anti_dilution_full_ratchet_documented",
+      "summary": "Series Seed carries full-ratchet anti-dilution from a 2022 distressed bridge.",
+      "detail": "Full ratchet does not affect waterfall at this valuation date because no down-round has occurred. Flag for audit memo footnote in the methodology section. If the company were to issue at a price below ₹50, Seed's conversion ratio would adjust to provide full down-side protection.",
+      "fields_referenced": ["share_classes[Series Seed CCPS].anti_dilution.variant"]
+    },
+    {
+      "id": "G03-B",
+      "severity": "info",
+      "category": "participating_with_cap_documented",
+      "summary": "Series A is participating-with-cap (3x). This produces three additional breakpoints (cap reached, B converts, A pure-converts) beyond the standard non-participating waterfall.",
+      "detail": "Memo should explicitly walk through (i) BP6 cap-reach at ₹2,865M, (ii) BP7 B-converts at ₹3,175M, (iii) BP8 A-pure-converts at ₹3,660M. Each is a separate strike for OPM Backsolve purposes.",
+      "fields_referenced": ["share_classes[Series A CCPS].participation"]
+    },
+    {
+      "id": "G03-C",
+      "severity": "warning",
+      "category": "side_letter_forward_looking_right",
+      "summary": "Super pro-rata side letter for a Series B strategic investor. 1.5x pro-rata in next preferred round.",
+      "detail": "Does not affect waterfall at this date. Capture in 'subsequent events' or 'forward-looking dilution' section of audit memo. May affect future round modeling.",
+      "fields_referenced": ["side_letters[SL03-02]"]
+    },
+    {
+      "id": "G03-D",
+      "severity": "info",
+      "category": "dual_class_voting_documented",
+      "summary": "Founders' Class A common has 5x voting; identical economic rights.",
+      "detail": "Per VIMA / Cyril Amarchand convention, modeled as one economic class for waterfall. Disclose in audit memo's capital structure section.",
+      "fields_referenced": ["share_classes[Founders Common (Class A)].voting_differential"]
+    }
+  ],
+  "consistency_checks": {
+    "tranche_pcts_sum_to_100_each": true,
+    "lp_total_equals_bp4": true,
+    "breakpoints_strictly_increasing": true,
+    "a_capped_amount_continuous_at_bp6": {
+      "lp_plus_participation_at_bp6_inr": 750000000,
+      "calc": "250000000 + (2.5/8.7) * (2865000000 - 1125000000) = 250000000 + 500000000 = 750000000",
+      "match": true
+    },
+    "b_converted_payout_continuous_at_bp7": {
+      "regime_t6_b_payout_at_bp7_inr": 875000000,
+      "regime_t7_b_payout_at_bp7_inr": 875000000,
+      "calc_t6": "B in LP regime = 875000000 (flat)",
+      "calc_t7": "(3.5/9.7) * (3175000000 - 750000000) = (3.5/9.7) * 2425000000 = 875000000",
+      "match": true
+    },
+    "a_pure_convert_continuous_at_bp8": {
+      "regime_t7_a_payout_at_bp8_inr": 750000000,
+      "regime_t8_a_payout_at_bp8_inr": 750000000,
+      "calc_t7": "A capped at 750000000 (flat)",
+      "calc_t8": "(2.5/12.2) * 3660000000 = 750000000",
+      "match": true
+    }
+  }
+}

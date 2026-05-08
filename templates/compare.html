@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Compare — {{ cap_table.company.name }}{% endblock %}
+
+{% block content %}
+{% set sym = cap_table.company.currency_symbol %}
+<div class="card">
+  <p class="section-title">Before vs after resolution</p>
+  <h2 style="margin-bottom: 4px;">{{ cap_table.company.name }}</h2>
+  <p class="muted" style="margin: 0 0 16px;">
+    Compares the cap table at first parse against the current state after analyst resolutions. Shows the material impact of every SAFE conversion, anti-dilution adjudication, warrant resolution, side-letter scope ruling, and pool refresh.
+  </p>
+  <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+    <div>
+      <div class="muted" style="font-size: 11px;">LP total — original</div>
+      <div style="font-family: var(--font-mono); font-size: 16px;">{{ sym }}{{ "{:,.0f}".format(original_wf.lp_total) }}</div>
+    </div>
+    <div>
+      <div class="muted" style="font-size: 11px;">LP total — current</div>
+      <div style="font-family: var(--font-mono); font-size: 16px;">{{ sym }}{{ "{:,.0f}".format(current_wf.lp_total) }}</div>
+    </div>
+    {% set lp_delta = current_wf.lp_total - original_wf.lp_total %}
+    <div>
+      <div class="muted" style="font-size: 11px;">Δ LP total</div>
+      <div style="font-family: var(--font-mono); font-size: 16px; color: {% if lp_delta > 0 %}#0f766e{% elif lp_delta < 0 %}#b91c1c{% else %}var(--slate-700){% endif %};">
+        {% if lp_delta > 0 %}+{% endif %}{{ sym }}{{ "{:,.0f}".format(lp_delta) }}
+      </div>
+    </div>
+    <div>
+      <div class="muted" style="font-size: 11px;">Breakpoints</div>
+      <div style="font-family: var(--font-mono); font-size: 16px;">
+        {{ original_wf.breakpoints|length }} → {{ current_wf.breakpoints|length }}
+      </div>
+    </div>
+    <div>
+      <div class="muted" style="font-size: 11px;">Resolutions applied</div>
+      <div style="font-family: var(--font-mono); font-size: 16px;">{{ resolutions|length }}</div>
+    </div>
+  </div>
+</div>
+
+{% if resolutions %}
+<div class="card">
+  <h2>Analyst resolutions log</h2>
+  <p class="description">Each entry below mutated the cap table from its parsed-as-uploaded state.</p>
+  <ul style="list-style: none; padding: 0; margin: 0;">
+    {% for r in resolutions %}
+    <li style="border-left: 3px solid var(--blue-500); padding: 6px 12px; margin-bottom: 8px; background: var(--slate-50);">
+      <div style="font-family: var(--font-mono); font-size: 11px; color: var(--slate-600);">{{ r.code }}</div>
+      <div style="font-size: 13px;">{{ r.summary }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="card">
+  <p class="muted">No resolutions applied yet — original and current states are identical.</p>
+</div>
+{% endif %}
+
+{% if class_rows %}
+<div class="card">
+  <h2>Cap-table changes</h2>
+  <p class="description">Classes whose share count or LP amount changed between original and current state. Untouched classes are omitted.</p>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th class="num">Original shares</th>
+        <th class="num">Current shares</th>
+        <th class="num">Δ shares</th>
+        <th class="num">Original LP</th>
+        <th class="num">Current LP</th>
+        <th class="num">Δ LP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in class_rows %}
+      <tr>
+        <td>
+          <strong>{{ r.name }}</strong>
+          {% if r.added %}<span style="color: #0f766e; font-size: 11px;">(new)</span>{% endif %}
+          {% if r.removed %}<span style="color: #b91c1c; font-size: 11px;">(removed)</span>{% endif %}
+        </td>
+        <td class="num">{{ r.original_shares|commas }}</td>
+        <td class="num">{{ r.current_shares|commas }}</td>
+        <td class="num" style="font-family: var(--font-mono); color: {% if r.delta_shares > 0 %}#0f766e{% elif r.delta_shares < 0 %}#b91c1c{% endif %};">
+          {% if r.delta_shares > 0 %}+{% endif %}{{ r.delta_shares|commas }}
+        </td>
+        <td class="num">{% if r.original_lp %}{{ sym }}{{ "{:,.0f}".format(r.original_lp) }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="num">{% if r.current_lp %}{{ sym }}{{ "{:,.0f}".format(r.current_lp) }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="num" style="font-family: var(--font-mono); color: {% if r.delta_lp > 0 %}#0f766e{% elif r.delta_lp < 0 %}#b91c1c{% endif %};">
+          {% if r.delta_lp != 0 %}{% if r.delta_lp > 0 %}+{% endif %}{{ sym }}{{ "{:,.0f}".format(r.delta_lp) }}{% else %}<span class="muted">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Breakpoint impact</h2>
+  <p class="description">Per-BP delta. Same-ID matches show the value drift; new or removed IDs are flagged.</p>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>BP</th>
+        <th class="num">Original</th>
+        <th class="num">Current</th>
+        <th class="num">Δ</th>
+        <th>Event (current)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in bp_rows %}
+      <tr {% if r.is_new %}style="background: #ecfdf5;"{% elif r.is_removed %}style="background: #fef2f2; opacity: 0.7;"{% endif %}>
+        <td><strong>{{ r.id }}</strong></td>
+        <td class="num">{% if r.original_value is not none %}{{ sym }}{{ "{:,.0f}".format(r.original_value) }}{% else %}<span style="color: #0f766e; font-size: 11px;">new</span>{% endif %}</td>
+        <td class="num">{% if r.current_value is not none %}{{ sym }}{{ "{:,.0f}".format(r.current_value) }}{% else %}<span style="color: #b91c1c; font-size: 11px;">removed</span>{% endif %}</td>
+        <td class="num" style="font-family: var(--font-mono);">
+          {% if r.delta is not none %}
+            {% if r.delta == 0 %}<span class="muted">0</span>
+            {% elif r.delta > 0 %}<span style="color: #0f766e;">+{{ sym }}{{ "{:,.0f}".format(r.delta) }}</span>
+            {% else %}<span style="color: #b91c1c;">{{ sym }}{{ "{:,.0f}".format(r.delta) }}</span>{% endif %}
+          {% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        <td style="font-size: 12px;">{{ r.current_event }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+  <a class="btn secondary" href="{{ url_for('review', token=token) }}">&larr; Back to review</a>
+  <a class="btn secondary" href="{{ url_for('waterfall', token=token) }}">View current waterfall</a>
+</div>
+{% endblock %}

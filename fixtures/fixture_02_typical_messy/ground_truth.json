@@ -1,0 +1,191 @@
+{
+  "fixture": "fixture_02_typical_messy",
+  "company": "Pelaut Logistics Pte. Ltd.",
+  "verification": {
+    "method": "hand_computed_then_verified_by_pytest",
+    "computed_by": "claude_code_session_2026-05-07",
+    "notes": "Waterfall computed on the FACE-VALUE cap table — i.e. exactly what is recorded in the Cap Table tab of the upload, IGNORING the unrecorded SAFEs and warrant. The tool's job is to flag those gaps via the checklist; it does not auto-correct. The corrected post-reconciliation waterfall would be computed by the analyst after they enter the missing data."
+  },
+  "shares_summary_face_value": {
+    "founders_common": 5000000,
+    "series_seed_preferred": 1500000,
+    "series_a_preferred": 3000000,
+    "series_b_preferred": 4000000,
+    "option_pool_granted": 1200000,
+    "option_pool_reserved_excluded": 800000,
+    "total_fully_diluted_for_waterfall": 14700000
+  },
+  "liquidation_preferences_total_usd": 21100000,
+  "liquidation_preferences_by_class_usd": {
+    "series_b_preferred": 16000000,
+    "series_a_preferred": 4500000,
+    "series_seed_preferred": 600000
+  },
+  "conversion_thresholds_usd": {
+    "series_seed_preferred": 23580000,
+    "series_a_preferred": 32050000,
+    "series_b_preferred": 58800000
+  },
+  "breakpoints": [
+    {"id": "BP1", "value_usd": 0, "event": "origin"},
+    {"id": "BP2", "value_usd": 16000000, "event": "series_b_lp_satisfied"},
+    {"id": "BP3", "value_usd": 20500000, "event": "series_a_lp_satisfied"},
+    {"id": "BP4", "value_usd": 21100000, "event": "series_seed_lp_satisfied_all_lps_paid"},
+    {"id": "BP5", "value_usd": 23580000, "event": "series_seed_converts_to_common"},
+    {"id": "BP6", "value_usd": 32050000, "event": "series_a_converts_to_common"},
+    {"id": "BP7", "value_usd": 58800000, "event": "series_b_converts_to_common"}
+  ],
+  "tranche_allocations": [
+    {
+      "tranche_id": "T1",
+      "range_low_usd": 0,
+      "range_high_usd": 16000000,
+      "description": "Series B LP being paid",
+      "marginal_allocation_pct": {
+        "series_b_preferred": 100.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 0.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T2",
+      "range_low_usd": 16000000,
+      "range_high_usd": 20500000,
+      "description": "Series A LP being paid",
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 100.0,
+        "series_seed_preferred": 0.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T3",
+      "range_low_usd": 20500000,
+      "range_high_usd": 21100000,
+      "description": "Series Seed LP being paid",
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 100.0,
+        "founders_common": 0.0,
+        "option_pool_granted": 0.0
+      }
+    },
+    {
+      "tranche_id": "T4",
+      "range_low_usd": 21100000,
+      "range_high_usd": 23580000,
+      "description": "All LPs paid; Seed not yet converted; marginal value to common only",
+      "common_pool_shares": 6200000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 0.0,
+        "founders_common": 80.645161,
+        "option_pool_granted": 19.354839
+      }
+    },
+    {
+      "tranche_id": "T5",
+      "range_low_usd": 23580000,
+      "range_high_usd": 32050000,
+      "description": "Series Seed converted",
+      "common_pool_shares": 7700000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 0.0,
+        "series_seed_preferred": 19.480519,
+        "founders_common": 64.935065,
+        "option_pool_granted": 15.584416
+      }
+    },
+    {
+      "tranche_id": "T6",
+      "range_low_usd": 32050000,
+      "range_high_usd": 58800000,
+      "description": "Series A converted",
+      "common_pool_shares": 10700000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 0.0,
+        "series_a_preferred": 28.037383,
+        "series_seed_preferred": 14.018692,
+        "founders_common": 46.728972,
+        "option_pool_granted": 11.214953
+      }
+    },
+    {
+      "tranche_id": "T7",
+      "range_low_usd": 58800000,
+      "range_high_usd": null,
+      "description": "Series B converted; everyone is common",
+      "common_pool_shares": 14700000,
+      "marginal_allocation_pct": {
+        "series_b_preferred": 27.210884,
+        "series_a_preferred": 20.408163,
+        "series_seed_preferred": 10.204082,
+        "founders_common": 34.013605,
+        "option_pool_granted": 8.163265
+      }
+    }
+  ],
+  "expected_checklist_findings": [
+    {
+      "id": "G02-01",
+      "severity": "warning",
+      "category": "stale_option_pool",
+      "summary": "Option pool last-grant-date is older than the most recent funding round closing date.",
+      "detail": "Granted-options last grant date is 2025-03-01. Series B closed 2026-03-15. Grants made before a new round usually pre-date a 409A refresh; confirm whether all post-Series-A grants have been issued at refreshed FMV.",
+      "fields_referenced": ["Option Pool (Granted).issue_date", "Series B Preferred.issue_date"]
+    },
+    {
+      "id": "G02-02a",
+      "severity": "blocker",
+      "category": "unrecorded_safe_conversion",
+      "summary": "SAFE issued 2024-08-12 ($500K, $4.5M cap) is not represented as converted shares on the cap table tab.",
+      "detail": "A SAFE with a valuation cap below the Series B price-per-share would convert into preferred shares (or shadow preferred) at closing. Conversion math: $500,000 / ($4,500,000 / total fully-diluted at conversion) shares. Confirm and add converted shares to the Series B class.",
+      "fields_referenced": ["safes_outstanding[SAFE-2024-A]"]
+    },
+    {
+      "id": "G02-02b",
+      "severity": "blocker",
+      "category": "unrecorded_safe_conversion",
+      "summary": "SAFE issued 2024-09-04 ($500K, $4.5M cap) is not represented as converted shares on the cap table tab.",
+      "detail": "Same as G02-02a. Two SAFEs in this position; combined unrecorded dilution is non-trivial.",
+      "fields_referenced": ["safes_outstanding[SAFE-2024-B]"]
+    },
+    {
+      "id": "G02-03",
+      "severity": "warning",
+      "category": "unrecorded_warrant",
+      "summary": "50,000-share common warrant (Northstar Marketing Pte) referenced in side letter but not on cap table tab.",
+      "detail": "Vendor warrants struck at low prices add to fully-diluted share count and affect breakpoints. Add to cap table or confirm warrant has not been exercised and is excluded by policy.",
+      "fields_referenced": ["warrants_outstanding[WAR02-01]"]
+    },
+    {
+      "id": "G02-04",
+      "severity": "warning",
+      "category": "side_letter_terms_missing",
+      "summary": "MFN side letter exists for a Series B strategic investor but no specific MFN terms have been entered.",
+      "detail": "MFN can affect future-round dilution and conversion terms. Capture the trigger and the scope of \"more favorable terms\" the MFN applies to.",
+      "fields_referenced": ["side_letters[SL02-01]"]
+    },
+    {
+      "id": "G02-05",
+      "severity": "blocker",
+      "category": "anti_dilution_unspecified",
+      "summary": "Anti-dilution variant for Series A Preferred is blank.",
+      "detail": "Anti-dilution variant materially affects share count under any future down-round scenario. Confirm broad-based weighted-average, narrow-based weighted-average, or full ratchet from charter.",
+      "fields_referenced": ["share_classes[Series A Preferred].anti_dilution.variant"]
+    }
+  ],
+  "consistency_checks": {
+    "tranche_pcts_sum_to_100_each": true,
+    "lp_total_equals_bp4": true,
+    "conversion_thresholds_strictly_increasing": true,
+    "conversion_thresholds_above_lp_total": true
+  }
+}

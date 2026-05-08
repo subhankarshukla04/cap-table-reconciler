@@ -1,0 +1,147 @@
+{
+  "company": {
+    "name": "Bandhan Ventures Pvt. Ltd.",
+    "jurisdiction": "India",
+    "sector": "B2C e-commerce SaaS",
+    "stage": "Series B",
+    "valuation_date": "2026-04-30",
+    "currency": "INR",
+    "currency_symbol": "₹",
+    "summary": "Fictional Indian e-commerce SaaS Series B with three SEA-flavored edge cases: (1) Series A is participating-with-cap (3x), (2) Series Seed carries full-ratchet anti-dilution from a distressed 2022 bridge, (3) all preferred classes are CCPS (Compulsorily Convertible Preference Shares) per Indian Companies Act 2013 and FEMA preference for cross-border equity. Founders hold dual-class voting common (5x voting, identical economic rights — modeled as one economic class). Side letters introduce a super-pro-rata investor right that contradicts a clean reading of the cap table."
+  },
+  "share_classes": [
+    {
+      "name": "Founders Common (Class A)",
+      "type": "common",
+      "shares_outstanding": 4000000,
+      "issue_price_inr": 0.01,
+      "issue_date": "2022-04-12",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "voting_differential": "5x — Class A founders' shares carry 5 votes per share; identical economic rights to ordinary common. Modeled as one economic class for waterfall (per VIMA / Cyril Amarchand commentary on Indian dual-class structures).",
+      "instrument_subtype": "dual_class_voting_common"
+    },
+    {
+      "name": "Series Seed CCPS",
+      "type": "preferred",
+      "shares_outstanding": 1000000,
+      "issue_price_inr": 50.00,
+      "issue_date": "2022-08-30",
+      "seniority_rank": 3,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_inr": 50000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "full_ratchet",
+        "_planted_note": "G03-A: rare clause; trace to 2022 distressed bridge negotiation. Affects conversion ratio if a future down-round occurs at lower price-per-share. Does not affect waterfall at this valuation date because no down-round has occurred."
+      },
+      "conversion_ratio": 1.0,
+      "participation": null,
+      "instrument_subtype": "ccps"
+    },
+    {
+      "name": "Series A CCPS",
+      "type": "preferred",
+      "shares_outstanding": 2500000,
+      "issue_price_inr": 100.00,
+      "issue_date": "2024-01-18",
+      "seniority_rank": 2,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_inr": 250000000,
+        "type": "participating_capped",
+        "cap_multiple": 3.0,
+        "cap_amount_inr": 750000000
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": {
+        "mode": "with_cap",
+        "cap_multiple_of_lp": 3.0,
+        "_planted_note": "G03-B: participating-with-cap is the central edge-case mechanic for this fixture. Above the cap, Series A elects pure conversion to common (forgoing LP+participation). This produces additional breakpoints in the waterfall."
+      },
+      "instrument_subtype": "ccps"
+    },
+    {
+      "name": "Series B CCPS",
+      "type": "preferred",
+      "shares_outstanding": 3500000,
+      "issue_price_inr": 250.00,
+      "issue_date": "2026-04-15",
+      "seniority_rank": 1,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_inr": 875000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null,
+      "instrument_subtype": "ccps"
+    },
+    {
+      "name": "Option Pool (Granted)",
+      "type": "option_pool_granted",
+      "shares_outstanding": 1200000,
+      "issue_price_inr": null,
+      "issue_date": "2025-11-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    },
+    {
+      "name": "Option Pool (Reserved)",
+      "type": "option_pool_reserved",
+      "shares_outstanding": 800000,
+      "issue_price_inr": null,
+      "issue_date": "2026-04-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    }
+  ],
+  "side_letters": [
+    {
+      "id": "SL03-01",
+      "title": "Founders' Class A — Dual-Class Voting",
+      "summary": "Founders hold 4,000,000 shares of Class A Common with 5x voting rights and identical economic rights to ordinary common. Per VIMA / Cyril Amarchand commentary on Indian dual-class structures, this is modeled as a single economic class for waterfall purposes."
+    },
+    {
+      "id": "SL03-02",
+      "title": "Super pro-rata side letter — Series B strategic investor",
+      "summary": "A strategic Series B investor holding ₹400M of the ₹875M Series B round has been granted a 1.5x super pro-rata right in the next preferred financing. This affects future-round dilution modeling but does not affect the present-date waterfall.",
+      "_planted_note": "G03-C: super-pro-rata is a forward-looking right; tool flags it for the analyst to capture in the audit memo's 'subsequent events' section."
+    },
+    {
+      "id": "SL03-03",
+      "title": "Series Seed full-ratchet provenance memo",
+      "summary": "Full-ratchet anti-dilution on Series Seed traces to a 2022 distressed bridge round when the company was 6 months from running out of capital and the bridge investor demanded down-round protection. The clause has not yet been triggered (no down-round has occurred). Documented for audit memo footnote."
+    }
+  ],
+  "safes_outstanding": [],
+  "warrants_outstanding": [],
+  "convertible_notes_outstanding": [],
+  "_fixture_design_notes": {
+    "purpose": "SEA edge case demonstrating participating-with-cap, full-ratchet anti-dilution (documented but not triggered), CCPS instrument type, and dual-class voting common.",
+    "math_complexity": "Highest of three fixtures. Eight breakpoints due to participating-with-cap interactions. Verifier test exists in tests/test_fixture_03_participating.py.",
+    "checklist_findings_planted": [
+      "G03-A: full-ratchet anti-dilution flagged for memo footnote (no waterfall impact at this date)",
+      "G03-B: participating-with-cap on A flagged for breakpoint walkthrough section",
+      "G03-C: super-pro-rata side letter flagged for subsequent-events tracking",
+      "G03-D: dual-class voting differential flagged in disclosures section"
+    ]
+  }
+}

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Waterfall — {{ cap_table.company.name }}{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <p class="section-title">Liquidation waterfall</p>
+  <h2 style="margin-bottom: 4px;">{{ cap_table.company.name }}</h2>
+  <p class="muted" style="margin: 0 0 16px;">
+    Total LP: {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(waterfall.lp_total) }}
+    &middot; Fully diluted: {{ waterfall.total_fully_diluted_shares|commas }} shares
+    &middot; {{ waterfall.breakpoints|length }} breakpoints
+  </p>
+</div>
+
+<div class="card">
+  <h2>Cumulative payout per class</h2>
+  <p class="description">Y-axis: cumulative payout to each class as exit value (X-axis) increases. Slope changes occur at breakpoints. This is the same data the OPM Backsolve consumes when treating each tranche as a separate option strike.</p>
+  <div style="height: 360px;">
+    <canvas id="payoutChart"></canvas>
+  </div>
+</div>
+
+<script>
+(function() {
+  const payload = {{ chart_json|safe }};
+  const ctx = document.getElementById("payoutChart").getContext("2d");
+  const locale = (payload.currency === "INR") ? "en-IN" : "en-US";
+  const inrCompact = (v) => {
+    if (Math.abs(v) >= 1e7) return (v / 1e7).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + " Cr";
+    if (Math.abs(v) >= 1e5) return (v / 1e5).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + " L";
+    return v.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  };
+  const fmt = (v) => {
+    if (payload.currency === "INR") return payload.currency_symbol + inrCompact(v);
+    return payload.currency_symbol + new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(v);
+  };
+  const breakpointAnnotations = {};
+  // Stagger BP labels along the y-axis so adjacent ones don't collide.
+  // Even indices ride along the top, odd indices sit just below.
+  payload.breakpoints.slice(1).forEach((bp, i) => {
+    const yPos = i % 2 === 0 ? "start" : "end";
+    breakpointAnnotations["bp" + i] = {
+      type: "line",
+      xMin: bp.value, xMax: bp.value,
+      borderColor: "rgba(15, 23, 42, 0.28)",
+      borderWidth: 1, borderDash: [4, 4],
+      label: {
+        display: true,
+        content: bp.id,
+        position: yPos,
+        yAdjust: i % 2 === 0 ? 0 : 0,
+        backgroundColor: "rgba(241, 245, 249, 0.95)",
+        color: "#334155",
+        font: { size: 10, family: "'JetBrains Mono', monospace" },
+        padding: { top: 2, bottom: 2, left: 4, right: 4 },
+        borderRadius: 2
+      }
+    };
+  });
+  new Chart(ctx, {
+    type: "line",
+    data: { datasets: payload.datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: "index" },
+      plugins: {
+        legend: { position: "right", align: "start", labels: { boxWidth: 12, font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            title: (items) => "Exit value: " + fmt(items[0].parsed.x),
+            label: (ctx) => ctx.dataset.label + ": " + fmt(ctx.parsed.y)
+          }
+        },
+        annotation: { annotations: breakpointAnnotations }
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: { display: true, text: "Exit value (" + payload.currency_symbol + ")", font: { size: 12 } },
+          ticks: { callback: (v) => fmt(v), font: { size: 11 } },
+          grid: { color: "rgba(0,0,0,0.05)" }
+        },
+        y: {
+          title: { display: true, text: "Cumulative payout to class", font: { size: 12 } },
+          ticks: { callback: (v) => fmt(v), font: { size: 11 } },
+          grid: { color: "rgba(0,0,0,0.05)" }
+        }
+      }
+    }
+  });
+})();
+</script>
+
+<div class="card">
+  <h2>What-if scenario</h2>
+  <p class="description">Adjust share counts or LP multiples to see how breakpoints, LP total, and tranche structure shift. Scenario is in-memory only — does not modify the saved cap table or its exports. Use this for sensitivity rehearsal before a partner conversation; commit nothing.</p>
+  <form
+    hx-post="{{ url_for('whatif', token=token) }}"
+    hx-target="#whatif-result"
+    hx-trigger="input changed delay:400ms"
+    hx-swap="innerHTML"
+    style="margin-bottom: 16px;"
+  >
+    <table class="data" style="font-size: 12px;">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th class="num">Shares (override)</th>
+          <th class="num">LP multiple (override)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sc in cap_table.share_classes if not sc.excluded_from_waterfall %}
+        <tr>
+          <td><strong>{{ sc.name }}</strong> <span class="muted" style="font-size: 11px;">({{ sc.type.value }})</span></td>
+          <td class="num">
+            <input
+              type="number"
+              name="shares_{{ sc.name }}"
+              value="{{ sc.shares_outstanding }}"
+              step="1000"
+              min="0"
+              style="width: 140px; font-family: var(--font-mono); text-align: right;"
+            />
+            <div class="muted" style="font-size: 10px;">baseline {{ sc.shares_outstanding|commas }}</div>
+          </td>
+          <td class="num">
+            {% if sc.type.value == 'preferred' and sc.liquidation_preference %}
+              <input
+                type="number"
+                name="lp_mult_{{ sc.name }}"
+                value="{{ sc.liquidation_preference.multiple }}"
+                step="0.25"
+                min="0"
+                style="width: 90px; font-family: var(--font-mono); text-align: right;"
+              />
+              <div class="muted" style="font-size: 10px;">baseline {{ sc.liquidation_preference.multiple }}×</div>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted" style="margin: 8px 0 0; font-size: 11px;">Updates auto-recompute 400ms after the last edit. Reset by reloading the page.</p>
+  </form>
+  <div id="whatif-result">
+    <p class="muted" style="font-size: 12px; margin: 0;">No overrides applied — adjust an input above to see the scenario.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Breakpoints</h2>
+  <p class="description">Equity values at which a marginal $1 of exit value transitions from one beneficiary to another. Each breakpoint is a separate strike for downstream OPM Backsolve purposes.</p>
+  {% for bp in waterfall.breakpoints %}
+  <div class="breakpoint-row">
+    <div class="id">{{ bp.id }}</div>
+    <div class="value">{{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(bp.value) }}</div>
+    <div class="event">{{ bp.event }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h2>Tranche allocation matrix</h2>
+  <p class="description">Fraction of marginal $1 going to each share class within each tranche. Sum of each row's allocation = 100%.</p>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Tranche</th>
+        <th>Range</th>
+        <th>Description</th>
+        {% for sc in cap_table.share_classes %}
+          {% if not sc.excluded_from_waterfall %}
+          <th class="num">{{ sc.name }}</th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in waterfall.tranches %}
+      <tr>
+        <td><strong>{{ t.id }}</strong></td>
+        <td class="num">
+          {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(t.range_low) }}
+          {% if t.range_high is not none %}
+            &rarr; {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(t.range_high) }}
+          {% else %}
+            &rarr; ∞
+          {% endif %}
+        </td>
+        <td style="font-size: 12px; color: var(--slate-600);">{{ t.description }}</td>
+        {% for sc in cap_table.share_classes %}
+          {% if not sc.excluded_from_waterfall %}
+            {% set pct = t.marginal_allocation_pct.get(sc.name, 0) %}
+            <td class="num{% if pct == 0 %} muted{% endif %}">
+              {% if pct > 0 %}{{ "%.2f"|format(pct) }}%{% else %}—{% endif %}
+            </td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if waterfall.conversion_thresholds or waterfall.cap_reach_thresholds or waterfall.pure_conversion_thresholds %}
+<div class="card">
+  <h2>Conversion economics</h2>
+  <p class="description">Equity values at which each preferred class is indifferent between holding its preference and converting to common. These are the values that trigger the breakpoints above.</p>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th>Conversion threshold</th>
+        <th>Cap reached at</th>
+        <th>Pure-converts at</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sc in cap_table.preferred_classes_by_seniority %}
+      <tr>
+        <td><strong>{{ sc.name }}</strong></td>
+        <td class="num">
+          {% if sc.name in waterfall.conversion_thresholds %}
+            {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(waterfall.conversion_thresholds[sc.name]) }}
+          {% else %}
+            <span class="muted">n/a</span>
+          {% endif %}
+        </td>
+        <td class="num">
+          {% if sc.name in waterfall.cap_reach_thresholds %}
+            {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(waterfall.cap_reach_thresholds[sc.name]) }}
+          {% else %}
+            <span class="muted">n/a</span>
+          {% endif %}
+        </td>
+        <td class="num">
+          {% if sc.name in waterfall.pure_conversion_thresholds %}
+            {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(waterfall.pure_conversion_thresholds[sc.name]) }}
+          {% else %}
+            <span class="muted">n/a</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card method-footer">
+  <p class="section-title">Methodology</p>
+  <ul class="method-list">
+    <li>Liquidation preference cumulative breakpoints — NVCA Model Certificate of Incorporation, Article IV §2 (Liquidation Preference).</li>
+    <li>Conversion-threshold computation — Aranca, "OPM Backsolve worked example for Series B with 1x non-participating preferred"; Plante Moran, "Common stock value at the breakpoint."</li>
+    <li>Participating-with-cap regime transitions — NVCA Model Charter §2.2 (Participation) and Eqvista's "participating preferred with cap" three-regime treatment.</li>
+    <li>Indian CCPS treated as preferred with mandatory conversion at exit — Companies Act 2013, §55; Cyril Amarchand commentary on CCPS waterfall mechanics.</li>
+    <li>Reserved (unallocated) option pool excluded from waterfall per market practice; granted-options pool participates as common.</li>
+  </ul>
+  <p class="muted" style="margin-top: 12px;">This page reports breakpoints only. It does not produce a fair-value, an OPM Backsolve, or a 409A. Each breakpoint becomes a separate option strike in any downstream OPM step.</p>
+</div>
+
+{% if explanations %}
+<div class="card">
+  <h2>Breakpoint math walk-through</h2>
+  <p class="description">For audit-memo defensibility, the derivation of every breakpoint is shown below. The tool exposes its math rather than hiding it behind a black box — every step traces to the cap-table inputs above.</p>
+  {% for e in explanations %}
+  <div class="finding info" style="border-left-color: var(--blue-500);">
+    <div class="header-row">
+      <span class="code">{{ e.id }}</span>
+      <span class="muted" style="font-size: 11px;">{{ "%.0f"|format(e.value) | int | commas }} {{ cap_table.company.currency }}</span>
+    </div>
+    <div class="summary"><strong>{{ e.event }}</strong></div>
+    <div class="detail">{{ e.formula }}</div>
+    {% if e.steps %}
+    <ul style="margin: 6px 0 0 0; padding-left: 18px; font-family: var(--font-mono); font-size: 12px; color: var(--slate-700); line-height: 1.7;">
+      {% for s in e.steps %}<li>{{ s }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+  <a class="btn secondary" href="{{ url_for('review', token=token) }}">&larr; Back to review</a>
+  <a class="btn secondary" href="{{ url_for('compare', token=token) }}" title="Side-by-side diff of cap table and breakpoints between first parse and current state after analyst resolutions.">Before vs after resolutions</a>
+  <a class="btn" href="{{ url_for('export_live_xlsx', token=token) }}" title="Live formula workbook — edit input cells in Excel and watch breakpoints, allocations, and chart update.">Export Excel (live formulas)</a>
+  <a class="btn secondary" href="{{ url_for('export_xlsx', token=token) }}" title="Static snapshot — every cell is a number, no formulas.">Export Excel (static)</a>
+  <a class="btn secondary" href="{{ url_for('export_audit_memo', token=token) }}" title="Markdown audit-memo skeleton with structured facts pre-filled and explicit [ANALYST: ...] judgment placeholders.">Export audit memo (.md)</a>
+  <a class="btn secondary" href="{{ url_for('export_json', token=token) }}">Export JSON</a>
+  <a class="btn" href="{{ url_for('export_bundle_zip', token=token) }}" title="One zip with json + static xlsx + live xlsx + audit memo. Single-click handoff.">Bundle (.zip)</a>
+</div>
+<p class="muted" style="margin-top: 8px; font-size: 12px;">The live formula workbook lets the analyst edit share counts, prices, LP multiples, or option-pool sizes in Excel and see the breakpoints, allocation matrix, and cumulative-payout chart update immediately — no Python runtime needed. Validity caveat: structural changes (LP type, seniority, participation cap presence) require a fresh export.</p>
+{% endblock %}

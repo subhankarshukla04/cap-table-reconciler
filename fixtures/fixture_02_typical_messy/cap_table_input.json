@@ -1,0 +1,151 @@
+{
+  "company": {
+    "name": "Pelaut Logistics Pte. Ltd.",
+    "jurisdiction": "Singapore",
+    "sector": "Cross-border logistics SaaS (SEA)",
+    "stage": "Series B",
+    "valuation_date": "2026-04-30",
+    "summary": "Fictional Indonesian-Singaporean logistics SaaS. NVCA-vanilla preferred structure across all rounds (1x non-participating, broad-based weighted-average anti-dilution), but the cap table file itself is messy: stale option pool grant dates, unrecorded SAFE conversions, an unrecorded vendor warrant, and an MFN side letter with no terms entered. This fixture exercises the gap-detection checklist."
+  },
+  "share_classes": [
+    {
+      "name": "Founders Common",
+      "type": "common",
+      "shares_outstanding": 5000000,
+      "issue_price_usd": 0.0001,
+      "issue_date": "2021-09-12",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    },
+    {
+      "name": "Series Seed Preferred",
+      "type": "preferred",
+      "shares_outstanding": 1500000,
+      "issue_price_usd": 0.40,
+      "issue_date": "2022-11-04",
+      "seniority_rank": 3,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 600000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null
+    },
+    {
+      "name": "Series A Preferred",
+      "type": "preferred",
+      "shares_outstanding": 3000000,
+      "issue_price_usd": 1.50,
+      "issue_date": "2024-02-08",
+      "seniority_rank": 2,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 4500000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": null,
+        "_planted_gap": "G02-05: anti-dilution variant unspecified — to be flagged by checklist"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null
+    },
+    {
+      "name": "Series B Preferred",
+      "type": "preferred",
+      "shares_outstanding": 4000000,
+      "issue_price_usd": 4.00,
+      "issue_date": "2026-03-15",
+      "seniority_rank": 1,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 16000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null
+    },
+    {
+      "name": "Option Pool (Granted)",
+      "type": "option_pool_granted",
+      "shares_outstanding": 1200000,
+      "issue_price_usd": null,
+      "issue_date": "2025-03-01",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "note": "Last grant date 2025-03-01, BEFORE Series B closed 2026-03-15. Stale.",
+      "_planted_gap": "G02-01: stale option pool grant date — last grant precedes most recent funding round"
+    },
+    {
+      "name": "Option Pool (Reserved)",
+      "type": "option_pool_reserved",
+      "shares_outstanding": 800000,
+      "issue_price_usd": null,
+      "issue_date": "2026-03-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "note": "Reserved at Series B closing. Excluded from waterfall."
+    }
+  ],
+  "side_letters": [
+    {
+      "id": "SL02-01",
+      "title": "MFN — Strategic Investor (Series B)",
+      "summary": "MFN clause grants the Series B strategic investor the right to elect any more-favorable economic terms granted to a subsequent investor. The clause is broad-but-undefined; specific scope must be confirmed with counsel.",
+      "body": "Section 4.1 (Most-Favored-Nation). If the Company issues equity securities to any subsequent investor on terms more favorable in the aggregate than the terms set forth in the Series B Stock Purchase Agreement (including without limitation any preferred return rate, anti-dilution variant, redemption right, conversion ratio adjustment, board observer right, or information right), the Investor shall have the right, upon written notice within thirty (30) days of receiving disclosure of such issuance, to elect to substitute the more-favorable terms for the corresponding terms in this Agreement on a clause-by-clause basis. The Investor may elect to apply this MFN right selectively (i.e., adopting some but not all more-favorable terms).",
+      "unresolved_questions": [
+        "Does the MFN cover anti-dilution variant, or only economic preference terms?",
+        "Is the 30-day notice window measured from issuance, from disclosure, or from closing?",
+        "Does 'more favorable in the aggregate' permit clause-by-clause cherry-picking, or only whole-package election?"
+      ],
+      "_planted_gap": "G02-04: MFN side letter has prose but scope (which terms it covers) is undefined"
+    }
+  ],
+  "safes_outstanding": [
+    {
+      "id": "SAFE-2024-A",
+      "principal_usd": 500000,
+      "valuation_cap_usd": 4500000,
+      "discount_rate": null,
+      "issue_date": "2024-08-12",
+      "_planted_gap": "G02-02a: SAFE issued 2024-08; should have converted at Series B closing per its trigger; not reflected as Series B shares on cap table tab"
+    },
+    {
+      "id": "SAFE-2024-B",
+      "principal_usd": 500000,
+      "valuation_cap_usd": 4500000,
+      "discount_rate": null,
+      "issue_date": "2024-09-04",
+      "_planted_gap": "G02-02b: same as 2024-A — should have converted; not reflected"
+    }
+  ],
+  "warrants_outstanding": [
+    {
+      "id": "WAR02-01",
+      "holder": "Northstar Marketing Pte. Ltd.",
+      "shares": 50000,
+      "share_class": "Common",
+      "strike_price_usd": 0.10,
+      "issue_date": "2025-06-15",
+      "expiry_date": "2030-06-15",
+      "_planted_gap": "G02-03: vendor warrant referenced in side letter; not recorded in cap table tab"
+    }
+  ],
+  "convertible_notes_outstanding": []
+}

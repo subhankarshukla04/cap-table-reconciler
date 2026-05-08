@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block title %}Review — Cap Table Reconciler{% endblock %}
+
+{% block content %}
+{% set b = findings|selectattr('severity', 'equalto', 'blocker')|list|length %}
+{% set w = findings|selectattr('severity', 'equalto', 'warning')|list|length %}
+{% set i = findings|selectattr('severity', 'equalto', 'info')|list|length %}
+
+<div class="narrator">
+  <strong>{{ cap_table.company.name }}{% if not cap_table.company.name.endswith('.') %}.{% endif %}</strong>
+  Parsed {{ cap_table.share_classes|length }} share classes
+  {% if cap_table.side_letters %}+ {{ cap_table.side_letters|length }} side letter{% if cap_table.side_letters|length > 1 %}s{% endif %}{% endif %}
+  {% if cap_table.safes_outstanding %}+ {{ cap_table.safes_outstanding|length }} SAFE{% if cap_table.safes_outstanding|length > 1 %}s{% endif %}{% endif %}
+  {% if cap_table.warrants_outstanding %}+ {{ cap_table.warrants_outstanding|length }} warrant{% if cap_table.warrants_outstanding|length > 1 %}s{% endif %}{% endif %}.
+  {% if b == 0 and w == 0 and i == 0 %}
+    Checklist found no issues — proceed to the waterfall.
+  {% else %}
+    Checklist returned
+    {% if b > 0 %}<strong>{{ b }} blocker{% if b > 1 %}s{% endif %}</strong>{% endif %}{% if b > 0 and (w > 0 or i > 0) %}, {% endif %}
+    {% if w > 0 %}{{ w }} warning{% if w > 1 %}s{% endif %}{% endif %}{% if w > 0 and i > 0 %}, {% endif %}
+    {% if i > 0 %}{{ i }} info-level note{% if i > 1 %}s{% endif %}{% endif %}.
+    The waterfall below computes assuming each blocker has been adjudicated by the analyst; clean structured output is available for export.
+  {% endif %}
+</div>
+
+<div class="card">
+  <p class="section-title">Subject company</p>
+  <h2 style="margin-bottom: 4px;">{{ cap_table.company.name }}</h2>
+  <p class="muted" style="margin: 0 0 16px;">
+    {% if cap_table.company.sector %}{{ cap_table.company.sector }} &middot; {% endif %}
+    {% if cap_table.company.jurisdiction %}{{ cap_table.company.jurisdiction }} &middot; {% endif %}
+    {% if cap_table.company.stage %}{{ cap_table.company.stage }}{% endif %}
+  </p>
+  <dl class="kv-grid">
+    {% if cap_table.company.valuation_date %}
+    <dt>Valuation date</dt><dd>{{ cap_table.company.valuation_date }}</dd>
+    {% endif %}
+    <dt>Currency</dt><dd>{{ cap_table.company.currency }} ({{ cap_table.company.currency_symbol }})</dd>
+    <dt>Total fully diluted</dt><dd class="num" style="font-family: 'JetBrains Mono', monospace;">{{ cap_table.total_fully_diluted_for_waterfall|commas }} shares</dd>
+    <dt>Share classes</dt><dd>{{ cap_table.share_classes|length }}</dd>
+    <dt>Side letters</dt><dd>{{ cap_table.side_letters|length }}</dd>
+    <dt>SAFEs outstanding</dt><dd>{{ cap_table.safes_outstanding|length }}</dd>
+    <dt>Warrants outstanding</dt><dd>{{ cap_table.warrants_outstanding|length }}</dd>
+  </dl>
+</div>
+
+{% if parse_report and parse_report.column_mapping %}
+<div class="card">
+  <h2>Detected column mapping</h2>
+  <p class="description">Header heuristics matched these columns from the upload. The parser also normalized inconsistent date formats, currency symbols, and instrument-type spellings (e.g., <code>ccps</code> &rarr; <code>preferred</code>).</p>
+  <table class="data">
+    <thead><tr><th>Field</th><th>Detected header</th></tr></thead>
+    <tbody>
+      {% for field, header in parse_report.column_mapping.items() %}
+      <tr><td><code>{{ field }}</code></td><td>{{ header }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if parse_report.unmapped_headers %}
+    <p class="muted" style="margin-top: 16px;">Unmapped columns (preserved verbatim): {{ parse_report.unmapped_headers|join(", ") }}</p>
+  {% endif %}
+  {% if parse_report.warnings %}
+    <p class="section-title" style="margin-top: 20px;">Parser handled</p>
+    <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: var(--slate-700); line-height: 1.7;">
+      {% for w in parse_report.warnings %}
+      <li><code>{{ w.code }}</code> — {{ w.message }}{% if w.sheet %} <span class="muted">({{ w.sheet }}{% if w.row %}, row {{ w.row }}{% endif %})</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if raw_excerpt %}
+<div class="card">
+  <h2>Raw upload &rarr; cleaned output</h2>
+  <p class="description">Left: first rows of the uploaded <code>{{ raw_excerpt.sheet }}</code> tab as the parser saw them. Right: the structured cleaned form. Date strings are normalized to ISO-8601, instrument-type aliases are coerced to the canonical enum, and currency symbols are stripped from numeric fields.</p>
+  <div class="raw-vs-clean">
+    <div>
+      <h3>Raw rows ({{ raw_excerpt.rows|length }} shown)</h3>
+      <div class="pane">{% for row in raw_excerpt.rows %}{{ row|join(" | ") }}
+{% endfor %}</div>
+    </div>
+    <div>
+      <h3>Cleaned</h3>
+      <div class="pane clean">{% for sc in cap_table.share_classes %}{{ "%-26s"|format(sc.name) }} | {{ "%-22s"|format(sc.type.value) }} | {{ "%12s"|format(sc.shares_outstanding|commas) }} | {% if sc.issue_price %}{{ "%9.4f"|format(sc.issue_price) }}{% else %}{{ "%9s"|format("—") }}{% endif %} | {{ "%10s"|format(sc.issue_date or "—") }}
+{% endfor %}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Cap table</h2>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th>Type</th>
+        <th class="num">Shares</th>
+        <th class="num">Issue price</th>
+        <th>Issue date</th>
+        <th class="center">Seniority</th>
+        <th>Liquidation preference</th>
+        <th>Anti-dilution</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sc in cap_table.share_classes %}
+      <tr>
+        <td><strong>{{ sc.name }}</strong>{% if sc.instrument_subtype and sc.instrument_subtype != sc.type.value %}<br><span class="muted" style="font-size: 11px;">{{ sc.instrument_subtype }}</span>{% endif %}</td>
+        <td>{{ sc.type.value }}</td>
+        <td class="num">{{ sc.shares_outstanding|commas }}</td>
+        <td class="num">{% if sc.issue_price %}{{ cap_table.company.currency_symbol }}{{ "%.4f"|format(sc.issue_price) }}{% else %}—{% endif %}</td>
+        <td>{% if sc.issue_date %}{{ sc.issue_date }}{% else %}—{% endif %}</td>
+        <td class="center">{% if sc.type.value == 'preferred' %}{{ sc.seniority_rank }}{% else %}—{% endif %}</td>
+        <td>
+          {% if sc.liquidation_preference %}
+            {{ sc.liquidation_preference.multiple }}x {{ sc.liquidation_preference.type.value|replace('_', ' ') }}
+            {% if sc.liquidation_preference.cap_multiple %} — cap {{ sc.liquidation_preference.cap_multiple }}x{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if sc.anti_dilution and sc.anti_dilution.variant %}
+            {{ sc.anti_dilution.variant.value|replace('_', ' ') }}
+          {% else %}<span class="muted">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if resolutions %}
+<div class="card">
+  <h2>Analyst resolutions <span class="tag success" style="margin-left: 8px;">{{ resolutions|length }} applied</span></h2>
+  <p class="description">In-session adjudications applied to the cap table. The waterfall and checklist below have been recomputed.</p>
+  {% for r in resolutions %}
+  <div class="finding info" style="border-left-color: var(--green-600);">
+    <div class="header-row">
+      <span class="tag success">resolved</span>
+      <span class="code">{{ r.code }}</span>
+    </div>
+    <div class="summary">{{ r.summary }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>
+    Findings
+    {% if b > 0 %}<span class="tag blocker" style="margin-left: 8px;">{{ b }} blocker{% if b > 1 %}s{% endif %}</span>{% endif %}
+    {% if w > 0 %}<span class="tag warning" style="margin-left: 4px;">{{ w }} warning{% if w > 1 %}s{% endif %}</span>{% endif %}
+    {% if i > 0 %}<span class="tag info" style="margin-left: 4px;">{{ i }} info</span>{% endif %}
+    {% if (b+w+i) == 0 %}<span class="tag success" style="margin-left: 8px;">no issues</span>{% endif %}
+  </h2>
+  <p class="description">
+    Each finding is rule-based and deterministic. Severity guidance: <strong>blocker</strong> = data missing that breaks audit defensibility; <strong>warning</strong> = anomaly to confirm; <strong>info</strong> = unusual structure to document in the audit memo.
+  </p>
+
+  {% if findings|length == 0 %}
+    <p class="muted" style="font-style: italic;">No gaps detected. Proceed to the waterfall.</p>
+  {% endif %}
+
+  {% for f in findings %}
+  <div class="finding {{ f.severity }}">
+    <div class="header-row">
+      <span class="tag {{ f.severity }}">{{ f.severity }}</span>
+      <span class="code">{{ f.code }}</span>
+      <span class="muted" style="font-size: 11px;">{{ f.category|replace('_', ' ') }}</span>
+    </div>
+    <div class="summary">{{ f.summary }}</div>
+    {% if f.detail %}<div class="detail">{{ f.detail }}</div>{% endif %}
+
+    {% if f.code.startswith('SAFE-UNCONVERTED-') %}
+      {% set safe_id = f.code|replace('SAFE-UNCONVERTED-', '') %}
+      {% set matching_safe = (cap_table.safes_outstanding|selectattr('id', 'equalto', safe_id)|list|first) %}
+      {% if matching_safe %}
+      <form class="resolve-form" method="post" action="{{ url_for('resolve_safe', token=token, safe_id=safe_id) }}">
+        <p style="margin: 0 0 4px; font-weight: 600; color: var(--slate-800);">Resolve in-session</p>
+        <p class="muted" style="margin: 0 0 6px; font-size: 12px;">
+          Suggested conversion: principal {{ matching_safe.principal|commas }} ÷ min(round price, cap-implied price) = analyst-computed share count.
+        </p>
+        <div class="row">
+          <div>
+            <label>Resulting shares</label>
+            <input type="number" name="shares" step="1" min="1" placeholder="e.g. 222222" required>
+          </div>
+          <div>
+            <label>Add to share class</label>
+            <select name="target_class" required>
+              {% for sc in cap_table.share_classes if sc.type.value == 'preferred' %}
+              <option value="{{ sc.name }}">{{ sc.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label>Memo (optional)</label>
+            <input type="text" name="note" placeholder="e.g. converted at $4.50 cap-implied">
+          </div>
+          <button class="btn" type="submit">Apply &amp; recompute</button>
+        </div>
+      </form>
+      {% endif %}
+    {% endif %}
+
+    {% if f.code.startswith('AD-MISSING-') %}
+      {% set class_name = f.code|replace('AD-MISSING-', '') %}
+      <form class="resolve-form" method="post" action="{{ url_for('resolve_anti_dilution', token=token, class_name=class_name) }}">
+        <p style="margin: 0 0 4px; font-weight: 600; color: var(--slate-800);">Resolve in-session</p>
+        <p class="muted" style="margin: 0 0 6px; font-size: 12px;">
+          Pull the variant from the charter or the SHA. Broad-based weighted-average is the SEA/US default; full ratchet is a red flag worth a memo footnote.
+        </p>
+        <div class="row">
+          <div>
+            <label>Variant (from charter)</label>
+            <select name="variant" required>
+              <option value="broad_based_weighted_average">broad-based weighted-average</option>
+              <option value="narrow_based_weighted_average">narrow-based weighted-average</option>
+              <option value="full_ratchet">full ratchet</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 240px;">
+            <label>Source citation (optional)</label>
+            <input type="text" name="citation" placeholder="e.g. Charter §4.3(a), as amended 2024-09">
+          </div>
+          <button class="btn" type="submit">Apply &amp; recompute</button>
+        </div>
+      </form>
+    {% endif %}
+
+    {% if f.code.startswith('WARRANT-') and not f.code.startswith('WARRANT-EXC') %}
+      {% set warrant_id = f.code|replace('WARRANT-', '') %}
+      {% set matching_warrant = (cap_table.warrants_outstanding|selectattr('id', 'equalto', warrant_id)|list|first) %}
+      {% if matching_warrant %}
+      <form class="resolve-form" method="post" action="{{ url_for('resolve_warrant', token=token, warrant_id=warrant_id) }}">
+        <p style="margin: 0 0 4px; font-weight: 600; color: var(--slate-800);">Resolve in-session</p>
+        <p class="muted" style="margin: 0 0 6px; font-size: 12px;">
+          Strike {{ cap_table.company.currency_symbol }}{{ "%.4f"|format(matching_warrant.strike_price) }} on {{ matching_warrant.shares|commas }} {{ matching_warrant.share_class }} shares. Treasury method is industry default; deep-ITM warrants typically added to FD count.
+        </p>
+        <div class="row">
+          <div>
+            <label>Action</label>
+            <select name="action" required>
+              <option value="add_as_shares">Add to fully-diluted</option>
+              <option value="document_exclusion">Document exclusion (memo only)</option>
+            </select>
+          </div>
+          <div>
+            <label>If adding — target class</label>
+            <select name="target_class">
+              {% for sc in cap_table.share_classes if sc.type.value in ('common', 'preferred') %}
+              <option value="{{ sc.name }}" {% if sc.name == matching_warrant.share_class %}selected{% endif %}>{{ sc.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label>Shares (override optional)</label>
+            <input type="number" name="shares" step="1" min="0" value="{{ matching_warrant.shares }}">
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label>Memo (optional)</label>
+            <input type="text" name="note" placeholder="e.g. ITM at FMV; treasury method applied">
+          </div>
+          <button class="btn" type="submit">Apply &amp; recompute</button>
+        </div>
+      </form>
+      {% endif %}
+    {% endif %}
+
+    {% if f.code.startswith('SIDE-LETTER-SCOPE-') %}
+      {% set sl_id = f.code|replace('SIDE-LETTER-SCOPE-', '') %}
+      {% set matching_sl = (cap_table.side_letters|selectattr('id', 'equalto', sl_id)|list|first) %}
+      {% if matching_sl %}
+      <form class="resolve-form" method="post" action="{{ url_for('resolve_side_letter', token=token, sl_id=sl_id) }}">
+        <p style="margin: 0 0 4px; font-weight: 600; color: var(--slate-800);">Resolve in-session</p>
+        <p class="muted" style="margin: 0 0 6px; font-size: 12px;">
+          Capture counsel's answers to the open scope questions below. Recorded answers append to the side-letter body and clear this finding.
+        </p>
+        {% if matching_sl.unresolved_questions %}
+        <ul style="margin: 0 0 8px; padding-left: 18px; font-size: 12px; color: var(--slate-700);">
+          {% for q in matching_sl.unresolved_questions %}<li>{{ q }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        <div class="row" style="flex-direction: column; align-items: stretch;">
+          <label>Adjudicated answers (one per line)</label>
+          <textarea name="resolutions_text" rows="3" required style="width: 100%; font-family: var(--font-mono); font-size: 12px; padding: 8px; border: 1px solid var(--slate-300); border-radius: 4px;" placeholder="Q1: scope is limited to Series B+ rounds, per counsel email 2026-04-12.&#10;Q2: MFN expires at IPO."></textarea>
+          <button class="btn" type="submit" style="align-self: flex-start; margin-top: 6px;">Apply &amp; recompute</button>
+        </div>
+      </form>
+      {% endif %}
+    {% endif %}
+
+    {% if f.code.startswith('POOL-STALE-') %}
+      {% set pool_name = f.code|replace('POOL-STALE-', '') %}
+      <form class="resolve-form" method="post" action="{{ url_for('resolve_pool', token=token, pool_name=pool_name) }}">
+        <p style="margin: 0 0 4px; font-weight: 600; color: var(--slate-800);">Resolve in-session</p>
+        <p class="muted" style="margin: 0 0 6px; font-size: 12px;">
+          Either document the gap (no post-round grants made) or refresh the grant date to reflect a post-round grant tranche.
+        </p>
+        <div class="row">
+          <div>
+            <label>Action</label>
+            <select name="action" required>
+              <option value="documented_in_memo">Document in memo (no grants since round)</option>
+              <option value="update_grant_date">Update most-recent grant date</option>
+            </select>
+          </div>
+          <div>
+            <label>If updating — new date</label>
+            <input type="date" name="new_date">
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label>Memo (optional)</label>
+            <input type="text" name="note" placeholder="e.g. 1.2M shares granted 2026-03-15 at refreshed FMV">
+          </div>
+          <button class="btn" type="submit">Apply &amp; recompute</button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% if cap_table.side_letters %}
+<div class="card">
+  <h2>Side letter memos</h2>
+  <p class="description">Side letters are stored verbatim. The tool does not auto-extract structured fields. The analyst is expected to read these and either enter overrides via the structured form or flag the relevant gap above.</p>
+  {% for sl in cap_table.side_letters %}
+  <div class="finding info">
+    <div class="header-row">
+      <span class="code">{{ sl.id }}</span>
+      <span class="summary">{{ sl.title }}</span>
+    </div>
+    {% if sl.summary %}<div class="detail">{{ sl.summary }}</div>{% endif %}
+    {% if sl.body %}<pre style="margin-top: 8px; padding: 12px; background: var(--slate-50); font-size: 12px; overflow-x: auto; white-space: pre-wrap;">{{ sl.body }}</pre>{% endif %}
+    {% if sl.unresolved_questions %}
+    <div style="margin-top: 8px;">
+      <p style="margin: 0 0 4px; font-size: 12px; font-weight: 600; color: var(--amber-700); text-transform: uppercase; letter-spacing: 0.04em;">Open questions for counsel</p>
+      <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: var(--slate-700);">
+        {% for q in sl.unresolved_questions %}
+        <li>{{ q }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Attach a side-letter PDF</h2>
+  <p class="description">Upload a side-letter, term sheet, or counsel memo as a PDF. The text is extracted via pdfplumber and stored verbatim — no auto-extraction, no LLM. Scanned (image-only) PDFs are not supported; export from the source application as a text PDF.</p>
+  <form method="post" action="{{ url_for('upload_side_letter', token=token) }}" enctype="multipart/form-data" class="resolve-form" style="border-left: none; padding-left: 0;">
+    <div class="row">
+      <input type="file" name="pdf" accept="application/pdf" required>
+      <button class="btn" type="submit">Import PDF</button>
+    </div>
+  </form>
+</div>
+
+<div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+  <a class="btn" href="{{ url_for('waterfall', token=token) }}">View waterfall &rarr;</a>
+  <a class="btn secondary" href="{{ url_for('diff_index') }}">Cap-table diff</a>
+  <a class="btn secondary" href="{{ url_for('export_json', token=token) }}">Export JSON</a>
+  <a class="btn secondary" href="{{ url_for('index') }}">Upload another</a>
+</div>
+{% endblock %}

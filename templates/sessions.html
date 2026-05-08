@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Sessions — Cap Table Reconciler{% endblock %}
+
+{% block content %}
+<div class="card">
+  <p class="section-title">Persisted sessions</p>
+  <h2 style="margin: 0 0 8px;">Active sessions</h2>
+  <p class="description">Every uploaded cap table and demo fixture is persisted to <code>data/sessions.db</code> so you can resume work after a server restart. Sessions are not auto-expired — clean up below as needed.</p>
+
+  {% if sessions %}
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Company</th>
+        <th>Source</th>
+        <th class="num">Classes</th>
+        <th class="num">Resolutions</th>
+        <th>Created</th>
+        <th class="center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in sessions %}
+      <tr>
+        <td><code style="font-size: 11px;">{{ s.token }}</code></td>
+        <td><strong>{{ s.company_name }}</strong></td>
+        <td>{% if s.fixture_id %}<span class="muted">{{ s.fixture_id }}</span>{% else %}<span class="tag info">upload</span>{% endif %}</td>
+        <td class="num">{{ s.n_classes }}</td>
+        <td class="num">{{ s.n_resolutions }}</td>
+        <td><span class="muted" style="font-size: 11px;">{{ s.created_at }}</span></td>
+        <td class="center">
+          <a class="btn secondary" href="{{ url_for('review', token=s.token) }}">Resume</a>
+          <form method="post" action="{{ url_for('sessions_delete', token=s.token) }}" style="display: inline;">
+            <button type="submit" class="btn secondary" onclick="return confirm('Delete session {{ s.token }}?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted" style="font-style: italic;">No persisted sessions. Upload a cap table or load a fixture to begin.</p>
+  {% endif %}
+</div>
+{% endblock %}

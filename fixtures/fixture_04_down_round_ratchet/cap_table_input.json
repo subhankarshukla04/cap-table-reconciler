@@ -1,0 +1,142 @@
+{
+  "company": {
+    "name": "Surya Foods Pvt. Ltd.",
+    "jurisdiction": "India",
+    "sector": "B2B agritech SaaS",
+    "stage": "Series A2 (down-round)",
+    "valuation_date": "2026-04-30",
+    "currency": "INR",
+    "currency_symbol": "₹",
+    "summary": "Fictional Indian agritech SaaS that took a full-ratchet anti-dilution clause on a 2022 distressed Seed round, then closed an up-round Series A in 2024, and in March 2026 was forced into a structural down-round (Series A2) at ₹30/share — well below the Seed strike of ₹50/share. The full-ratchet has TRIGGERED, adjusting the Seed conversion ratio from 1.0× to 1.667× (₹50 ÷ ₹30). The Series A is broad-based-weighted-average so the ratchet does not compound. The cap table below reflects the as-converted, post-trigger state: Seed is shown at 1,333,333 shares (800,000 × 1.667). All preferred are CCPS per Indian Companies Act 2013 §55.",
+    "_design_notes": "G04-A: this is the only fixture where a full-ratchet has actually triggered. The math compresses two breakpoints (A2 conversion threshold + adjusted-Seed conversion threshold) into a near-degenerate cluster at ~₹319M, which is a clean teaching demonstration of how ratchet protection collapses senior-junior price-per-share parity."
+  },
+  "share_classes": [
+    {
+      "name": "Founders Common",
+      "type": "common",
+      "shares_outstanding": 5000000,
+      "issue_price_inr": 0.01,
+      "issue_date": "2021-09-01",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    },
+    {
+      "name": "Series Seed CCPS",
+      "type": "preferred",
+      "shares_outstanding": 800000,
+      "issue_price_inr": 50.00,
+      "issue_date": "2022-06-15",
+      "seniority_rank": 3,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_inr": 40000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "full_ratchet",
+        "notes": "TRIGGERED 2026-03-12 by Series A2 closing at ₹30/share. Adjusted conversion ratio from 1.0× to 1.667× (₹50 ÷ ₹30). Original 800,000 shares now convert to 1,333,333 common-equivalents. LP unchanged at 1× × ₹40M = ₹40M. NVCA Model Charter §4.4(c) ratchet-formula treatment applied."
+      },
+      "conversion_ratio": 1.667,
+      "participation": null,
+      "instrument_subtype": "ccps_full_ratchet_triggered",
+      "note": "Original issue: 800,000 shares at ₹50/sh. Post-trigger: 1,333,333 common-equivalents; LP basis remains the original ₹40M raise. See SL04-02."
+    },
+    {
+      "name": "Series A CCPS",
+      "type": "preferred",
+      "shares_outstanding": 1500000,
+      "issue_price_inr": 120.00,
+      "issue_date": "2024-03-22",
+      "seniority_rank": 2,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_inr": 180000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average",
+        "notes": "Broad-based weighted-average. Triggered by Series A2 down-round but absorbed via formula adjustment, not ratchet. Net dilution adjustment is negligible at this share count and is not reflected on the cap table per market practice."
+      },
+      "conversion_ratio": 1.0,
+      "participation": null,
+      "instrument_subtype": "ccps"
+    },
+    {
+      "name": "Series A2 CCPS",
+      "type": "preferred",
+      "shares_outstanding": 2000000,
+      "issue_price_inr": 30.00,
+      "issue_date": "2026-03-12",
+      "seniority_rank": 1,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_inr": 60000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null,
+      "instrument_subtype": "ccps",
+      "note": "Down-round at ₹30/share — 75% PPS reduction vs Series A. Triggers Seed full-ratchet. Sized to clear ₹60M of operating runway through Q4 2026."
+    },
+    {
+      "name": "Option Pool (Granted)",
+      "type": "option_pool_granted",
+      "shares_outstanding": 800000,
+      "issue_price_inr": null,
+      "issue_date": "2026-03-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    },
+    {
+      "name": "Option Pool (Reserved)",
+      "type": "option_pool_reserved",
+      "shares_outstanding": 400000,
+      "issue_price_inr": null,
+      "issue_date": "2026-03-12",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    }
+  ],
+  "side_letters": [
+    {
+      "id": "SL04-01",
+      "title": "Series A2 — Pay-to-play forfeiture clause",
+      "summary": "The Series A2 term sheet includes a pay-to-play provision: existing investors who did not participate pro-rata in the A2 round forfeit their anti-dilution protection on the prior round. The Series A holders (Hercules Capital + Sequoia India) participated and retain their broad-based AD. The Seed investor (an angel syndicate) did not participate in the A2 — but the founders waived the pay-to-play forfeiture for the Seed in exchange for the angel syndicate releasing certain board observation rights.",
+      "body": "Pay-to-play (Section 4.5(d)): Any holder of preferred stock that does not participate in a Qualifying Subsequent Financing pro-rata to its holdings as of the closing of such financing shall forfeit anti-dilution rights on its existing preferred. The Series A2 round shall be deemed a Qualifying Subsequent Financing.\n\nSeries A2 Side Letter §3 (waiver): The Company hereby waives the pay-to-play forfeiture provision of Section 4.5(d) with respect to the holder(s) of Series Seed CCPS in consideration of (i) the surrender of board observation rights granted under the original Series Seed Investment Agreement, and (ii) execution of an updated drag-along consent.",
+      "unresolved_questions": [
+        "Does the pay-to-play waiver also preserve any registration rights, or only the AD protection?",
+        "Is the drag-along consent enforceable against transferees of the Seed shares, or only the original holders?"
+      ]
+    },
+    {
+      "id": "SL04-02",
+      "title": "Full-ratchet trigger memo — Series Seed",
+      "summary": "Memorialises the calculation, board approval, and counsel sign-off for the March 2026 ratchet trigger. Confirms Seed conversion ratio adjusted from 1.0× to 1.667×, increasing common-equivalent share count from 800,000 to 1,333,333. References NVCA Model Charter §4.4(c) ratchet-formula language and Cyril Amarchand opinion of 2026-03-08 on Indian Companies Act §55(2)(d) compatibility.",
+      "body": "Adjusted Conversion Price = Original Issue Price × (Original Issue Price / Down-Round Issue Price) wait — the standard NVCA full-ratchet formula is: New Conversion Price = Down-Round Issue Price (full ratchet, by definition).\n\nApplied: Original Seed Conversion Price = ₹50.00. Down-Round Issue Price (Series A2) = ₹30.00. New Seed Conversion Price = ₹30.00. New Conversion Ratio = ₹50.00 / ₹30.00 = 1.6667×. Common-equivalent shares: 800,000 × 1.6667 = 1,333,333 (rounded down per charter). Authorised by the Series Seed Investor Director on 2026-03-10. Counsel opinion: Cyril Amarchand & Mangaldas, dated 2026-03-08, ref. CAM/SUR/2026/0312."
+    }
+  ],
+  "safes_outstanding": [],
+  "warrants_outstanding": [],
+  "convertible_notes_outstanding": [],
+  "_fixture_design_notes": {
+    "purpose": "Down-round + triggered full-ratchet. The killer test for the live formula workbook (Day 2-3): conversion_ratio is a derived quantity that must update when the down-round price-per-share changes.",
+    "math_complexity": "Eight breakpoints. Two cluster at the same value (₹319M) because Seed's adjusted PPS (₹30) equals A2's PPS (₹30). This is a real-world artefact of full-ratchet protection and worth narrating in the demo.",
+    "checklist_findings_planted": [
+      "G04-A: Series Seed full-ratchet TRIGGERED (info → may upgrade if no provenance memo present)",
+      "G04-B: SL04-01 has unresolved scope questions (warning)",
+      "G04-C: down-round flag — most-recent round PPS < prior round PPS (info)"
+    ]
+  }
+}

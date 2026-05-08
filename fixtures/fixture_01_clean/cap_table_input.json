@@ -1,0 +1,108 @@
+{
+  "company": {
+    "name": "Solstice Labs Pte. Ltd.",
+    "jurisdiction": "Singapore",
+    "sector": "B2B Workflow SaaS",
+    "stage": "Series B",
+    "valuation_date": "2026-04-30",
+    "summary": "Fictional Series B SaaS, NVCA-vanilla terms across all rounds. No side letters, no SAFEs outstanding, no warrants. Used as the clean-baseline fixture demonstrating the tool's happy path."
+  },
+  "share_classes": [
+    {
+      "name": "Founders Common",
+      "type": "common",
+      "shares_outstanding": 4500000,
+      "issue_price_usd": 0.0001,
+      "issue_date": "2022-06-01",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null
+    },
+    {
+      "name": "Series Seed Preferred",
+      "type": "preferred",
+      "shares_outstanding": 2000000,
+      "issue_price_usd": 0.50,
+      "issue_date": "2023-03-15",
+      "seniority_rank": 3,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 1000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null
+    },
+    {
+      "name": "Series A Preferred",
+      "type": "preferred",
+      "shares_outstanding": 2500000,
+      "issue_price_usd": 2.00,
+      "issue_date": "2024-08-22",
+      "seniority_rank": 2,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 5000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null
+    },
+    {
+      "name": "Series B Preferred",
+      "type": "preferred",
+      "shares_outstanding": 3000000,
+      "issue_price_usd": 5.00,
+      "issue_date": "2026-04-15",
+      "seniority_rank": 1,
+      "liquidation_preference": {
+        "multiple": 1.0,
+        "amount_usd": 15000000,
+        "type": "non_participating"
+      },
+      "anti_dilution": {
+        "variant": "broad_based_weighted_average"
+      },
+      "conversion_ratio": 1.0,
+      "participation": null
+    },
+    {
+      "name": "Option Pool (Granted)",
+      "type": "option_pool_granted",
+      "shares_outstanding": 1500000,
+      "issue_price_usd": null,
+      "issue_date": "2026-04-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "note": "Granted but unexercised options. Treated as fully diluted common for waterfall."
+    },
+    {
+      "name": "Option Pool (Reserved)",
+      "type": "option_pool_reserved",
+      "shares_outstanding": 500000,
+      "issue_price_usd": null,
+      "issue_date": "2026-04-15",
+      "seniority_rank": 99,
+      "liquidation_preference": null,
+      "anti_dilution": null,
+      "conversion_ratio": null,
+      "participation": null,
+      "note": "Reserved but unallocated. Excluded from waterfall per market practice (only granted options participate in liquidation proceeds)."
+    }
+  ],
+  "side_letters": [],
+  "safes_outstanding": [],
+  "warrants_outstanding": [],
+  "convertible_notes_outstanding": []
+}

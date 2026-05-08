@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Session expired — Cap Table Reconciler{% endblock %}
+
+{% block content %}
+<div class="card">
+  <p class="section-title">Session expired</p>
+  <h2>That token is no longer in memory.</h2>
+  <p class="description">
+    Sessions are stored in-process and are wiped on every server restart — no DB, no persistence. Pick a built-in fixture below or upload a fresh cap table.
+  </p>
+  <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+    <a class="btn" href="{{ url_for('index') }}">Back to upload</a>
+    <a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_01_clean') }}">Solstice (clean)</a>
+    <a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_02_typical_messy') }}">Pelaut (messy)</a>
+    <a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_03_edge_case') }}">Bandhan (edge)</a>
+    <a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_04_down_round_ratchet') }}">Surya (ratchet)</a>
+  </div>
+  <p class="muted" style="margin-top: 24px; font-size: 12px; font-family: var(--font-mono);">expired token: {{ token }}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{
+  "_doc": "Snapshot of waterfall facts for Surya Foods Pvt. Ltd. (F04 — down-round + triggered full-ratchet). Used as a regression fixture in tests/test_fixture_04_ratchet.py. Series Seed is stored at its as-issued 800,000 shares with conversion_ratio=1.667; the engine multiplies shares × conv_ratio at conversion to derive the 1,333,333 common-equivalent count.",
+  "company": {
+    "name": "Surya Foods Pvt. Ltd.",
+    "currency": "INR",
+    "valuation_date": "2026-04-30"
+  },
+  "structural_facts": {
+    "total_fully_diluted_shares": 10100000,
+    "preferred_classes_by_seniority": [
+      {"name": "Series A2 CCPS", "rank": 1, "lp_amount_inr": 60000000.0},
+      {"name": "Series A CCPS", "rank": 2, "lp_amount_inr": 180000000.0},
+      {"name": "Series Seed CCPS", "rank": 3, "lp_amount_inr": 40000000.0}
+    ],
+    "lp_total_inr": 280000000.0,
+    "down_round_pps_inr": 30.0,
+    "prior_round_pps_inr": 120.0,
+    "ratchet_triggered": {
+      "class": "Series Seed CCPS",
+      "original_pps_inr": 50.0,
+      "adjusted_pps_inr": 30.0,
+      "original_shares": 800000,
+      "post_trigger_common_equivalent": 1333600,
+      "conversion_ratio": 1.667
+    }
+  },
+  "expected_breakpoints": [
+    {"id": "BP1", "value_inr": 0.0, "event_contains": "origin"},
+    {"id": "BP2", "value_inr": 60000000.0, "event_contains": "Series A2"},
+    {"id": "BP3", "value_inr": 240000000.0, "event_contains": "Series A"},
+    {"id": "BP4", "value_inr": 280000000.0, "event_contains": "Series Seed"},
+    {"id": "BP5", "value_inr": 319008000.0, "event_contains": "Series A2"},
+    {"id": "BP6", "value_inr": 453965207.0, "event_contains": "Series Seed"},
+    {"id": "BP7", "value_inr": 1096032000.0, "event_contains": "Series A"}
+  ],
+  "expected_findings": {
+    "blocker_count_min": 0,
+    "info_count_min": 1,
+    "must_include_codes": [
+      "AD-RATCHET-Series Seed CCPS",
+      "SIDE-LETTER-SCOPE-SL04-01"
+    ]
+  }
+}

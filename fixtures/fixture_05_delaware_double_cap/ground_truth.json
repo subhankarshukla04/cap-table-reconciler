@@ -1,0 +1,117 @@
+{
+  "fixture": "fixture_05_delaware_double_cap",
+  "company": "AeroFreight Inc.",
+  "currency": "USD",
+  "verification": {
+    "method": "engine_output_locked_after_hand_review",
+    "computed_by": "claude_code_session_2026-05-07",
+    "notes": "Two participating-capped classes at different cap multiples (A 2x, B 3x) — the engine's regime-state algorithm walks through five distinct regimes: (1) all-LP-payment, (2) both participating, (3) Series A capped + B participating, (4) Series A pure-converted + B capped, (5) both pure-converted. Five tranches collapse to four distinct payout slopes because A's cap-reach (T4 floor at $29.7M) and A's pure-conversion (T5 floor) coincide on the cap_amount = $6M. Verifier in tests/test_fixture_05_double_cap.py asserts each breakpoint and each tranche allocation."
+  },
+  "shares_summary": {
+    "founders_common": 4000000,
+    "series_a_preferred": 2000000,
+    "series_b_preferred": 3000000,
+    "option_pool_granted": 800000,
+    "option_pool_reserved_excluded": 400000,
+    "total_fully_diluted_for_waterfall": 9800000
+  },
+  "liquidation_preferences_total_usd": 15000000,
+  "liquidation_preferences_by_class_usd": {
+    "series_b_preferred": 12000000,
+    "series_a_preferred": 3000000
+  },
+  "participation_caps_total_payout_usd": {
+    "series_a_preferred": 6000000,
+    "series_b_preferred": 36000000
+  },
+  "breakpoints": [
+    {"id": "BP1", "value_usd": 0,           "event": "origin"},
+    {"id": "BP2", "value_usd": 12000000,    "event": "Series B Preferred LP satisfied"},
+    {"id": "BP3", "value_usd": 15000000,    "event": "Series A Preferred LP satisfied"},
+    {"id": "BP4", "value_usd": 29700000,    "event": "Series A Preferred participation cap reached"},
+    {"id": "BP5", "value_usd": 90400000,    "event": "Series B Preferred participation cap reached"},
+    {"id": "BP6", "value_usd": 117600000,   "event": "Series B Preferred pure-converts to common"}
+  ],
+  "tranche_allocations": [
+    {
+      "tranche_id": "T1",
+      "range_low_usd": 0,
+      "range_high_usd": 12000000,
+      "description": "Series B LP being paid",
+      "marginal_allocation_pct": {
+        "Series B Preferred": 100.0,
+        "Series A Preferred": 0.0,
+        "Founders Common": 0.0,
+        "Option Pool (Granted)": 0.0
+      }
+    },
+    {
+      "tranche_id": "T2",
+      "range_low_usd": 12000000,
+      "range_high_usd": 15000000,
+      "description": "Series A LP being paid",
+      "marginal_allocation_pct": {
+        "Series B Preferred": 0.0,
+        "Series A Preferred": 100.0,
+        "Founders Common": 0.0,
+        "Option Pool (Granted)": 0.0
+      }
+    },
+    {
+      "tranche_id": "T3",
+      "range_low_usd": 15000000,
+      "range_high_usd": 29700000,
+      "description": "Both A and B participating uncapped on a 9.8M share pool",
+      "marginal_allocation_pct": {
+        "Series B Preferred": 30.6122,
+        "Series A Preferred": 20.4082,
+        "Founders Common": 40.8163,
+        "Option Pool (Granted)": 8.1633
+      }
+    },
+    {
+      "tranche_id": "T4",
+      "range_low_usd": 29700000,
+      "range_high_usd": 90400000,
+      "description": "A pure-converted (cap reached); same 9.8M pool, A still participates as common",
+      "marginal_allocation_pct": {
+        "Series B Preferred": 30.6122,
+        "Series A Preferred": 20.4082,
+        "Founders Common": 40.8163,
+        "Option Pool (Granted)": 8.1633
+      }
+    },
+    {
+      "tranche_id": "T5",
+      "range_low_usd": 90400000,
+      "range_high_usd": 117600000,
+      "description": "B capped, A pure-converted; pool shrinks to 6.8M shares (B excluded)",
+      "marginal_allocation_pct": {
+        "Series B Preferred": 0.0,
+        "Series A Preferred": 29.4118,
+        "Founders Common": 58.8235,
+        "Option Pool (Granted)": 11.7647
+      }
+    },
+    {
+      "tranche_id": "T6",
+      "range_low_usd": 117600000,
+      "range_high_usd": null,
+      "description": "B pure-converts (cap forgone for upside); pool returns to 9.8M",
+      "marginal_allocation_pct": {
+        "Series B Preferred": 30.6122,
+        "Series A Preferred": 20.4082,
+        "Founders Common": 40.8163,
+        "Option Pool (Granted)": 8.1633
+      }
+    }
+  ],
+  "cap_reach_thresholds_usd": {
+    "Series B Preferred": 90400000,
+    "Series A Preferred": 29700000
+  },
+  "pure_conversion_thresholds_usd": {
+    "Series B Preferred": 117600000,
+    "Series A Preferred": 29400000
+  }
+}
