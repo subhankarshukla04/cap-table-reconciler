@@ -1,72 +1,60 @@
 # Cap Table Reconciler
 
-A local-first tool that ingests messy client cap-table `.xlsx` files, runs a deterministic gap-detection checklist, and produces a clean structured liquidation waterfall with breakpoints. The output is the **input layer** to your existing OPM, Backsolve, or DCF workflow — the tool itself makes zero valuation judgments.
+A small, local tool for the part of cap-table work that doesn't belong to the model — cleaning the file before any math runs.
 
-Built around the practitioner observation that cap-table cleanup is the single largest hour drain on a small valuations team, and a top reason audit memos are sent back. The fix is structural: catch missing fields *before* any math runs, refuse to compute when a blocker is open, and produce output that's defensible under audit.
+The premise is simple. Most of an analyst's day on a private-company valuation isn't spent on judgment. It's spent reconciling what the client sent: a stale option pool, a SAFE that should have converted at the last round, an MFN side letter with terms nobody transcribed, an anti-dilution column that says "see charter." This tool is the **input layer** to that work — it ingests the messy file, points at every gap, and produces structured output the analyst can hand to an OPM, Backsolve, or DCF.
 
-> **Scope discipline.** No 409A. No Backsolve solver. No fair-value computation. No LLM in the calculation pipeline. Every finding is rule-based and deterministic.
+> **It makes zero valuation judgments.** No 409A. No Backsolve. No fair-value computation. No LLM in the calculation pipeline. Every finding is rule-based and shows its citation.
 
-## What it does
+The phrasing the tool uses internally is: **expert-led, not algorithm-only.** When the file is too messy to defensibly compute on, the tool refuses and writes the punch list. That refusal — and the punch list — is the deliverable.
 
-1. **Ingest** — accepts a `.xlsx` cap table (clean or structurally messy: title rows, mid-data subtotals, footnote-prose columns, mixed date formats are all handled).
-2. **Detect gaps** — runs eight rules covering anti-dilution variant, full-ratchet trigger documentation, participating-with-cap presence, stale option pool dates, unrecorded SAFE conversions, vendor warrants, side-letter scope questions, and dual-class voting differentials.
-3. **Resolve in-session** — each blocker has an inline form: pick a variant, attach a citation, recompute. Resolutions are logged and persist with the session.
-4. **Compute the waterfall** — breakpoints (LP-cleared, conversion thresholds, participation-cap thresholds, pure-conversion thresholds), per-tranche marginal allocation matrix, conversion thresholds. Handles non-participating, participating-uncapped, participating-with-cap (including the senior-above-capped case from the NVCA worked examples).
-5. **Export** — clean structured output as JSON, static `.xlsx`, **or a live formula workbook** where the analyst can edit Inputs in Excel and watch breakpoints, allocations, and the chart update natively.
+---
 
-## Headline features
+## What you see when you use it
 
-| Feature | What it is | Why it matters |
-|---------|------------|----------------|
-| **Live formula workbook** | 8-sheet `.xlsx` with named ranges, States matrix, IF/SUMPRODUCT formulas. Edit a share count, watch the chart update. | Analyst takes the workbook home and iterates without re-running the tool. |
-| **Side-letter PDF intake** | `pdfplumber` extracts text from a side-letter PDF; attached as a `SideLetter` on the cap table. Heuristic title detection + open-question extraction. | Common ingestion path; replaces manual transcription. |
-| **Cap-table snapshot diff** | Upload two `.xlsx`, fuzzy-match share classes (Levenshtein), get a structured class-by-class delta. | Fills the audit memo's *subsequent events* section deterministically. |
-| **SQLite session persistence** | Sessions survive server restart; analyst can come back to the tab tomorrow. | No "I have to re-upload" friction during multi-day reviews. |
-| **In-session resolutions** | Each finding has an inline form (anti-dilution variant picker, warrant treasury-method toggle, side-letter scope adjudication, pool-date refresh). | Closes the blocker → recompute loop without a roundtrip to Python. |
+**1. Upload page.** Drop a `.xlsx`. Or pick one of five built-in fixtures, each modelled on a real worked example with citations to the NVCA Model Charter, Singapore VIMA, or published precedent.
+
+**2. Review page.**
+- *Parse warnings* — which sheet was detected, which columns mapped, what got skipped (subtotal rows, blank section headers, etc.).
+- *Raw upload → cleaned output* — side-by-side panel showing what the parser saw vs. the structured form it produced. Date strings normalized to ISO-8601, instrument-type aliases coerced to the canonical enum, currency symbols stripped from numeric fields.
+- *Findings & resolutions* — every gap the checklist found, sorted by severity. Each one has an inline form: pick a variant, paste counsel's answer, attach a citation, recompute. Blockers (e.g. unconverted SAFEs, missing AD variant, side-letter scope unresolved) prevent the waterfall from running until adjudicated.
+- *Side-letter intake* — drop a PDF; it's extracted, any open questions are surfaced, and the analyst records counsel's answers in-session.
+
+**3. Waterfall page.**
+- *Cumulative payout chart* — Y-axis is per-class payout, X-axis is exit value, slope changes mark breakpoints. The same data an OPM Backsolve would consume.
+- *What-if scenario panel* — sliders for share counts and LP multiples. Edit any input, the chart and breakpoint table redraw within 400ms. In-memory only; the saved cap table doesn't change.
+- *Breakpoints, allocation matrix, methodology & provenance* — every breakpoint has an explanation linked to the relevant clause; the allocation matrix shows the fraction of a marginal dollar going to each class within each tranche.
+
+**4. Export.** JSON, static `.xlsx`, or a **live formula workbook** — an 8-sheet `.xlsx` with named ranges and SUMPRODUCT formulas. The analyst can take the workbook home, edit a share count or LP multiple in Excel, and the breakpoints, allocation matrix, and chart update natively. No Python needed after export.
+
+---
+
+## The five fixtures
+
+Every non-vanilla clause traces to a public source. See `fixtures/<name>/provenance.md`.
+
+| Fixture | Company | What it demonstrates |
+|---|---|---|
+| 01 — clean | Solstice Labs (Singapore) | Three priced rounds, 1× non-participating, broad-based AD. The happy path — seven breakpoints. |
+| 02 — typical messy | Pelaut Logistics (SGP + IDN) | Structural mess (merged title row, embedded subtotal, prose in a numeric column) plus five planted gaps (stale pool, two unrecorded SAFE conversions, vendor warrant, MFN scope undefined, blank AD variant). |
+| 03 — SEA edge case | Bandhan Ventures (India) | Indian CCPS, participating-with-3×-cap (eight breakpoints), full-ratchet AD on Seed (not triggered), dual-class voting common. |
+| 04 — down-round ratchet | Surya Foods (India) | Down-round triggers a Seed full-ratchet (1.0× → 1.667×). Pay-to-play forfeiture with selective waiver. Stress test for the live formula workbook. |
+| 05 — Delaware double-cap | Delaware C-corp | Two participating-capped classes at different cap multiples. Tests the senior-above-capped path. |
+
+A sixth example (`sample_uploads/sundar_foods/`) is included as an honest stress test — a fictional Indian D2C Series B-1 file with the kind of CFO-built mess Qapita customers actually send. The engine intentionally degrades on it, and that degradation is the point: the tool produces a 72-warning parse report instead of a fabricated waterfall.
+
+---
 
 ## What it explicitly does **not** do
 
-- No OPM Backsolve solver — judgment work belongs to the analyst, not the tool.
-- No fair-value output, no DLOM, no volatility peer-set.
-- No auth, no multi-tenancy, no anonymizer.
-- No deployment to any cloud — local-only via `http://localhost:5050`.
-- No LLM-based clause extraction — side letters are stored verbatim, the analyst transcribes any structured overrides.
+- No OPM Backsolve solver — that judgment belongs to the analyst.
+- No fair value, no DLOM, no peer-set construction.
+- No auth, no multi-tenancy. Local-only at `http://localhost:5050`.
+- No LLM clause extraction — side letters are stored verbatim, scope questions surfaced explicitly, the analyst records the adjudicated answer.
 
-## Architecture
+---
 
-```
-cap-table-reconciler/
-├── app.py                       Flask routes
-├── src/
-│   ├── models.py                pydantic v2 (CapTable, ShareClass, ...)
-│   ├── parser.py                Excel → CapTable, structural-mess handling
-│   ├── pdf_intake.py            pdfplumber → SideLetter
-│   ├── checklist.py             8 gap-detection rules
-│   ├── waterfall.py             breakpoint + allocation computation
-│   ├── formula_workbook.py      Live formula workbook builder (8 sheets)
-│   ├── diff.py                  Cap-table snapshot diff
-│   └── persistence.py           SQLite SessionStore
-├── templates/                   Jinja2 templates (audit-firm aesthetic)
-├── static/css/main.css          slate/blue palette, monospace numbers
-├── fixtures/                    Fixtures with provenance
-├── scripts/                     Fixture xlsx generators
-├── tests/                       Pytest regression suite
-└── data/sessions.db             SQLite session store (gitignored)
-```
-
-## Fixtures
-
-Every non-vanilla clause traces to NVCA Model Charter, Singapore VIMA, or a published worked example. See `fixtures/<name>/provenance.md` for citations.
-
-| Fixture | Company | What it demonstrates |
-|---------|---------|----------------------|
-| `fixture_01_clean` | Solstice Labs (Singapore) | Clean baseline. 3 priced rounds, 1× non-participating, broad-based AD. 7 breakpoints. |
-| `fixture_02_typical_messy` | Pelaut Logistics (SGP+IDN) | Structural mess + 5 planted gaps (stale pool, 2 SAFEs, vendor warrant, MFN scope, blank AD). |
-| `fixture_03_edge_case` | Bandhan Ventures (India) | Indian CCPS, participating-with-3× cap (8 breakpoints), full-ratchet AD on Seed (not triggered), dual-class voting. |
-| `fixture_04_down_round_ratchet` | Surya Foods (India) | Down-round triggers Seed full-ratchet (1.0× → 1.667×). Pay-to-play forfeiture with Seed waiver. Stress test for the live formula workbook. |
-| `fixture_05_delaware_double_cap` | Delaware C-corp | Two participating-capped classes at different cap multiples. Tests the senior-above-capped formula path. |
-
-## Run locally
+## Run it
 
 ```bash
 git clone https://github.com/subhankarshukla04/cap-table-reconciler.git
@@ -74,43 +62,47 @@ cd cap-table-reconciler
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
-flask --app app run --port 5050
+python app.py
 ```
 
-Open <http://localhost:5050>.
+Open <http://localhost:5050>. Click any fixture from the sidebar to walk the full flow.
 
-## Tests
+---
 
-```bash
-pytest tests/ -v
-```
+## Five-minute demo path
 
-Coverage spans: parser (50+ tests), checklist (10), waterfall regressions across all fixtures (40+), Flask routes (25+), persistence (8), live formula workbook (24, with formula evaluation via `formulas` package), PDF intake (6), diff (8), integration (10).
+1. **Open `/`.** Look at the sidebar's five fixtures.
+2. **Click Pelaut Logistics.** Walk the parser warnings (auto-handled title row + embedded subtotal + footnote-prose column). Walk the raw-vs-clean panel.
+3. **Open the findings panel.** SAFE-UNCONVERTED blockers, AD-MISSING, vendor warrant unrecorded, stale pool, MFN scope unresolved. Resolve AD-MISSING in-session: pick *broad-based weighted-average*, attach *Charter §4.3(a)*.
+4. **Open the waterfall.** Seven breakpoints, type-aware chart, y=x reference line.
+5. **Edit a Series B share count** in the what-if panel. Watch the chart redraw.
+6. **Click Export Excel (live formulas).** Open in Excel. Edit a share count from 3M to 4M. Chart updates natively.
+7. **Switch to Surya Foods** (fixture 04). The triggered Seed ratchet creates two breakpoints near each other because adjusted Seed PPS (₹30) equals A2 PPS (₹30) — the structural artefact of full-ratchet protection.
+8. *(If time)* Drop a side-letter PDF onto the intake. Show the diff page across two snapshots.
 
-## Reliability scaffolding
-
-- **256 unit tests** across the modules listed above.
-- **Property-based fuzzer** (`stress_test/fuzzer.py`) — 1,000 normal + 500 pathological cap tables per run. Runs cleanly.
-- **40 hand-built edge probes** (`stress_test/edge_20.py`, `edge_20_v2.py`) covering conv_ratio extremes, currency variants, deep stacks, validator boundaries, and dedup tolerance. Found three engine bugs during construction; all fixed.
-- **Live workbook formula verification** — every breakpoint, allocation, and cumulative-payout cell in the exported `.xlsx` is verified against the Python `compute_waterfall` truth using the open-source `formulas` package (a real spreadsheet engine). See `tests/test_formula_workbook.py`.
+---
 
 ## Known limits
 
-- **Pari-passu seniority is currently a checklist blocker, not a computation.** Same-rank classes need a joint regime walker (NVCA §2.1(b) treatment); engine refuses to compute rather than guess. The fix is the next outstanding engine-level item.
-- **SAFE / convertible note auto-conversion is not built.** The parser ingests them as a flat list; the analyst converts to structured share classes during the mapping confirmation step. SAFE conversion math has too many opinions baked in (cap vs discount, pre/post-money) for it to be implicit.
-- **Demo-grade application surface.** In-memory + SQLite session, no auth, single Flask process. The engine is the deliverable; the surrounding app is illustrative.
+- **Pari-passu seniority is a checklist blocker, not a computation.** Same-rank classes need a joint-regime walker; the engine refuses to guess.
+- **SAFE / convertible note auto-conversion is not built.** Too many opinions (cap vs discount, pre vs post-money, MFN logic) to be implicit — the analyst converts these to structured share classes during the mapping step.
+- **Demo-grade surface.** In-memory + SQLite session, single Flask process, no auth. The **engine** is the deliverable; the surrounding app is illustrative.
+- **Holder-level cap tables aren't auto-rolled-up.** A common Indian-CFO Excel pattern — one row per shareholder rather than per share class — degrades to a parse-warning report rather than a clean ingest. Roadmap item.
 
-## Demo flow (5 minutes)
+---
 
-1. Open `/`. Show the fixtures.
-2. Click *Pelaut Logistics*. Walk the parser warnings card (auto-handled merged title row, two embedded subtotals, a footnote-prose column). Walk the raw-vs-clean panel.
-3. Show the findings card — SAFE-UNCONVERTED blockers, AD-MISSING, vendor warrant, stale pool, side-letter scope. Resolve AD-MISSING in-session: pick *broad-based weighted-average*, attach *Charter §4.3(a)*.
-4. View waterfall — 7 breakpoints, type-aware chart, y=x reference line.
-5. Click *Export Excel (live formulas)*. Open in Excel. Edit a Series B share count from 3M to 4M. Chart updates live. Walk the audit-defensibility caveat (preserves threshold ordering — structural changes require re-export).
-6. Switch to *Surya Foods* (fixture 04). Walk the triggered ratchet story. Two breakpoints near each other because adjusted Seed PPS (₹30) equals A2 PPS (₹30) — the structural artefact of full-ratchet protection.
-7. *(If time)* drop a PDF onto the side-letter intake; show the diff page across two snapshots.
+## Under the hood (brief)
 
-Anchor every claim to provenance. The tool stops at structured output — fair-value judgment stays with the analyst.
+- `src/parser.py` — Excel → structured CapTable; handles title rows, mixed date formats, alternative tab names, instrument-type aliases (`ccps`, `rcps`, `ordinary`, `founders common`).
+- `src/checklist.py` — eight deterministic gap-detection rules. No probabilistic anything.
+- `src/waterfall.py` — breakpoints (LP-cleared, conversion thresholds, participation-cap thresholds, pure-conversion thresholds), per-tranche marginal allocation matrix. Non-participating, participating-uncapped, participating-with-cap, including the senior-above-capped case.
+- `src/formula_workbook.py` — live-formula `.xlsx` exporter; every breakpoint, allocation, and chart cell is verified against the Python truth using the open-source `formulas` package.
+- `src/pdf_intake.py` — `pdfplumber`-based side-letter ingestion; heuristic title detection + open-question extraction.
+- `src/diff.py` — fuzzy-matched class-name diff across two snapshots, for the audit memo's *subsequent events* section.
+
+256 unit tests; a 1,500-sample property fuzzer; 40 hand-built edge probes. Every fixture is regression-tested.
+
+---
 
 ## License
 

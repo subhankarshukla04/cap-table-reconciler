@@ -1,21 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Cap Table Reconciler — Upload{% endblock %}
 
-{% block content %}
-<div class="card">
-  <h2>What this tool does</h2>
-  <p class="description">
-    Cap-table cleanup is the largest hour drain on a private-company valuations team and one of the top reasons audit memos get sent back. This tool ingests a messy client cap-table file, runs a missing-fields checklist, and produces a clean structured liquidation waterfall with breakpoints. The output is the input layer to your existing OPM, Backsolve, or DCF workflow. The tool itself makes zero valuation judgments.
-  </p>
+{% block crumbs %}
+<span class="crumb-current">Home</span>
+{% endblock %}
 
+{% block page_header %}
+<div class="page-header">
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">Cap Table Reconciler</h1>
+      <p class="page-subtitle">
+        <span>Pre-OPM cap-table cleanup</span>
+        <span class="dot">·</span>
+        <span>Deterministic · rule-based · local-first</span>
+      </p>
+    </div>
+    <div class="page-action">
+      <a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_02_typical_messy') }}">Open demo fixture</a>
+      <a class="btn" href="#upload">Upload cap table &rarr;</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="card hero">
+  <h2>Clean cap tables, before the math runs.</h2>
+  <p class="description">
+    Cap-table cleanup is the largest hour drain on a private-company valuations team and a top reason audit memos get sent back. This tool ingests a messy client file, runs a missing-fields checklist, and produces a clean structured liquidation waterfall with breakpoints &mdash; the input layer to your existing OPM, Backsolve, or DCF.
+  </p>
   <div class="scope-note">
-    <strong>Scope discipline.</strong> This tool stops at clean structured output. No 409A, no Backsolve, no fair-value computation, no LLM in the calculation pipeline. Findings are deterministic and rule-based.
+    <strong>Scope.</strong>&nbsp; No 409A. No Backsolve solver. No fair-value computation. No LLM in the calculation pipeline. Every finding is deterministic and rule-based.
   </div>
 </div>
 
-<div class="card">
-  <h2>Upload a cap table</h2>
-  <p class="description">Accepts a single <code>.xlsx</code> file with a tab named "Cap Table" (or "Capitalization", "Shareholders", etc.). Optional tabs: "Company", "Convertibles", "Side Letters". Up to 8&nbsp;MB.</p>
+<div class="card" id="upload">
+  <p class="card-eyebrow"><span class="num">1</span> Upload</p>
+  <h2>Bring a cap table</h2>
+  <p class="description">Single <code>.xlsx</code> file with a tab named &ldquo;Cap Table&rdquo; (or &ldquo;Capitalization,&rdquo; &ldquo;Shareholders,&rdquo; etc.). Optional tabs: Company, Convertibles, Side Letters. Up to 8&nbsp;MB.</p>
 
   {% if error %}
     <div class="finding blocker">
@@ -29,58 +53,64 @@
   <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
     <label class="upload-dropzone">
       <strong>Drop your cap-table .xlsx here</strong>
-      <div class="muted" style="margin-top: 8px; font-size: 12px;">or browse for a file below</div>
+      <div class="muted" style="margin-top: 6px; font-size: 12.5px;">or browse for a file below</div>
       <input type="file" name="file" accept=".xlsx" required>
     </label>
     <div style="margin-top: 16px;">
-      <button type="submit" class="btn">Parse and review</button>
+      <button type="submit" class="btn">Parse and review &rarr;</button>
     </div>
   </form>
 </div>
 
 <div class="card">
-  <h2>Or load a built-in fixture</h2>
-  <p class="description">Three demo fixtures are bundled, each illustrating a different mess level. All three are fictional; every clause traces to an NVCA, VIMA, or worked-example precedent (see <code>fixtures/&lt;name&gt;/provenance.md</code>).</p>
+  <p class="card-eyebrow"><span class="num">2</span> Demo fixtures</p>
+  <h2>Five built-in cases, increasing mess level</h2>
+  <p class="description">All fictional. Every clause traces to NVCA, VIMA, or a published worked-example precedent (see <code>fixtures/&lt;name&gt;/provenance.md</code>). Open one to walk the full ingest → review → waterfall flow.</p>
   <table class="data">
     <thead>
       <tr>
         <th>Fixture</th>
-        <th>What it demonstrates</th>
+        <th>Demonstrates</th>
         <th class="center">Action</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>Solstice Labs</strong> <span class="muted">(Singapore)</span></td>
-        <td>Clean baseline — three preferred rounds, all 1x non-participating, broad-based weighted-average anti-dilution. Happy path.</td>
+        <td><strong>Solstice Labs</strong> <span class="muted">· Singapore</span></td>
+        <td>Clean baseline. Three preferred rounds, 1× non-participating, broad-based AD. Happy path.</td>
         <td class="center"><a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_01_clean') }}">Open</a></td>
       </tr>
       <tr>
-        <td><strong>Pelaut Logistics</strong> <span class="muted">(Singapore + Indonesia)</span></td>
-        <td>Typical messy — both <em>structural</em> mess (merged title row, mid-data subtotal, "Total Fully Diluted" row, footnote-prose column M, mixed date formats) and <em>content</em> gaps (stale option pool, two unrecorded SAFE conversions, vendor warrant, MFN scope unresolved, blank anti-dilution on Series A).</td>
+        <td><strong>Pelaut Logistics</strong> <span class="muted">· SGP + IDN</span></td>
+        <td>Typical messy. Structural mess (merged title row, mid-data subtotal, mixed dates) + 5 planted gaps.</td>
         <td class="center"><a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_02_typical_messy') }}">Open</a></td>
       </tr>
       <tr>
-        <td><strong>Bandhan Ventures</strong> <span class="muted">(India)</span></td>
-        <td>SEA edge case — Indian CCPS instruments, Series A is participating-with-3x-cap (eight breakpoints), full-ratchet anti-dilution on Seed, dual-class voting common.</td>
+        <td><strong>Bandhan Ventures</strong> <span class="muted">· India</span></td>
+        <td>SEA edge case. Indian CCPS, participating-with-3× cap (8 breakpoints), full-ratchet AD on Seed.</td>
         <td class="center"><a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_03_edge_case') }}">Open</a></td>
       </tr>
       <tr>
-        <td><strong>Surya Foods</strong> <span class="muted">(India)</span></td>
-        <td>Down-round + triggered full-ratchet — 2026 Series A2 at ₹30/sh triggers the 2022 Seed full-ratchet (conversion ratio 1.0 → 1.667×). Pay-to-play forfeiture with selective waiver on Seed. Killer test for the live formula workbook.</td>
+        <td><strong>Surya Foods</strong> <span class="muted">· India</span></td>
+        <td>Down-round triggers Seed full-ratchet (1.0× → 1.667×). Pay-to-play forfeiture with selective waiver.</td>
         <td class="center"><a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_04_down_round_ratchet') }}">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>Delaware C-corp</strong> <span class="muted">· USA</span></td>
+        <td>Two participating-capped classes at different cap multiples. Tests senior-above-capped path.</td>
+        <td class="center"><a class="btn secondary" href="{{ url_for('demo', fixture_id='fixture_05_delaware_double_cap') }}">Open</a></td>
       </tr>
     </tbody>
   </table>
 </div>
 
 <div class="card">
-  <h2>Other tools</h2>
-  <p class="description">Three companion utilities that plug into the same pipeline.</p>
-  <ul style="margin: 0; padding-left: 18px; line-height: 2; font-size: 13px;">
-    <li><strong>Live formula workbook</strong> — exported from the waterfall page. Edit share counts, prices, LP multiples, or pool sizes in Excel and watch breakpoints, allocations, and the chart update natively. No Python runtime required after export.</li>
-    <li><strong>Side-letter PDF intake</strong> — on any review page, drop in a side-letter PDF; pdfplumber extracts text and attaches it as a <code>SideLetter</code>. Text PDFs only.</li>
-    <li><strong>Cap-table snapshot diff</strong> — <a href="{{ url_for('diff_index') }}">Diff page</a>: upload two .xlsx snapshots, get a structured class-by-class delta with fuzzy-matched class names (Levenshtein) for the audit memo's subsequent-events section.</li>
+  <p class="card-eyebrow"><span class="num">3</span> Companion utilities</p>
+  <h2>Three small tools on the same pipeline</h2>
+  <ul style="margin: 0; padding-left: 18px; line-height: 1.85; font-size: 13.5px; color: var(--text-soft);">
+    <li><strong style="color: var(--text);">Live formula workbook</strong> &mdash; exported from the waterfall page. Edit share counts, prices, LP multiples, or pool sizes in Excel and watch breakpoints, allocations, and the chart update natively. No Python runtime required after export.</li>
+    <li><strong style="color: var(--text);">Side-letter PDF intake</strong> &mdash; on any review page, drop in a side-letter PDF; pdfplumber extracts text and attaches it as a <code>SideLetter</code>. Text PDFs only.</li>
+    <li><strong style="color: var(--text);">Cap-table snapshot diff</strong> &mdash; <a href="{{ url_for('diff_index') }}">Diff page</a>: upload two .xlsx snapshots, get a structured class-by-class delta with fuzzy-matched class names for the audit memo&rsquo;s subsequent-events section.</li>
   </ul>
 </div>
 {% endblock %}

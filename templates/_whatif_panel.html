@@ -1,3 +1,13 @@
+{% if scenario_chart_json %}
+<script>
+  (function() {
+    try {
+      const p = {{ scenario_chart_json|safe }};
+      if (window.__updatePayoutChart) window.__updatePayoutChart(p);
+    } catch (e) { console.error("whatif chart refresh failed", e); }
+  })();
+</script>
+{% endif %}
 {% set sym = cap_table.company.currency_symbol %}
 {% if not changed %}
   <p class="muted" style="margin: 8px 0 0; font-size: 12px;">No overrides applied — adjust an input above to see the scenario.</p>
