@@ -8,37 +8,57 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script src="{{ url_for('static', filename='js/htmx.min.js') }}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body>
-  <header class="app-header">
-    <div class="container">
-      <h1>Cap Table Reconciler <span class="app-version">v0.1 — internal preview</span></h1>
-      <nav>
-        <a href="{{ url_for('index') }}">Upload</a>
-        <a href="{{ url_for('demo', fixture_id='fixture_01_clean') }}">Clean baseline</a>
-        <a href="{{ url_for('demo', fixture_id='fixture_02_typical_messy') }}">Typical messy</a>
-        <a href="{{ url_for('demo', fixture_id='fixture_03_edge_case') }}">SEA edge case</a>
-        <a href="{{ url_for('demo', fixture_id='fixture_04_down_round_ratchet') }}">Down-round ratchet</a>
-        <a href="{{ url_for('demo', fixture_id='fixture_05_delaware_double_cap') }}">Delaware double-cap</a>
-        <a href="{{ url_for('diff_index') }}">Diff</a>
-        <a href="{{ url_for('sessions_index') }}">Sessions</a>
-      </nav>
-    </div>
-  </header>
-  <main>
-    <div class="container">
-      {% block content %}{% endblock %}
-    </div>
-  </main>
-  <footer class="app-footer">
-    <div class="container">
-      <div>
-        Cap Table Reconciler — outputs structured cap-table data only. No valuation judgments.
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="sidebar-brand" href="{{ url_for('index') }}">
+        <span class="sidebar-brand-mark">CR</span>
+        <div>
+          <div class="sidebar-brand-name">Cap Table Reconciler</div>
+          <div class="sidebar-brand-sub">v0.1 · internal preview</div>
+        </div>
+      </a>
+
+      <div class="sidebar-section">Workspace</div>
+      <a class="sidebar-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+        <span class="ico">↑</span> Upload
+      </a>
+      <a class="sidebar-link {% if request.endpoint == 'diff_index' %}active{% endif %}" href="{{ url_for('diff_index') }}">
+        <span class="ico">⇄</span> Snapshot diff
+      </a>
+      <a class="sidebar-link {% if request.endpoint == 'sessions_index' %}active{% endif %}" href="{{ url_for('sessions_index') }}">
+        <span class="ico">≡</span> Sessions
+      </a>
+
+      <div class="sidebar-section">Demo fixtures</div>
+      <a class="sidebar-link" href="{{ url_for('demo', fixture_id='fixture_01_clean') }}"><span class="ico">·</span>Clean baseline<span class="num">01</span></a>
+      <a class="sidebar-link" href="{{ url_for('demo', fixture_id='fixture_02_typical_messy') }}"><span class="ico">·</span>Typical messy<span class="num">02</span></a>
+      <a class="sidebar-link" href="{{ url_for('demo', fixture_id='fixture_03_edge_case') }}"><span class="ico">·</span>SEA edge case<span class="num">03</span></a>
+      <a class="sidebar-link" href="{{ url_for('demo', fixture_id='fixture_04_down_round_ratchet') }}"><span class="ico">·</span>Down-round ratchet<span class="num">04</span></a>
+      <a class="sidebar-link" href="{{ url_for('demo', fixture_id='fixture_05_delaware_double_cap') }}"><span class="ico">·</span>Delaware double-cap<span class="num">05</span></a>
+    </aside>
+
+    <header class="topbar" role="navigation" aria-label="Primary">
+      <div class="topbar-left">
+        {% block crumbs %}
+        <a href="{{ url_for('index') }}">Home</a>
+        {% endblock %}
       </div>
-      <div class="muted">Built for the Qapita interview, 2026-05.</div>
-    </div>
-  </footer>
+      <div class="topbar-right">
+        <span class="topbar-help" title="Stops at clean breakpoints. No Backsolve, no OPM, no fair value.">Cleanup layer · stops before valuation</span>
+        <span class="topbar-tag"><span class="dot"></span>Local · :5050</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="container">
+        {% block page_header %}{% endblock %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
 </body>
 </html>

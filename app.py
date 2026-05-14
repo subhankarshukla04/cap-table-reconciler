@@ -48,6 +48,12 @@ from src.waterfall import breakpoint_explanations, chart_payload, compute_waterf
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8 MB upload cap
 
+
+@app.after_request
+def _no_cache(resp):
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
+
 # SQLite-backed session store. Survives server restart.
 _DB_PATH = Path(__file__).parent / "data" / "sessions.db"
 SESSIONS: SessionStore = SessionStore(_DB_PATH)
@@ -608,6 +614,7 @@ def whatif(token: str):
 
     scenario_ct = cap_table.model_copy(update={"share_classes": new_classes})
     scenario_wf = compute_waterfall(scenario_ct)
+    scenario_chart = chart_payload(scenario_ct, scenario_wf)
 
     return render_template(
         "_whatif_panel.html",
@@ -615,6 +622,7 @@ def whatif(token: str):
         baseline=baseline,
         scenario=scenario_wf,
         changed=changed,
+        scenario_chart_json=json.dumps(scenario_chart),
     )
 
 
@@ -795,6 +803,61 @@ def _build_clean_workbook(sess: dict):
             cell.border = border
             cell.alignment = Alignment(wrap_text=True, vertical="top")
 
+    # Convertibles tab — SAFEs, warrants, and convertible notes outstanding.
+    ws_cv = wb.create_sheet("Convertibles")
+    ws_cv.append(["ID", "Type", "Holder", "Principal", "Valuation Cap", "Discount %",
+                  "Strike Price", "Shares", "Share Class", "Issue Date", "Expiry Date", "Notes"])
+    for cell in ws_cv[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+    for s in cap_table.safes_outstanding:
+        ws_cv.append([
+            s.id, "SAFE", "", s.principal, s.valuation_cap or "",
+            s.discount_rate if s.discount_rate is not None else "",
+            "", "", "", str(s.issue_date) if s.issue_date else "", "", s.notes or "",
+        ])
+    for w in cap_table.warrants_outstanding:
+        ws_cv.append([
+            w.id, "Warrant", w.holder, "", "", "",
+            w.strike_price, w.shares, w.share_class,
+            str(w.issue_date) if w.issue_date else "",
+            str(w.expiry_date) if w.expiry_date else "",
+            w.notes or "",
+        ])
+    for n in cap_table.convertible_notes_outstanding:
+        ws_cv.append([
+            n.id, "Convertible Note", "", n.principal, n.valuation_cap or "",
+            n.discount_rate if n.discount_rate is not None else "",
+            "", "", "", str(n.issue_date) if n.issue_date else "", "", n.notes or "",
+        ])
+    for col, w_ in zip("ABCDEFGHIJKL", [22, 18, 30, 14, 16, 12, 14, 12, 18, 14, 14, 50]):
+        ws_cv.column_dimensions[col].width = w_
+    sym = cap_table.company.currency_symbol
+    for row in ws_cv.iter_rows(min_row=1, max_row=ws_cv.max_row, max_col=ws_cv.max_column):
+        for cell in row:
+            cell.border = border
+            if cell.row > 1 and cell.column in (4, 5, 7):
+                cell.number_format = f"{sym}#,##0.00"
+            if cell.row > 1 and cell.column == 8:
+                cell.number_format = "#,##0"
+            if cell.row > 1 and cell.column == 6 and isinstance(cell.value, (int, float)):
+                cell.number_format = "0.00%"
+
+    # Side Letters tab
+    ws_sl = wb.create_sheet("Side Letters")
+    ws_sl.append(["ID", "Title", "Summary", "Body"])
+    for cell in ws_sl[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+    for sl in cap_table.side_letters:
+        ws_sl.append([sl.id, sl.title, sl.summary or "", sl.body or ""])
+    for col, w_ in zip("ABCD", [16, 40, 60, 80]):
+        ws_sl.column_dimensions[col].width = w_
+    for row in ws_sl.iter_rows(min_row=1, max_row=ws_sl.max_row, max_col=4):
+        for cell in row:
+            cell.border = border
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+
     return wb
 
 
@@ -829,6 +892,9 @@ def export_json(token: str):
         "company": sess["cap_table"].company.model_dump(mode="json"),
         "share_classes": [sc.model_dump(mode="json") for sc in sess["cap_table"].share_classes],
         "side_letters": [sl.model_dump(mode="json") for sl in sess["cap_table"].side_letters],
+        "safes_outstanding": [s.model_dump(mode="json") for s in sess["cap_table"].safes_outstanding],
+        "warrants_outstanding": [w.model_dump(mode="json") for w in sess["cap_table"].warrants_outstanding],
+        "convertible_notes_outstanding": [n.model_dump(mode="json") for n in sess["cap_table"].convertible_notes_outstanding],
         "waterfall": {
             "lp_total": sess["waterfall"].lp_total,
             "total_fully_diluted_shares": sess["waterfall"].total_fully_diluted_shares,
@@ -884,6 +950,9 @@ def export_bundle_zip(token: str):
         "company": cap_table.company.model_dump(mode="json"),
         "share_classes": [sc.model_dump(mode="json") for sc in cap_table.share_classes],
         "side_letters": [sl.model_dump(mode="json") for sl in cap_table.side_letters],
+        "safes_outstanding": [s.model_dump(mode="json") for s in cap_table.safes_outstanding],
+        "warrants_outstanding": [w.model_dump(mode="json") for w in cap_table.warrants_outstanding],
+        "convertible_notes_outstanding": [n.model_dump(mode="json") for n in cap_table.convertible_notes_outstanding],
         "waterfall": {
             "lp_total": waterfall.lp_total,
             "total_fully_diluted_shares": waterfall.total_fully_diluted_shares,
@@ -1093,4 +1162,17 @@ def healthz():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5050)
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.jinja_env.auto_reload = True
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0  # no static-file caching in dev
+
+    _root = Path(__file__).parent
+    extra_files = [
+        str(p) for p in (
+            *_root.glob("templates/**/*.html"),
+            *_root.glob("static/**/*.css"),
+            *_root.glob("static/**/*.js"),
+        )
+    ]
+
+    app.run(debug=True, port=5050, use_reloader=True, extra_files=extra_files)

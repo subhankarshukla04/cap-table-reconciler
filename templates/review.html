@@ -1,10 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Review — Cap Table Reconciler{% endblock %}
+{% block title %}{{ cap_table.company.name }} — Review{% endblock %}
 
-{% block content %}
 {% set b = findings|selectattr('severity', 'equalto', 'blocker')|list|length %}
 {% set w = findings|selectattr('severity', 'equalto', 'warning')|list|length %}
 {% set i = findings|selectattr('severity', 'equalto', 'info')|list|length %}
+
+{% block crumbs %}
+<a href="{{ url_for('index') }}">Home</a>
+<span class="crumb-sep">/</span>
+<a href="{{ url_for('index') }}">Fixtures</a>
+<span class="crumb-sep">/</span>
+<span class="crumb-current">{{ cap_table.company.name }}</span>
+<span class="crumb-sep">/</span>
+<span class="crumb-current">Review</span>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">{{ cap_table.company.name }}</h1>
+      <p class="page-subtitle">
+        <span>{{ cap_table.share_classes|length }} share classes</span>
+        <span class="dot">·</span>
+        <span>{{ cap_table.total_fully_diluted_for_waterfall|commas }} fully diluted shares</span>
+        {% if cap_table.company.jurisdiction %}<span class="dot">·</span><span>{{ cap_table.company.jurisdiction }}</span>{% endif %}
+        {% if cap_table.company.currency %}<span class="dot">·</span><span>{{ cap_table.company.currency }}</span>{% endif %}
+      </p>
+    </div>
+    <div class="page-action">
+      {% if b > 0 %}<span class="chip blocker"><span class="chip-num">{{ b }}</span> blocker{% if b > 1 %}s{% endif %}</span>{% endif %}
+      {% if w > 0 %}<span class="chip warning"><span class="chip-num">{{ w }}</span> warning{% if w > 1 %}s{% endif %}</span>{% endif %}
+      {% if i > 0 %}<span class="chip info"><span class="chip-num">{{ i }}</span> info</span>{% endif %}
+      {% if (b+w+i) == 0 %}<span class="chip success">No issues</span>{% endif %}
+      <a class="btn" href="{{ url_for('waterfall', token=token) }}">View waterfall &rarr;</a>
+    </div>
+  </div>
+</div>
+<nav class="stepper" aria-label="Workflow">
+  <a class="step done" href="{{ url_for('index') }}"><span class="step-num">1</span><span class="step-label">Ingest</span></a>
+  <span class="step current"><span class="step-num">2</span><span class="step-label">Review &amp; resolve</span></span>
+  <a class="step" href="{{ url_for('waterfall', token=token) }}"><span class="step-num">3</span><span class="step-label">Waterfall</span></a>
+  <span class="step"><span class="step-num">4</span><span class="step-label">Export</span></span>
+</nav>
+{% endblock %}
+
+{% block content %}
 
 <div class="narrator">
   <strong>{{ cap_table.company.name }}{% if not cap_table.company.name.endswith('.') %}.{% endif %}</strong>
@@ -24,9 +65,9 @@
 </div>
 
 <div class="card">
-  <p class="section-title">Subject company</p>
-  <h2 style="margin-bottom: 4px;">{{ cap_table.company.name }}</h2>
-  <p class="muted" style="margin: 0 0 16px;">
+  <p class="card-eyebrow"><span class="num">A</span> Subject company</p>
+  <h2>{{ cap_table.company.name }}</h2>
+  <p class="muted" style="margin: 0 0 16px; font-size: 13px;">
     {% if cap_table.company.sector %}{{ cap_table.company.sector }} &middot; {% endif %}
     {% if cap_table.company.jurisdiction %}{{ cap_table.company.jurisdiction }} &middot; {% endif %}
     {% if cap_table.company.stage %}{{ cap_table.company.stage }}{% endif %}
@@ -46,6 +87,7 @@
 
 {% if parse_report and parse_report.column_mapping %}
 <div class="card">
+  <p class="card-eyebrow"><span class="num">B</span> Parser report</p>
   <h2>Detected column mapping</h2>
   <p class="description">Header heuristics matched these columns from the upload. The parser also normalized inconsistent date formats, currency symbols, and instrument-type spellings (e.g., <code>ccps</code> &rarr; <code>preferred</code>).</p>
   <table class="data">
@@ -72,6 +114,7 @@
 
 {% if raw_excerpt %}
 <div class="card">
+  <p class="card-eyebrow"><span class="num">C</span> Before / after</p>
   <h2>Raw upload &rarr; cleaned output</h2>
   <p class="description">Left: first rows of the uploaded <code>{{ raw_excerpt.sheet }}</code> tab as the parser saw them. Right: the structured cleaned form. Date strings are normalized to ISO-8601, instrument-type aliases are coerced to the canonical enum, and currency symbols are stripped from numeric fields.</p>
   <div class="raw-vs-clean">
@@ -90,6 +133,7 @@
 {% endif %}
 
 <div class="card">
+  <p class="card-eyebrow"><span class="num">D</span> Capitalization</p>
   <h2>Cap table</h2>
   <table class="data">
     <thead>
@@ -147,13 +191,14 @@
 {% endif %}
 
 <div class="card">
-  <h2>
-    Findings
-    {% if b > 0 %}<span class="tag blocker" style="margin-left: 8px;">{{ b }} blocker{% if b > 1 %}s{% endif %}</span>{% endif %}
-    {% if w > 0 %}<span class="tag warning" style="margin-left: 4px;">{{ w }} warning{% if w > 1 %}s{% endif %}</span>{% endif %}
-    {% if i > 0 %}<span class="tag info" style="margin-left: 4px;">{{ i }} info</span>{% endif %}
-    {% if (b+w+i) == 0 %}<span class="tag success" style="margin-left: 8px;">no issues</span>{% endif %}
-  </h2>
+  <p class="card-eyebrow">
+    <span class="num">E</span> Findings &amp; resolutions
+    {% if b > 0 %}<span class="chip blocker"><span class="chip-num">{{ b }}</span> blocker{% if b > 1 %}s{% endif %}</span>{% endif %}
+    {% if w > 0 %}<span class="chip warning"><span class="chip-num">{{ w }}</span> warning{% if w > 1 %}s{% endif %}</span>{% endif %}
+    {% if i > 0 %}<span class="chip info"><span class="chip-num">{{ i }}</span> info</span>{% endif %}
+    {% if (b+w+i) == 0 %}<span class="chip success">No issues</span>{% endif %}
+  </p>
+  <h2>What needs adjudicating before the waterfall</h2>
   <p class="description">
     Each finding is rule-based and deterministic. Severity guidance: <strong>blocker</strong> = data missing that breaks audit defensibility; <strong>warning</strong> = anomaly to confirm; <strong>info</strong> = unusual structure to document in the audit memo.
   </p>
@@ -324,6 +369,7 @@
 
 {% if cap_table.side_letters %}
 <div class="card">
+  <p class="card-eyebrow"><span class="num">F</span> Counsel attachments</p>
   <h2>Side letter memos</h2>
   <p class="description">Side letters are stored verbatim. The tool does not auto-extract structured fields. The analyst is expected to read these and either enter overrides via the structured form or flag the relevant gap above.</p>
   {% for sl in cap_table.side_letters %}
@@ -350,6 +396,7 @@
 {% endif %}
 
 <div class="card">
+  <p class="card-eyebrow"><span class="num">G</span> Add a document</p>
   <h2>Attach a side-letter PDF</h2>
   <p class="description">Upload a side-letter, term sheet, or counsel memo as a PDF. The text is extracted via pdfplumber and stored verbatim — no auto-extraction, no LLM. Scanned (image-only) PDFs are not supported; export from the source application as a text PDF.</p>
   <form method="post" action="{{ url_for('upload_side_letter', token=token) }}" enctype="multipart/form-data" class="resolve-form" style="border-left: none; padding-left: 0;">
@@ -361,7 +408,7 @@
 </div>
 
 <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
-  <a class="btn" href="{{ url_for('waterfall', token=token) }}">View waterfall &rarr;</a>
+  <a class="btn gold" href="{{ url_for('waterfall', token=token) }}">View waterfall &rarr;</a>
   <a class="btn secondary" href="{{ url_for('diff_index') }}">Cap-table diff</a>
   <a class="btn secondary" href="{{ url_for('export_json', token=token) }}">Export JSON</a>
   <a class="btn secondary" href="{{ url_for('index') }}">Upload another</a>

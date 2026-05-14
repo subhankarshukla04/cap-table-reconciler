@@ -1,23 +1,52 @@
 {% extends "base.html" %}
-{% block title %}Waterfall — {{ cap_table.company.name }}{% endblock %}
+{% block title %}{{ cap_table.company.name }} — Waterfall{% endblock %}
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 {% endblock %}
 
-{% block content %}
-<div class="card">
-  <p class="section-title">Liquidation waterfall</p>
-  <h2 style="margin-bottom: 4px;">{{ cap_table.company.name }}</h2>
-  <p class="muted" style="margin: 0 0 16px;">
-    Total LP: {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(waterfall.lp_total) }}
-    &middot; Fully diluted: {{ waterfall.total_fully_diluted_shares|commas }} shares
-    &middot; {{ waterfall.breakpoints|length }} breakpoints
-  </p>
+{% block crumbs %}
+<a href="{{ url_for('index') }}">Home</a>
+<span class="crumb-sep">/</span>
+<a href="{{ url_for('index') }}">Fixtures</a>
+<span class="crumb-sep">/</span>
+<a href="{{ url_for('review', token=token) }}">{{ cap_table.company.name }}</a>
+<span class="crumb-sep">/</span>
+<span class="crumb-current">Waterfall</span>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">{{ cap_table.company.name }} <span style="font-weight: 500; color: var(--text-mute);">— Liquidation waterfall</span></h1>
+      <p class="page-subtitle">
+        <span>Total LP {{ cap_table.company.currency_symbol }}{{ "{:,.0f}".format(waterfall.lp_total) }}</span>
+        <span class="dot">·</span>
+        <span>{{ waterfall.total_fully_diluted_shares|commas }} fully diluted shares</span>
+        <span class="dot">·</span>
+        <span>{{ waterfall.breakpoints|length }} breakpoints</span>
+      </p>
+    </div>
+    <div class="page-action">
+      <a class="btn secondary" href="{{ url_for('review', token=token) }}">&larr; Review</a>
+      <a class="btn" href="{{ url_for('export_live_xlsx', token=token) }}" title="Live formula workbook — edit input cells in Excel and watch breakpoints, allocations, and chart update.">Export Excel (live) &rarr;</a>
+    </div>
+  </div>
 </div>
+<nav class="stepper" aria-label="Workflow">
+  <a class="step done" href="{{ url_for('index') }}"><span class="step-num">1</span><span class="step-label">Ingest</span></a>
+  <a class="step done" href="{{ url_for('review', token=token) }}"><span class="step-num">2</span><span class="step-label">Review &amp; resolve</span></a>
+  <span class="step current"><span class="step-num">3</span><span class="step-label">Waterfall</span></span>
+  <a class="step" href="#exports"><span class="step-num">4</span><span class="step-label">Export</span></a>
+</nav>
+{% endblock %}
+
+{% block content %}
 
 <div class="card">
+  <p class="card-eyebrow"><span class="num">A</span> Chart</p>
   <h2>Cumulative payout per class</h2>
   <p class="description">Y-axis: cumulative payout to each class as exit value (X-axis) increases. Slope changes occur at breakpoints. This is the same data the OPM Backsolve consumes when treating each tranche as a separate option strike.</p>
   <div style="height: 360px;">
@@ -62,12 +91,34 @@
       }
     };
   });
-  new Chart(ctx, {
+  function buildAnnotations(bps) {
+    const ann = {};
+    bps.slice(1).forEach((bp, i) => {
+      const yPos = i % 2 === 0 ? "start" : "end";
+      ann["bp" + i] = {
+        type: "line",
+        xMin: bp.value, xMax: bp.value,
+        borderColor: "rgba(15, 23, 42, 0.28)",
+        borderWidth: 1, borderDash: [4, 4],
+        label: {
+          display: true, content: bp.id, position: yPos,
+          backgroundColor: "rgba(241, 245, 249, 0.95)",
+          color: "#334155",
+          font: { size: 10, family: "'JetBrains Mono', monospace" },
+          padding: { top: 2, bottom: 2, left: 4, right: 4 },
+          borderRadius: 2
+        }
+      };
+    });
+    return ann;
+  }
+  window.__payoutChart = new Chart(ctx, {
     type: "line",
     data: { datasets: payload.datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: { duration: 250 },
       interaction: { intersect: false, mode: "index" },
       plugins: {
         legend: { position: "right", align: "start", labels: { boxWidth: 12, font: { size: 12 } } },
@@ -77,7 +128,7 @@
             label: (ctx) => ctx.dataset.label + ": " + fmt(ctx.parsed.y)
           }
         },
-        annotation: { annotations: breakpointAnnotations }
+        annotation: { annotations: buildAnnotations(payload.breakpoints) }
       },
       scales: {
         x: {
@@ -94,16 +145,24 @@
       }
     }
   });
+  window.__updatePayoutChart = function(newPayload) {
+    const ch = window.__payoutChart;
+    if (!ch) return;
+    ch.data.datasets = newPayload.datasets;
+    ch.options.plugins.annotation.annotations = buildAnnotations(newPayload.breakpoints);
+    ch.update();
+  };
 })();
 </script>
 
 <div class="card">
+  <p class="card-eyebrow"><span class="num">B</span> Sensitivity</p>
   <h2>What-if scenario</h2>
   <p class="description">Adjust share counts or LP multiples to see how breakpoints, LP total, and tranche structure shift. Scenario is in-memory only — does not modify the saved cap table or its exports. Use this for sensitivity rehearsal before a partner conversation; commit nothing.</p>
   <form
     hx-post="{{ url_for('whatif', token=token) }}"
     hx-target="#whatif-result"
-    hx-trigger="input changed delay:400ms"
+    hx-trigger="input changed delay:400ms, change delay:200ms"
     hx-swap="innerHTML"
     style="margin-bottom: 16px;"
   >
@@ -157,6 +216,7 @@
 </div>
 
 <div class="card">
+  <p class="card-eyebrow"><span class="num">C</span> Structural</p>
   <h2>Breakpoints</h2>
   <p class="description">Equity values at which a marginal $1 of exit value transitions from one beneficiary to another. Each breakpoint is a separate strike for downstream OPM Backsolve purposes.</p>
   {% for bp in waterfall.breakpoints %}
@@ -169,6 +229,7 @@
 </div>
 
 <div class="card">
+  <p class="card-eyebrow"><span class="num">D</span> Allocation</p>
   <h2>Tranche allocation matrix</h2>
   <p class="description">Fraction of marginal $1 going to each share class within each tranche. Sum of each row's allocation = 100%.</p>
   <table class="data">
@@ -213,6 +274,7 @@
 
 {% if waterfall.conversion_thresholds or waterfall.cap_reach_thresholds or waterfall.pure_conversion_thresholds %}
 <div class="card">
+  <p class="card-eyebrow"><span class="num">E</span> Conversion</p>
   <h2>Conversion economics</h2>
   <p class="description">Equity values at which each preferred class is indifferent between holding its preference and converting to common. These are the values that trigger the breakpoints above.</p>
   <table class="data">
@@ -257,7 +319,7 @@
 {% endif %}
 
 <div class="card method-footer">
-  <p class="section-title">Methodology</p>
+  <p class="card-eyebrow"><span class="num">F</span> Methodology &amp; provenance</p>
   <ul class="method-list">
     <li>Liquidation preference cumulative breakpoints — NVCA Model Certificate of Incorporation, Article IV §2 (Liquidation Preference).</li>
     <li>Conversion-threshold computation — Aranca, "OPM Backsolve worked example for Series B with 1x non-participating preferred"; Plante Moran, "Common stock value at the breakpoint."</li>
@@ -270,6 +332,7 @@
 
 {% if explanations %}
 <div class="card">
+  <p class="card-eyebrow"><span class="num">G</span> Show your work</p>
   <h2>Breakpoint math walk-through</h2>
   <p class="description">For audit-memo defensibility, the derivation of every breakpoint is shown below. The tool exposes its math rather than hiding it behind a black box — every step traces to the cap-table inputs above.</p>
   {% for e in explanations %}
@@ -290,14 +353,19 @@
 </div>
 {% endif %}
 
-<div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+<div class="card" id="exports">
+  <p class="card-eyebrow"><span class="num">H</span> Export &amp; handoff</p>
+  <h2>Take it offline</h2>
+  <p class="description">Hand the analyst a workbook they can open without Python. The live workbook updates breakpoints, allocations, and the chart natively when input cells are edited. Static workbook is a frozen snapshot. Bundle is the one-click handoff.</p>
+<div style="display: flex; gap: 12px; flex-wrap: wrap;">
   <a class="btn secondary" href="{{ url_for('review', token=token) }}">&larr; Back to review</a>
   <a class="btn secondary" href="{{ url_for('compare', token=token) }}" title="Side-by-side diff of cap table and breakpoints between first parse and current state after analyst resolutions.">Before vs after resolutions</a>
-  <a class="btn" href="{{ url_for('export_live_xlsx', token=token) }}" title="Live formula workbook — edit input cells in Excel and watch breakpoints, allocations, and chart update.">Export Excel (live formulas)</a>
+  <a class="btn" href="{{ url_for('export_live_xlsx', token=token) }}" title="Live formula workbook — edit input cells in Excel and watch breakpoints, allocations, and chart update.">Export Excel (live formulas) &rarr;</a>
   <a class="btn secondary" href="{{ url_for('export_xlsx', token=token) }}" title="Static snapshot — every cell is a number, no formulas.">Export Excel (static)</a>
   <a class="btn secondary" href="{{ url_for('export_audit_memo', token=token) }}" title="Markdown audit-memo skeleton with structured facts pre-filled and explicit [ANALYST: ...] judgment placeholders.">Export audit memo (.md)</a>
   <a class="btn secondary" href="{{ url_for('export_json', token=token) }}">Export JSON</a>
   <a class="btn" href="{{ url_for('export_bundle_zip', token=token) }}" title="One zip with json + static xlsx + live xlsx + audit memo. Single-click handoff.">Bundle (.zip)</a>
 </div>
-<p class="muted" style="margin-top: 8px; font-size: 12px;">The live formula workbook lets the analyst edit share counts, prices, LP multiples, or option-pool sizes in Excel and see the breakpoints, allocation matrix, and cumulative-payout chart update immediately — no Python runtime needed. Validity caveat: structural changes (LP type, seniority, participation cap presence) require a fresh export.</p>
+<p class="muted" style="margin-top: 14px; font-size: 12px;">The live formula workbook lets the analyst edit share counts, prices, LP multiples, or option-pool sizes in Excel and see the breakpoints, allocation matrix, and cumulative-payout chart update immediately — no Python runtime needed. Validity caveat: structural changes (LP type, seniority, participation cap presence) require a fresh export.</p>
+</div>
 {% endblock %}
