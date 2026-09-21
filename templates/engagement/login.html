@@ -1,0 +1,20 @@
+{% extends "engagement/base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<h1>Sign in</h1>
+<p class="small">
+  Dev login stub. Enter your auth token (the StubSSO provider accepts
+  any non-empty token; the StaticUserProvider used by tests accepts
+  a specific list). Production SSO ships separately.
+</p>
+
+<form method="post" action="/login">
+  <input type="hidden" name="next" value="{{ next_url | e }}">
+  <div class="form-row">
+    <label>Token</label>
+    <input type="text" name="token" required autofocus>
+  </div>
+  <button type="submit">Sign in</button>
+</form>
+{% endblock %}

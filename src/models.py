@@ -109,6 +109,10 @@ class ShareClass(BaseModel):
     issue_price: Optional[float] = Field(None, ge=0)
     issue_date: Optional[date] = None
     seniority_rank: int = Field(99, ge=1, le=99)
+    # Pari-passu sub-rank. Two preferred classes with the same seniority_rank
+    # but different seniority_sub_rank share a pari-passu group (common in SEA
+    # B-1 / B-2 same-day closes). Default 0 keeps legacy CapTables valid.
+    seniority_sub_rank: int = Field(0, ge=0, le=99)
     liquidation_preference: Optional[LiquidationPreference] = None
     anti_dilution: Optional[AntiDilution] = None
     conversion_ratio: Optional[float] = Field(None, ge=0)
@@ -142,6 +146,47 @@ class ShareClass(BaseModel):
     def excluded_from_waterfall(self) -> bool:
         """Reserved (unallocated) option pool is excluded from waterfall per market practice."""
         return self.type == ShareClassType.option_pool_reserved
+
+
+class ProtectiveProvision(BaseModel):
+    """One protective-provision entry (NVCA Model Charter §6).
+
+    Tracked as a structured list on CapTable so rules can query it
+    (closes GAP-14). Examples:
+      - "amend_charter" requiring majority of preferred
+      - "issue_senior_security" requiring 67% of preferred
+      - "incur_indebtedness_above" with threshold_value
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str  # short identifier, e.g. "amend_charter"
+    description: Optional[str] = None
+    consent_threshold_pct: Optional[float] = Field(None, ge=0, le=100)
+    consenting_class_names: list[str] = Field(default_factory=list)
+    threshold_value: Optional[float] = None  # for amount-bound provisions
+
+
+class ROFRTerms(BaseModel):
+    """ROFR/ROFO terms (closes GAP-14 partially)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    notice_period_days: Optional[int] = Field(None, ge=0)
+    applies_to_transfers_above: Optional[float] = Field(None, ge=0)
+    excluded_transfer_types: list[str] = Field(default_factory=list)
+    notes: Optional[str] = None
+
+
+class DragAlongTerms(BaseModel):
+    """Drag-along terms (closes GAP-14 partially)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    threshold_pct: Optional[float] = Field(None, ge=0, le=100)
+    drag_classes: list[str] = Field(default_factory=list)
+    minimum_consideration_per_share: Optional[float] = Field(None, ge=0)
+    notes: Optional[str] = None
 
 
 class SideLetter(BaseModel):
@@ -214,6 +259,12 @@ class CapTable(BaseModel):
     safes_outstanding: list[SAFE] = Field(default_factory=list)
     warrants_outstanding: list[Warrant] = Field(default_factory=list)
     convertible_notes_outstanding: list[ConvertibleNote] = Field(default_factory=list)
+    # W3.6 / GAP-14 closure: structured fields the rule pack can query
+    # against rather than scraping side-letter body text. Optional —
+    # legacy CapTable JSONs that omit these still validate.
+    protective_provisions: list[ProtectiveProvision] = Field(default_factory=list)
+    rofr_terms: Optional[ROFRTerms] = None
+    drag_along_terms: Optional[DragAlongTerms] = None
 
     @model_validator(mode="after")
     def share_class_names_unique(self):
@@ -224,17 +275,44 @@ class CapTable(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def preferred_seniority_unique(self):
-        ranks = [
-            sc.seniority_rank
+    def preferred_seniority_tier_unique(self):
+        """Reject duplicate (rank, sub_rank) tuples. Same rank is OK if
+        sub_rank differs — that's pari-passu."""
+        tiers = [
+            (sc.seniority_rank, sc.seniority_sub_rank)
             for sc in self.share_classes
             if sc.type == ShareClassType.preferred
         ]
-        dupes = {r for r in ranks if ranks.count(r) > 1}
+        dupes = {t for t in tiers if tiers.count(t) > 1}
         if dupes:
             raise ValueError(
-                f"duplicate seniority ranks among preferred classes: {sorted(dupes)}"
+                f"duplicate (seniority_rank, seniority_sub_rank) tuples among "
+                f"preferred classes: {sorted(dupes)}. Two pari-passu classes "
+                f"must share seniority_rank but differ in seniority_sub_rank."
             )
+        return self
+
+    @model_validator(mode="after")
+    def pari_passu_groups_homogeneous_lp(self):
+        """GAP-21: refuse pari-passu groups that mix LP types. Within a single
+        seniority rank, the LP type (non_participating / participating_*) must
+        agree so the marginal-allocation math is well-defined."""
+        groups: dict[int, list[str]] = {}
+        types: dict[int, set[str]] = {}
+        for sc in self.share_classes:
+            if sc.type != ShareClassType.preferred or sc.liquidation_preference is None:
+                continue
+            groups.setdefault(sc.seniority_rank, []).append(sc.name)
+            types.setdefault(sc.seniority_rank, set()).add(sc.liquidation_preference.type.value)
+        for rank, type_set in types.items():
+            if len(type_set) > 1:
+                names = sorted(groups[rank])
+                raise ValueError(
+                    f"pari-passu group at seniority_rank={rank} mixes LP types "
+                    f"({sorted(type_set)}) across classes {names}. Mixed-LP "
+                    f"pari-passu is unsupported; either split into distinct "
+                    f"ranks or harmonise the LP type."
+                )
         return self
 
     @field_validator("share_classes")
@@ -254,8 +332,18 @@ class CapTable(BaseModel):
 
     @property
     def preferred_classes_by_seniority(self) -> list[ShareClass]:
-        """Most-senior first (rank 1)."""
+        """Most-senior first (rank 1). Pari-passu classes share a rank;
+        within-rank order is by sub_rank then by name (deterministic)."""
         return sorted(
             [sc for sc in self.share_classes if sc.type == ShareClassType.preferred],
-            key=lambda c: c.seniority_rank,
+            key=lambda c: (c.seniority_rank, c.seniority_sub_rank, c.name),
         )
+
+    @property
+    def preferred_seniority_groups(self) -> list[list[ShareClass]]:
+        """List of pari-passu groups, most-senior first. Each group is one
+        list[ShareClass]; a non-pari-passu rank is a one-element group."""
+        groups: dict[int, list[ShareClass]] = {}
+        for sc in self.preferred_classes_by_seniority:
+            groups.setdefault(sc.seniority_rank, []).append(sc)
+        return [groups[r] for r in sorted(groups.keys())]

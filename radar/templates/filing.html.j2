@@ -1,0 +1,218 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ parsed.legal_name }} · DRHP Reader{% endblock %}
+
+{% block crumbs %}
+<div class="util-bar">
+  <div class="bar">
+    <div class="crumbs">
+      <a href="{{ url_for('landing') }}">Filings</a>
+      <span class="sep">/</span>
+      <span class="here">{{ parsed.legal_name }}</span>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="window.print();">Export deal sheet</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+  <div>
+    <h1>{{ parsed.legal_name }}</h1>
+    <p class="dateline">
+      {{ parsed.filing_type }}
+      · Filed {{ parsed.filing_date or "—" }}
+      · {{ parsed.registered_state }}, India
+      · Founded {{ parsed.founded_year or "—" }}
+      · {{ "{:,}".format(parsed.employee_count or 0) }} employees
+      · Parsed {{ parsed.pages_processed }} pages
+    </p>
+  </div>
+</section>
+
+<!-- KPI strip — at-a-glance deal facts -->
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="label">Issue Size</div>
+    <div class="value">₹{{ parsed.issue_size_inr_cr or "—" }}<span style="font-size:11px;color:var(--muted);"> cr</span></div>
+    <div class="sub">{{ parsed.filing_type }}</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Holders Found</div>
+    <div class="value">{{ holder_count }}</div>
+    <div class="sub">{{ parsed.shareholding|length }} table rows</div>
+  </div>
+  <div class="kpi">
+    <div class="label">ESOP Pool</div>
+    <div class="value">{{ parsed.esop_pool_pct or "—" }}<span style="font-size:11px;color:var(--muted);">%</span></div>
+    <div class="sub">{{ "{:,}".format(parsed.esop_holder_count_estimated or 0) }} est. holders</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Foreign %</div>
+    <div class="value">{{ "%.1f"|format(parsed.foreign_holder_pct or 0) }}<span style="font-size:11px;color:var(--muted);">%</span></div>
+    <div class="sub">FC-TRS scope</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Lock-Ins</div>
+    <div class="value">{{ parsed.lock_in_periods|length }}</div>
+    <div class="sub">categories disclosed</div>
+  </div>
+  <div class="kpi {{ 'kpi-warn' if synthetic_count else '' }}">
+    <div class="label">Synthetic</div>
+    <div class="value">{{ synthetic_count }}</div>
+    <div class="sub">{{ "fan-out flagged" if synthetic_count else "no fabrication" }}</div>
+  </div>
+</div>
+
+{% if parsed.validation_warnings %}
+<section class="alert-strip">
+  {% for w in parsed.validation_warnings[:3] %}
+  <div class="alert">
+    <span class="tag">WARN · parser</span>
+    <span class="alert-text">{{ w }}</span>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<div class="deal-grid">
+  <!-- ============== LEFT: extracted data ============== -->
+  <div class="deal-left">
+
+    <div class="section-eyebrow">
+      <span class="num">§1</span>
+      <h2>Cap Table</h2>
+      <span class="meta">extracted from BUILD-UP OF SHARE CAPITAL</span>
+    </div>
+
+    <div class="card" style="padding:0;">
+      <table class="rank slim holder-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Holder</th>
+            <th>Class</th>
+            <th class="num">Units</th>
+            <th class="num">% Pre-Offer</th>
+            <th>Residency</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in parsed.shareholding %}
+          <tr>
+            <td class="num muted">{{ loop.index }}</td>
+            <td>
+              {{ h.name }}
+              {% if h.class_ == "ESOP" %}<span class="syn-flag">aggregate</span>{% endif %}
+            </td>
+            <td class="mono">{{ h.class_ }}</td>
+            <td class="num">{{ "{:,}".format(h.units) }}</td>
+            <td class="num">{{ "%.2f"|format(h.pct_pre_offer) }}%</td>
+            <td class="muted small">{{ h.residency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-eyebrow">
+      <span class="num">§2</span>
+      <h2>Lock-In Periods</h2>
+      <span class="meta">affects post-IPO tender eligibility</span>
+    </div>
+    <div class="card">
+      {% if parsed.lock_in_periods %}
+      <table class="kv">
+        {% for lp in parsed.lock_in_periods %}
+        <tr><td>{{ lp.category }}</td><td class="num">{{ lp.duration_months }} months</td></tr>
+        {% endfor %}
+      </table>
+      {% else %}
+      <p class="muted small" style="margin:0;">No lock-in section extracted.</p>
+      {% endif %}
+    </div>
+
+    {% if parsed.rofr_clause_summary %}
+    <div class="section-eyebrow">
+      <span class="num">§3</span>
+      <h2>ROFR / ROFO Clause</h2>
+      <span class="meta">first-refusal posture</span>
+    </div>
+    <div class="card">
+      <p class="small" style="margin:0;line-height:1.6;color:var(--ink-soft);">{{ parsed.rofr_clause_summary }}</p>
+    </div>
+    {% endif %}
+
+    <div class="section-eyebrow">
+      <span class="num">§4</span>
+      <h2>Parser Provenance</h2>
+      <span class="meta"><code class="mono">{{ parsed.source_file }}</code></span>
+    </div>
+    <div class="card">
+      <div class="parser-meta">
+        <div>
+          <h4>Sections Detected</h4>
+          <ul class="section-pill-list">
+            {% for s in parsed.sections_found %}<li>{{ s }}</li>{% endfor %}
+          </ul>
+        </div>
+        <div>
+          <h4>Issue Details</h4>
+          <table class="kv">
+            <tr><td>Total issue size</td><td class="num">₹{{ parsed.issue_size_inr_cr or "—" }} cr</td></tr>
+            <tr><td>Fresh issue</td><td class="num">₹{{ parsed.fresh_issue_inr_cr or "—" }} cr</td></tr>
+            <tr><td>Offer for sale</td><td class="num">₹{{ parsed.ofs_inr_cr or "—" }} cr</td></tr>
+            <tr><td>ESOP pool</td><td class="num">{{ parsed.esop_pool_pct or "—" }}%</td></tr>
+            <tr><td>ESOP holders (est.)</td><td class="num">{{ "{:,}".format(parsed.esop_holder_count_estimated or 0) }}</td></tr>
+            <tr><td>Risk factors flagged</td><td class="num">{{ parsed.risk_factors_count_extracted or "—" }}</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== RIGHT: sticky tender preview ============== -->
+  <div class="deal-right">
+    <div class="sticky-rail">
+
+      <div class="section-eyebrow">
+        <span class="num">§T</span>
+        <h2>Indicative Tender</h2>
+        <span class="meta">live recompute</span>
+      </div>
+
+      <div class="tender-card">
+        <div class="card-head">
+          <h2>Tender Preview</h2>
+          <span class="meta">{{ holder_count }} holders{% if synthetic_count %} · {{ synthetic_count }} synth{% endif %}</span>
+        </div>
+        <div class="card-body">
+          <form hx-post="{{ url_for('filing_preview', filing_id=parsed.filing_id) }}"
+                hx-target="#preview-target"
+                hx-trigger="input changed delay:150ms from:input, load">
+            <div class="input-row">
+              <label>Tender size (USD)
+                <input type="range" name="tender_size_usd" min="5000000" max="100000000" step="1000000"
+                       value="{{ params.tender_size_usd | int }}"
+                       oninput="document.getElementById('tsv').textContent = '$' + (this.value/1000000).toFixed(0) + 'M'">
+                <span id="tsv">${{ (params.tender_size_usd / 1000000) | int }}M</span>
+              </label>
+              <label>Price / share (USD)
+                <input type="number" name="price_per_share_usd" step="0.01"
+                       value="{{ '%.2f'|format(params.price_per_share_usd) }}">
+              </label>
+            </div>
+          </form>
+          <div id="preview-target">
+            {% include "_preview.html.j2" %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

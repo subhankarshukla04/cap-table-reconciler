@@ -1,0 +1,347 @@
+[
+  {
+    "rule_id": "hk.hk.grant.any",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Hong Kong Salaries Tax at grant. Under IRO Cap. 112 s.9(1)(d), the chargeable event for a share option is the exercise, assignment or release of the right, not the grant. DIPN 38 (Revised) confirms grant is non-chargeable for option schemes (different from share awards, where the timing of charge depends on whether the award is conditional).",
+    "withholding": "no",
+    "filing_requirement": "Employer reports the grant on form IR56B (Employer's Return) at year-end, but no Salaries Tax is assessed at this stage.",
+    "documents_required": ["Grant agreement", "Stock plan document", "Vesting schedule"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 9(1)(d) — gain realized by the exercise of, or by the assignment or release of, a right to acquire shares or stock is income from the office or employment of profit",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s9?_lang=en",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD DIPN 38 (Revised)",
+        "reference": "Departmental Interpretation and Practice Notes No. 38 — Employee Share-Based Benefits, paragraphs on share option grant treatment",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dipn38.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "Share AWARDS (RSUs / restricted shares) are not options and may be chargeable at grant or vesting depending on conditionality — see DIPN 38 (Revised) §15-22. This rule applies to options under s.9(1)(d), not awards."
+    ]
+  },
+  {
+    "rule_id": "hk.hk.vest.any",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Hong Kong Salaries Tax at vesting of a share option. IRO s.9(1)(d) charges only on exercise, assignment, or release; vesting is the lapse of forfeiture conditions and is not itself a chargeable event for options.",
+    "withholding": "no",
+    "filing_requirement": "No filing at vest.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 9(1)(d) — chargeable event for options is exercise / assignment / release, not vesting",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s9?_lang=en",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD DIPN 38 (Revised)",
+        "reference": "Employee Share-Based Benefits — distinction between options (taxed under s.9(1)(d) on exercise) and share awards (taxed under s.9(1)(a) at vesting if unconditional)",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dipn38.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "For RSUs / share awards, vesting IS the chargeable event under s.9(1)(a). This rule covers options only."
+    ]
+  },
+  {
+    "rule_id": "hk.hk.exercise.resident",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Salaries Tax on the share option gain at exercise. Gain = (market value at exercise − exercise price) × shares, computed under IRO s.9(4). Charged at progressive rates 2% / 6% / 10% / 14% / 17% (2025/26) on net chargeable income, or at the standard rate 15% on net total income — whichever is lower (s.13). No PAYE-style withholding; the employee pays via the assessment after filing form BIR60 (Tax Return — Individuals).",
+    "withholding": "no",
+    "withholding_note": "Hong Kong does not operate PAYE. The employer files form IR56B reporting the option gain; the employee then pays Salaries Tax on assessment.",
+    "filing_requirement": "Employer: form IR56B (Employer's Return of Remuneration) by end of April for the prior year of assessment (1 April – 31 March). Employee: form BIR60 (Tax Return — Individuals) by the due date stated on the return (typically 1 June, with 3-month extension on electronic filing).",
+    "documents_required": ["Notice of exercise", "Share valuation evidence (market value at exercise)", "Form IR56B from employer", "Form BIR60 (employee)"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 9(1)(d) — share option gain chargeable to Salaries Tax on exercise / assignment / release",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s9?_lang=en",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 9(4) — computation of share option gain: market value at exercise minus consideration paid (exercise price + any sum paid for the option itself)",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s9?_lang=en",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD DIPN 38 (Revised)",
+        "reference": "Employee Share-Based Benefits — practical worked examples of share option gain calculation and reporting",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dipn38.pdf",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Inland Revenue Department",
+        "reference": "Pamphlet PAM 47 — How to tax benefits related to stock awards and share options",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/pam47e.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "The s.9(1)(d) gain is assessable in the year of exercise EVEN IF the employee renders no services in Hong Kong during that year — the gain remains chargeable if it was earned (i.e., granted) during a Hong Kong employment. DIPN 38 confirms this.",
+      "Hong Kong has no PAYE. Employer reports on IR56B; employee pays the assessed tax after the assessment is raised."
+    ]
+  },
+  {
+    "rule_id": "hk.hk.exercise.non_resident",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "exercise",
+    "tax_status": "non_resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "For a non-Hong Kong employment (e.g., overseas contract of employment with services partly in HK), the share option gain is apportioned on a time basis — only the portion of the vesting period during which services were rendered in HK is chargeable to Salaries Tax. The '60-day rule' (s.8(1B)) exempts visits totalling 60 days or fewer in the year of assessment. Rates as for residents: progressive 2%–17% or 15% standard rate, whichever is lower.",
+    "withholding": "conditional",
+    "withholding_note": "No PAYE; employer files IR56B reporting the apportioned chargeable amount.",
+    "filing_requirement": "Employer: IR56B with apportioned amount and basis of apportionment disclosed. Employee: BIR60 with claim for time-apportionment relief if applicable.",
+    "documents_required": ["Vesting-period workday log (HK vs overseas)", "Form IR56B (apportioned)", "Form BIR60 with apportionment calculation"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 8(1A)(b) and 8(1B) — exemption for services rendered outside Hong Kong; 60-day rule for visits",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s8",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD DIPN 38 (Revised)",
+        "reference": "Employee Share-Based Benefits — apportionment basis for share option gains where services rendered outside Hong Kong during the vesting period",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dipn38.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "Apportionment ratio: HK workdays during the vesting period ÷ total workdays during the vesting period, multiplied by the option gain. The vesting period is grant date to exercise date.",
+      "60-day rule: services rendered during visits not exceeding 60 days in the year of assessment are ignored — full exemption of the gain attributable to that year may apply.",
+      "If the option was conditional and the vesting period had not expired on the date of departure, see hk.hk.deemed_exercise for the notional-exercise election."
+    ]
+  },
+  {
+    "rule_id": "hk.hk.deemed_exercise",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "deemed_exercise",
+    "tax_status": null,
+    "tax_treatment": "employment_income",
+    "rate_description": "Notional exercise on departure. For an employee leaving Hong Kong with unexercised share options held under a Hong Kong employment, the employer must report on form IR56G (Notification by an Employer of an Employee Who is About to Depart from Hong Kong). The employee MAY elect under DIPN 38 to be assessed on a deemed exercise basis — calculating the gain as if the option had been exercised on a 'notional exercise date' (typically 7 days before departure). Once elected, no further Hong Kong tax arises when the option is actually exercised post-departure.",
+    "withholding": "conditional",
+    "withholding_note": "Employer is required to withhold money in its possession owed to the departing employee under s.52(7) until the IRD issues a 'letter of release' confirming tax clearance.",
+    "filing_requirement": "Employer: form IR56G filed at least ONE MONTH before the planned departure date, declaring unexercised options at item 18 (number of shares exercisable after termination + grant dates). Employee: BIR60 final-year return with election statement attached.",
+    "documents_required": ["Form IR56G (employer)", "Election statement attached to BIR60 (employee, if electing deemed exercise)", "Notional exercise valuation evidence", "Letter of release from IRD before final salary disbursement"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 52(6) and (7) — employer's notification obligation and money-withholding requirement for departing employees",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s52",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD DIPN 38 (Revised)",
+        "reference": "Employee Share-Based Benefits — deemed exercise election for unexercised options on departure from Hong Kong",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dipn38.pdf",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Inland Revenue Department",
+        "reference": "Form IR56G — Notification by an Employer of an Employee Who is About to Depart from Hong Kong",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/ir56g.pdf",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Inland Revenue Department",
+        "reference": "Pamphlet PAM 46 — You or your employee is going to leave Hong Kong",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/pam46e.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "The election is optional but practically necessary — without it, the IRD will not issue a letter of release and the employer must continue to withhold all monies owed to the employee.",
+      "Notional exercise date: typically 7 days before the departure date (employer practice; DIPN 38 confirms IRD acceptance of this convention).",
+      "If the option is conditional and the vesting period has not expired on the notional exercise date, DIPN 38 deems the vesting period to end on that date for gain computation purposes.",
+      "Once the deemed-exercise election is made and the gain is offered for assessment, no further Hong Kong tax arises on the actual exercise post-departure — explicit confirmation in DIPN 38 and KPMG / HKICPA 2021 meeting minutes."
+    ]
+  },
+  {
+    "rule_id": "hk.hk.sale.any",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "sale",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No tax on the sale of shares acquired by exercising employee share options. Hong Kong has no capital gains tax. The disposal of shares is not chargeable to Salaries Tax (an employment income tax) and is outside the scope of Profits Tax for individuals who are not trading in shares as a business.",
+    "withholding": "no",
+    "filing_requirement": "No filing on sale of shares acquired via exercised options for a non-trader employee.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Hong Kong has no capital gains tax. Salaries Tax (s.8) charges income from office or employment; Profits Tax (s.14) charges trade / business / profession profits. Neither applies to incidental disposal of investment shares.",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD",
+        "reference": "Confirmed in Profits Tax framework and longstanding practice — see PwC Hong Kong 2025/26 Tax Facts & Figures, p. 8 (individuals)",
+        "source_url": "https://www.pwchk.com/en/tax/hong-kong-budget-2025-2026/tax-facts-and-figures-en.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If an individual is in the BUSINESS of share trading (frequency, sophistication, financing), gains may be reclassified as trading profits and charged to Profits Tax at 15% (sole proprietor). For a typical employee selling a small block of ex-option shares, this is not in scope."
+    ]
+  },
+  {
+    "rule_id": "hk.in.exercise.resident.hk_view",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "HK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Hong Kong Salaries Tax. An Indian-resident employee of an Indian subsidiary of a Hong Kong parent has no Hong Kong source of employment income — services are rendered in India under an Indian employment contract. IRO s.8 charges only income arising in or derived from Hong Kong. The Hong Kong parent's grant of options does not by itself create a Hong Kong nexus for the Indian employee.",
+    "withholding": "no",
+    "filing_requirement": "No HK employer return obligation for the Indian-employed engineer. The Hong Kong parent may still need to report internally for accounting/IFRS 2 purposes, but no Salaries Tax filing arises.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 8 — Salaries Tax charged only on income arising in or derived from Hong Kong from an office or employment of profit",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s8",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRD DIPN 38 (Revised)",
+        "reference": "Employee Share-Based Benefits — nexus requirement; no HK charge where no HK employment exists",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dipn38.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the Indian employee renders services in Hong Kong for more than 60 days in any year of assessment during the vesting period (s.8(1B)), an HK time-apportionment charge may arise. Verify HK workday log.",
+      "This rule assumes the engineer is employed by the Indian subsidiary (not seconded to the HK parent). If employed directly by the HK parent and based in India, characterisation changes — see hk.hk.exercise.non_resident."
+    ]
+  },
+  {
+    "rule_id": "hk.sg.exercise.resident.hk_view",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "HK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Hong Kong Salaries Tax for a Singapore-resident employee with no Hong Kong employment and no HK workdays during the vesting period. IRO s.8 requires a Hong Kong source.",
+    "withholding": "no",
+    "filing_requirement": "None.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 8 — Salaries Tax charged only on income arising in or derived from Hong Kong",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s8",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Hong Kong–Singapore CDTA",
+        "reference": "Hong Kong–Singapore Comprehensive Double Tax Agreement, Article 14 (Income from Employment) — employment income taxed in residence state unless services performed in source state",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dta_hk_singapore.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the SG employee has HK workdays > 60 in the vesting period, time-apportionment may bring a portion of the gain into HK charge — switch to hk.hk.exercise.non_resident."
+    ]
+  },
+  {
+    "rule_id": "in.hk.exercise.resident.hk_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Hong Kong Salaries Tax applies to the HK-resident employee's share option gain regardless of where the parent (Indian) company is incorporated. s.9(1)(d) charges the gain on exercise; rate is progressive 2%–17% or 15% standard, whichever is lower. The Indian parent's identity is irrelevant — what matters is the employee's Hong Kong employment.",
+    "withholding": "no",
+    "withholding_note": "Hong Kong does not operate PAYE.",
+    "filing_requirement": "Hong Kong employer (typically the local HK subsidiary or representative office) files IR56B with the option gain reported. Employee files BIR60.",
+    "documents_required": ["Notice of exercise", "Market value evidence at exercise", "Form IR56B", "Form BIR60"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 9(1)(d) — share option gain assessable on exercise from a Hong Kong employment",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s9?_lang=en",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "India–Hong Kong CDTA",
+        "reference": "India–Hong Kong Double Taxation Avoidance Agreement (effective 1 April 2019 in HK / 1 April 2019 in India), Article 14 — Income from Employment. Employment income taxable in the state where services are rendered.",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/2018/CDTA_INDIA.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "The HK-resident employee may claim foreign tax credit relief under the India–HK CDTA Article 22 if any India-source tax has been suffered on the same gain (e.g., where part of the vesting period was spent on services in India)."
+    ]
+  },
+  {
+    "rule_id": "sg.hk.exercise.resident.hk_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "HK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Hong Kong Salaries Tax on the share option gain at exercise. The Singapore parent's identity does not change the analysis — Hong Kong charges the gain because the employee holds a Hong Kong employment under s.9(1)(d).",
+    "withholding": "no",
+    "filing_requirement": "Employer (HK subsidiary of SG parent) files IR56B; employee files BIR60.",
+    "documents_required": ["Notice of exercise", "Market value evidence", "Form IR56B", "Form BIR60"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Inland Revenue Ordinance (Cap. 112)",
+        "reference": "Section 9(1)(d) — share option gain assessable to Salaries Tax on exercise",
+        "source_url": "https://www.elegislation.gov.hk/hk/cap112!en/s9?_lang=en",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Hong Kong–Singapore CDTA",
+        "reference": "Article 14 — Income from Employment; HK taxes services rendered in HK",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dta_hk_singapore.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "Verify SG-side treatment via the Singapore IRAS overseas-parent rule — same gain may attract a secondary SG charge if the employee was in SG during the vesting period."
+    ]
+  }
+]

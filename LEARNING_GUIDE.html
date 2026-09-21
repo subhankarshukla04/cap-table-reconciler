@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cap Table Reconciler — Learning Guide: the concepts and techniques behind every wave</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --ink-soft: #555;
+      --ink-faint: #888;
+      --paper: #fbfaf7;
+      --rule: #d8d4c8;
+      --accent: #1f4d8a;
+      --accent-soft: #e6f0fb;
+      --warn: #7a5b00;
+      --warn-soft: #fff0c8;
+      --block: #8a1f1f;
+      --block-soft: #fde2e2;
+      --ok: #2d6a30;
+      --ok-soft: #d6efd9;
+      --code: #f4f1ea;
+      --code-ink: #1a1a1a;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 48px 28px 96px;
+    }
+    h1 { font-size: 30pt; margin: 0 0 6pt; letter-spacing: -0.01em; line-height: 1.2; }
+    h2 {
+      font-size: 20pt;
+      margin: 64pt 0 14pt;
+      padding-bottom: 8pt;
+      border-bottom: 2pt solid var(--accent);
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      font-size: 15pt;
+      margin: 36pt 0 10pt;
+      color: var(--ink);
+    }
+    h4 {
+      font-size: 11pt;
+      margin: 18pt 0 6pt;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p, ul, ol { margin: 0 0 12pt; }
+    ul, ol { padding-left: 24pt; }
+    li { margin-bottom: 6pt; }
+    li > ul, li > ol { margin-top: 6pt; }
+    code {
+      font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      background: var(--code);
+      padding: 1pt 5pt;
+      border-radius: 2pt;
+      font-size: 10.5pt;
+      color: var(--code-ink);
+    }
+    pre {
+      font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      background: var(--code);
+      padding: 14pt 16pt;
+      border-radius: 4pt;
+      overflow-x: auto;
+      border-left: 3pt solid var(--accent);
+      font-size: 10pt;
+      line-height: 1.6;
+      margin: 12pt 0 20pt;
+    }
+    pre code { background: none; padding: 0; font-size: inherit; }
+    a { color: var(--accent); text-decoration: none; border-bottom: 1pt solid var(--accent-soft); }
+    a:hover { border-bottom-color: var(--accent); }
+    .tagline {
+      font-size: 13pt;
+      color: var(--ink-soft);
+      margin: 0 0 28pt;
+      max-width: 700px;
+      line-height: 1.5;
+    }
+    .toc {
+      background: #fff;
+      border: 1pt solid var(--rule);
+      border-radius: 4pt;
+      padding: 18pt 22pt;
+      margin: 24pt 0 36pt;
+      font-size: 11pt;
+    }
+    .toc h3 { margin: 0 0 10pt; font-size: 11pt; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
+    .toc ol { margin: 0; padding-left: 22pt; }
+    .toc li { margin-bottom: 3pt; }
+    .toc a { color: var(--ink); border-bottom: none; }
+    .toc a:hover { color: var(--accent); }
+    .concept {
+      background: #fff;
+      border: 1pt solid var(--rule);
+      border-radius: 4pt;
+      padding: 18pt 22pt;
+      margin: 18pt 0 24pt;
+    }
+    .concept-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14pt;
+      margin: 12pt 0 14pt;
+      padding: 12pt 14pt;
+      background: var(--paper);
+      border-radius: 4pt;
+      font-size: 10.5pt;
+    }
+    .concept-meta strong {
+      display: block;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-soft);
+      margin-bottom: 3pt;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2pt 9pt;
+      border-radius: 12pt;
+      font-size: 9.5pt;
+      font-weight: 500;
+      vertical-align: 1pt;
+    }
+    .pill.accent { background: var(--accent-soft); color: var(--accent); }
+    .pill.ok { background: var(--ok-soft); color: var(--ok); }
+    .pill.warn { background: var(--warn-soft); color: var(--warn); }
+    .pill.block { background: var(--block-soft); color: var(--block); }
+    .flow {
+      background: #fff;
+      border: 1pt solid var(--rule);
+      border-radius: 4pt;
+      padding: 18pt 22pt;
+      margin: 18pt 0 24pt;
+      font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 9.5pt;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .callout {
+      border-left: 3pt solid var(--ink-faint);
+      padding: 6pt 0 6pt 14pt;
+      margin: 14pt 0;
+      color: var(--ink-soft);
+      font-size: 11pt;
+      font-style: italic;
+    }
+    .callout strong { font-style: normal; color: var(--ink); }
+    .why-cared {
+      background: var(--warn-soft);
+      border-left: 3pt solid var(--warn);
+      padding: 10pt 14pt;
+      margin: 12pt 0;
+      font-size: 11pt;
+      border-radius: 0 3pt 3pt 0;
+    }
+    .why-cared strong { color: var(--warn); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14pt 0 20pt;
+      font-size: 11pt;
+    }
+    th, td {
+      padding: 8pt 10pt;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1pt solid var(--rule);
+    }
+    th {
+      font-weight: 600;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      font-size: 9pt;
+      letter-spacing: 0.05em;
+    }
+    hr {
+      border: none;
+      border-top: 1pt solid var(--rule);
+      margin: 48pt 0;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18pt;
+      margin: 14pt 0;
+    }
+    @media (max-width: 720px) {
+      h1 { font-size: 24pt; }
+      h2 { font-size: 17pt; }
+      h3 { font-size: 13pt; }
+      .two-col, .concept-meta { grid-template-columns: 1fr; }
+      .flow, pre { font-size: 9pt; }
+    }
+    @media print {
+      body { background: white; }
+      .wrap { max-width: none; padding: 0; }
+      .concept, pre, .flow { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Cap Table Reconciler — Learning Guide</h1>
+<p class="tagline">
+  Every concept and technique used across 9 build waves, explained from
+  first principles. Walk this end-to-end to understand not just what
+  shipped but <em>why each choice was made</em> and <em>what alternatives
+  were rejected</em>. Then a section on how the engine itself works as
+  a request flows from HTTP arrival to byte-stable bundle.
+</p>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#part-a">Part A — The mental model</a></li>
+    <li><a href="#part-b">Part B — How the engine works (request lifecycle)</a></li>
+    <li><a href="#part-c">Part C — Concepts that built this, explained from first principles</a>
+      <ol>
+        <li><a href="#c1">Pydantic v2 schema-first models</a></li>
+        <li><a href="#c2">Hash-chained audit log</a></li>
+        <li><a href="#c3">Optimistic concurrency via atomic conditional UPDATE</a></li>
+        <li><a href="#c4">HMAC-signed session cookies</a></li>
+        <li><a href="#c5">CSRF double-submit cookie pattern</a></li>
+        <li><a href="#c6">Bearer token revocation deny list</a></li>
+        <li><a href="#c7">SQLite WAL mode + per-process cached connections</a></li>
+        <li><a href="#c8">Byte-stable xlsx output</a></li>
+        <li><a href="#c9">Content negotiation (HTML vs JSON)</a></li>
+        <li><a href="#c10">Role-based access control matrix</a></li>
+        <li><a href="#c11">Calendar-hour rate limiting buckets</a></li>
+        <li><a href="#c12">Idempotent schema migrations</a></li>
+        <li><a href="#c13">Black-Scholes-Merton + brentq for OPM Backsolve</a></li>
+        <li><a href="#c14">Jinja2 autoescape and the |safe trap</a></li>
+        <li><a href="#c15">PDPA redaction with audit-log preservation</a></li>
+        <li><a href="#c16">Magnitude-tiered drift classification</a></li>
+        <li><a href="#c17">WeasyPrint for HTML-to-PDF rendering</a></li>
+        <li><a href="#c18">Audit loop discipline (stable finding IDs as test names)</a></li>
+        <li><a href="#c19">Header injection and open-redirect prevention</a></li>
+        <li><a href="#c20">Spec-driven development with amendment rounds</a></li>
+      </ol>
+    </li>
+    <li><a href="#part-d">Part D — A real upload becomes a bundle (end-to-end walk)</a></li>
+    <li><a href="#part-e">Part E — The libraries and what role each plays</a></li>
+  </ol>
+</div>
+
+<h2 id="part-a">Part A — The mental model</h2>
+
+<h3>What "the engine" is</h3>
+<p>
+  The engine is a Python module collection that turns one messy
+  cap-table <code>.xlsx</code> into a Big 4 portable
+  <code>bundle.zip</code> with every analyst decision recorded in an
+  append-only hash chain. The user-facing surface is a Flask app
+  serving both an HTMX-driven browser UI and a JSON REST API from the
+  same endpoints.
+</p>
+
+<h3>The two-layer split</h3>
+<p>
+  Every piece of work in this codebase sits on one of two sides of a
+  hard line:
+</p>
+<table>
+  <thead>
+    <tr><th>Pure compute layer</th><th>Persisted engagement layer</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Takes a <code>CapTable</code> and returns a result. No I/O,
+      no DB, no Flask. Deterministic: same input always produces
+      identical output (modulo timestamp carve-outs).</td>
+      <td>Takes user actions, validates them against role + concurrency
+      + business rules, and writes immutable records. Stateful: every
+      mutation appends to the hash chain.</td>
+    </tr>
+    <tr>
+      <td>Examples: <code>waterfall.py</code>,
+      <code>checklist.py</code>, <code>diff.py</code>,
+      <code>snapshot_timeline.py</code>, <code>opm/backsolve.py</code>,
+      <code>diff_workpaper.py</code>.</td>
+      <td>Examples: <code>engagement.py</code> (the
+      <code>EngagementStore</code>), <code>engagement_routes.py</code>,
+      <code>engagement_bundle.py</code>, <code>token_deny.py</code>.</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  The split matters because pure-compute code can be tested without a
+  Flask app, an SQLite DB, or a Pydantic model boundary. Persisted-layer
+  code has to be tested against a real store with real concurrency
+  semantics. Keeping them separate is what made it possible to ship 842
+  regression tests at ~60 seconds runtime.
+</p>
+
+<h3>The audit loop as a build discipline</h3>
+<p>
+  Every wave follows the same six-step ritual:
+</p>
+<ol>
+  <li><strong>Build</strong> the planned items (5 to 13 per wave).</li>
+  <li><strong>Test</strong> with per-item regression coverage.</li>
+  <li><strong>Dispatch</strong> an independent auditor against ONLY the wave's deltas.</li>
+  <li><strong>Triage</strong> findings into fix-now vs defer with rationale.</li>
+  <li><strong>Fix</strong> with one regression test per audit finding ID.</li>
+  <li><strong>Document</strong> in <code>BUILD_WAVE_N.md</code> + <code>SYSTEM_AUDIT_WAVE_N.md</code>.</li>
+</ol>
+<p>
+  Why this matters: the audit is a forcing function. The builder is
+  blind to their own assumptions. The auditor reads the code with no
+  context and asks "why?" at every seam. Every finding gets a stable
+  ID (<code>B-W7-1</code>, <code>W9-M3</code>, etc.) and that ID
+  becomes the regression test name. When a future change re-introduces
+  the bug, the test fails with the finding code in its name, and the
+  audit doc explains the original context. You can't lose the lesson.
+</p>
+
+<h2 id="part-b">Part B — How the engine works (request lifecycle)</h2>
+
+<p>
+  Walk one request end-to-end. The analyst clicks "Upload" on the
+  engagement detail page. Their browser sends:
+</p>
+<pre><code>POST /engagement/abc-123/upload?html=1 HTTP/1.1
+Cookie: qapita_session=&lt;hmac-signed&gt;; qapita_csrf=&lt;random&gt;
+Content-Type: multipart/form-data; boundary=...
+
+[file bytes]
+csrf_token: &lt;matches the cookie&gt;
+expected_version: 2
+change_note: Series C closing 2026-03-15</code></pre>
+
+<h3>Stage 1 — Flask routing</h3>
+<p>
+  Flask matches the path against the engagement blueprint
+  (<code>url_prefix="/engagement"</code>). The matched view is
+  <code>engagement_routes.upload(eng_id="abc-123")</code>.
+</p>
+
+<h3>Stage 2 — Phase-0 demo gate</h3>
+<p>
+  An app-level <code>before_request</code> hook checks whether the path
+  matches any phase-0 demo route (<code>/upload</code>, <code>/whatif/</code>,
+  etc.) and refuses with 404 <code>phase-0-demo-disabled</code> unless
+  <code>ALLOW_PHASE_0_DEMO=1</code> is set. This request goes to
+  <code>/engagement/...</code> so the gate doesn't fire.
+</p>
+
+<h3>Stage 3 — Auth resolution (engagement blueprint before_request)</h3>
+<p>
+  <code>_require_user()</code> runs. It looks up credentials in this
+  order:
+</p>
+<ol>
+  <li><strong>Bearer token</strong> from <code>Authorization: Bearer &lt;tok&gt;</code> header. Explicit beats ambient.</li>
+  <li>If no Bearer, <strong>session cookie</strong> via <code>resolve_session_cookie()</code>.</li>
+  <li>Otherwise: 401 with <code>WWW-Authenticate: Bearer</code> for API clients, or 302 to <code>/login</code> for browsers.</li>
+</ol>
+<p>
+  Before authenticating, the Bearer is checked against the deny list
+  (<code>token_deny.is_revoked</code>). A revoked Bearer authenticates
+  as nobody and falls through to the cookie path or 401. The resolved
+  user is stashed on <code>g.current_user</code>; the credential type
+  is stashed on <code>g.auth_source = "bearer" | "cookie"</code>.
+</p>
+
+<h3>Stage 4 — CSRF check (cookie path only)</h3>
+<p>
+  If <code>g.auth_source == "cookie"</code>, <code>verify_csrf()</code>
+  runs. It reads the <code>qapita_csrf</code> cookie value and compares
+  it (constant-time via <code>hmac.compare_digest</code>) against the
+  <code>X-CSRF-Token</code> header OR the <code>csrf_token</code> form
+  field. Mismatch returns 403 <code>csrf-mismatch</code>; missing
+  cookie returns 403 <code>csrf-missing-cookie</code>. Bearer requests
+  skip this entirely (the Bearer IS the credential, not ambient session).
+</p>
+
+<h3>Stage 5 — Route handler</h3>
+<p>
+  The <code>upload</code> view runs. It checks
+  <code>engagement.upload_cap_table</code> permission against
+  <code>g.current_user.role</code>. Validates the file extension.
+  Rejects control chars in <code>change_note</code>. Calls
+  <code>parse_excel</code> to turn the bytes into a
+  <code>CapTable</code> model. Wraps in <code>try/finally</code> so the
+  workbook handle closes on any exception path.
+</p>
+
+<h3>Stage 6 — Store mutation under lock</h3>
+<p>
+  <code>store.add_snapshot(actor, engagement_id, expected_version, cap_table, ...)</code>
+  acquires a process-local <code>RLock</code>, re-reads the engagement,
+  verifies <code>eng.version == expected_version</code> (raises
+  <code>EngagementVersionConflict</code> if not), then runs an atomic
+  conditional UPDATE:
+</p>
+<pre><code>UPDATE engagement
+   SET head_snapshot_id = ?, version = version + 1
+ WHERE id = ? AND version = ?</code></pre>
+<p>
+  If <code>cur.rowcount != 1</code>, raises
+  <code>EngagementVersionConflict</code> (defense in depth — the lock
+  prevents this in single-process, but the rowcount check would catch
+  multi-process races too). Then INSERTs the snapshot row.
+</p>
+
+<h3>Stage 7 — Audit event append</h3>
+<p>
+  <code>_append_audit_event</code> computes:
+</p>
+<pre><code>prev = engagement.audit_head_hash  # "00" * 32 at genesis
+canonical = f"{event_type}|{actor}|{ts_iso}|{payload_json}"
+row_hash = sha256(prev.encode() + b"\x00" + canonical.encode()).hexdigest()</code></pre>
+<p>
+  Inserts the audit_event row, then UPDATEs
+  <code>engagement.audit_head_hash = row_hash</code>. All inside the
+  same <code>_write_lock</code> so the chain stays monotonic.
+</p>
+
+<h3>Stage 8 — Response shape (content negotiation)</h3>
+<p>
+  <code>_wants_html()</code> checks <code>?html=1</code> first, then
+  parses the <code>Accept</code> header with q-value support
+  (<code>text/html;q=0.9, application/json;q=0.5</code>). Returns True
+  if the highest-q match is HTML.
+</p>
+<ul>
+  <li>If HTML: <code>302 redirect</code> to <code>/engagement/abc-123?html=1</code>.</li>
+  <li>If JSON: <code>201 Created</code> with <code>{snapshot_id, engagement_version, warnings}</code>.</li>
+</ul>
+
+<h3>Stage 9 — after_request CSRF management</h3>
+<p>
+  <code>_heal_csrf_cookie</code> attaches a new CSRF cookie if
+  <code>_inject_csrf</code> decided to mint one (auto-heal for missing
+  cookies or rotation for stale ones). Decision lives in
+  <code>_inject_csrf</code> so the template's hidden input and the
+  response cookie always agree on the same token value (the wave-9
+  B-W9-B1 fix).
+</p>
+
+<h3>Stage 10 — Browser follows redirect</h3>
+<p>
+  Browser GETs <code>/engagement/abc-123?html=1</code>. Same auth
+  stages run. View renders <code>detail.html</code> with the new head
+  snapshot, the 60-rule findings list, and the resolve-form per finding.
+</p>
+
+<h2 id="part-c">Part C — Concepts that built this, explained from first principles</h2>
+
+<p>
+  Each concept follows the same template: <em>what it is</em>,
+  <em>why we need it</em>, <em>how it works mechanically</em>,
+  <em>what alternatives we rejected</em>, <em>where it lives in the
+  code</em>.
+</p>
+
+<!-- =================================================================== -->
+<div class="concept" id="c1">
+<h3>1. Pydantic v2 schema-first models</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A Python library that turns class definitions into runtime-validated, JSON-serialisable schemas.</div>
+  <div><strong>Where</strong> <code>src/models.py</code>, <code>src/engagement.py</code> (Snapshot, Resolution, Engagement, AuditEvent).</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> The Excel parser produces a dict-shaped
+  blob with mixed types, missing fields, and ad-hoc shapes. Without a
+  validated schema, downstream code has to defensively check every
+  attribute access. With Pydantic, validation happens once at the
+  boundary; everything downstream gets a typed object it can rely on.
+</p>
+<p>
+  <strong>How it works.</strong> You declare a model with type
+  annotations:
+</p>
+<pre><code>class ShareClass(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # reject unknown fields
+    name: str
+    type: ShareClassType
+    shares_outstanding: int = Field(..., ge=0)
+    issue_price: Optional[float] = None
+    liquidation_preference: Optional[LiquidationPreference] = None</code></pre>
+<p>
+  Pydantic generates a validator at class-creation time. Calling
+  <code>ShareClass(**raw_dict)</code> coerces types, runs field
+  validators, and raises <code>ValidationError</code> if anything is
+  off. <code>model_dump_json(indent=2)</code> serialises deterministically
+  with sorted keys.
+</p>
+<p>
+  <strong>What we rejected.</strong> Hand-rolled dataclasses with manual
+  validation (verbose), or untyped dicts everywhere (a graveyard of
+  KeyError bugs). Pydantic v2 is rewritten in Rust under the hood; the
+  validation overhead is negligible.
+</p>
+<p>
+  <strong>The trap to know.</strong> <code>extra="forbid"</code> on
+  every model. Without it, a typo in the parser silently passes through
+  as an extra field nobody reads.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c2">
+<h3>2. Hash-chained audit log</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A sequence of records where each row's SHA-256 hash includes the previous row's hash, making any tampering detectable offline.</div>
+  <div><strong>Where</strong> <code>src/engagement.py</code> — <code>_append_audit_event</code>, <code>verify_audit_log</code>, <code>_compute_row_hash</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Big 4 auditors will pull the bundle
+  six months after engagement close and need to prove every analyst
+  decision happened in the order recorded, without trusting the
+  running system. A linear log with timestamps proves nothing — a
+  malicious admin can edit any row. A hash chain proves that any edit
+  to row N invalidates the hashes of rows N+1, N+2, ..., HEAD.
+</p>
+<p>
+  <strong>How it works.</strong> Genesis hash is 64 zero hex chars.
+  Each row computes:
+</p>
+<pre><code>canonical_payload = f"{event_type}|{actor}|{ts_iso}|{payload_json}"
+# payload_json is canonical: sort_keys=True, separators=(",", ":")
+row_hash = SHA256(prev_row_hash.encode() + b"\x00" + canonical_payload.encode()).hexdigest()</code></pre>
+<p>
+  The engagement table stores the current HEAD hash. Each new event
+  reads HEAD, computes the new row's hash, INSERTs the row, and
+  UPDATEs HEAD. Inside a single <code>_write_lock</code> so the chain
+  stays monotonic.
+</p>
+<p>
+  <strong>Offline verification recipe.</strong> Auditor reads
+  <code>audit_log.jsonl</code> line by line. Starts <code>prev = "00" * 32</code>.
+  For each event, recomputes the SHA-256 from <code>prev</code> + the
+  stored canonical payload. If it matches the stored
+  <code>row_hash</code>, the row is intact. Sets <code>prev = row_hash</code>.
+  Continues. The final row's hash MUST match
+  <code>manifest.audit_head_hash</code>.
+</p>
+<p>
+  <strong>What we rejected.</strong> Signing each row with a private
+  key (overkill — we only need tamper-evidence, not non-repudiation).
+  Merkle trees (Bitcoin-style — overkill for a linear log).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c3">
+<h3>3. Optimistic concurrency via atomic conditional UPDATE</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A pattern that lets two clients write to the same row safely without locking, by attaching a version number to every mutation.</div>
+  <div><strong>Where</strong> <code>src/engagement.py</code> — every mutating method.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Two analysts open the same engagement
+  page at version 5. Both click "Move to review" simultaneously. Without
+  guarding, one overwrites the other and the audit log loses a state
+  transition.
+</p>
+<p>
+  <strong>How it works.</strong> Every mutating route requires the
+  caller to send <code>expected_version</code> matching what they last
+  read. The store does:
+</p>
+<pre><code>cur = conn.execute(
+    "UPDATE engagement SET status = ?, version = version + 1 "
+    "WHERE id = ? AND version = ?",
+    (new_status.value, engagement_id, expected_version),
+)
+if cur.rowcount != 1:
+    raise EngagementVersionConflict(engagement_id, expected_version, current)</code></pre>
+<p>
+  The <code>WHERE id = ? AND version = ?</code> clause is the magic.
+  If the version no longer matches what the client saw, the UPDATE
+  affects zero rows. <code>cur.rowcount == 0</code> tells us
+  unambiguously that someone else won the race. We raise a 409
+  <code>engagement-version-conflict</code> and the client retries
+  after re-reading.
+</p>
+<p>
+  <strong>The defense-in-depth twist.</strong> We also hold a
+  process-local <code>RLock</code> across the read-then-write. In
+  single-process Flask, the lock alone is sufficient. The rowcount
+  check is what makes the contract survive a multi-process deploy
+  (gunicorn workers, k8s pods).
+</p>
+<p>
+  <strong>What we rejected.</strong> Pessimistic locking (SELECT FOR
+  UPDATE) — works on Postgres but doesn't have meaningful semantics in
+  SQLite's serialized journal mode. Last-write-wins (no version check)
+  — silently loses concurrent edits, the exact bug we wanted to
+  prevent.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c4">
+<h3>4. HMAC-signed session cookies</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> An opaque cookie value containing user identity + expiry, signed with a server-side secret so the browser can't tamper with it.</div>
+  <div><strong>Where</strong> <code>src/cookie_auth.py</code> — <code>issue_session_cookie</code>, <code>verify_session_cookie</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Browsers can't attach
+  <code>Authorization: Bearer</code> headers to plain
+  <code>&lt;a href=...&gt;</code> links, so the wave-4 HTMX UI was
+  dev-only until we added cookie auth. The cookie carries enough info
+  for the server to identify the user on subsequent requests, without a
+  database session table.
+</p>
+<p>
+  <strong>How it works.</strong> Cookie format:
+</p>
+<pre><code>payload = f"{user_id}|{expiry_iso}".encode("utf-8")
+sig = hmac.new(secret_key, payload, hashlib.sha256).digest()
+cookie_value = b64url(payload) + "." + b64url(sig)</code></pre>
+<p>
+  The server reads the cookie, splits on <code>.</code>, recomputes the
+  HMAC from its own copy of <code>secret_key</code>, and compares with
+  <code>hmac.compare_digest</code> (constant-time, defeats timing
+  attacks). If the comparison passes and the expiry is in the future,
+  the cookie is valid.
+</p>
+<p>
+  <strong>Cookie attributes.</strong>
+</p>
+<ul>
+  <li><code>httponly=True</code>: JS can't read the cookie. Defeats one class of XSS exfiltration.</li>
+  <li><code>samesite="Strict"</code>: Browser refuses to send the cookie on cross-site requests. Defeats most CSRF in modern browsers.</li>
+  <li><code>secure=True</code> (non-TESTING): Browser refuses to send over plain HTTP. Defeats network MITM.</li>
+</ul>
+<p>
+  <strong>What we rejected.</strong> Flask's built-in
+  <code>flask.session</code> uses itsdangerous which is similar but
+  serializes the whole dict. We wanted a tiny, audited surface.
+  JWT — overkill for a single-server app; we don't need claims, just
+  identity.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c5">
+<h3>5. CSRF double-submit cookie pattern</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A defense against cross-site request forgery that requires the form to echo a value from a cookie. An attacker site can submit forms but can't read the cookie, so they can't forge the matching field.</div>
+  <div><strong>Where</strong> <code>src/cookie_auth.py</code> — <code>issue_csrf_token</code>, <code>verify_csrf</code>; <code>src/engagement_routes.py</code> — <code>_inject_csrf</code> + <code>_heal_csrf_cookie</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> An attacker hosts a page that
+  POSTs to your <code>/engagement/&lt;id&gt;/transition</code> route.
+  If the victim is logged in (session cookie in their browser), the
+  browser sends the cookie with the cross-site POST. Without CSRF
+  protection, the attacker just changed the engagement state. SameSite=Strict
+  defeats most of this in modern browsers but not all paths.
+</p>
+<p>
+  <strong>How it works.</strong> Server issues two cookies at login:
+  <code>qapita_session</code> (HttpOnly) and <code>qapita_csrf</code>
+  (NOT HttpOnly, so JS can read it). Forms include
+  <code>&lt;input type="hidden" name="csrf_token" value="..."&gt;</code>
+  with the value JS read from the cookie. Server verifies the form
+  field equals the cookie via <code>hmac.compare_digest</code>.
+</p>
+<p>
+  The attacker site can't read the cookie (same-origin policy), so it
+  can't forge the matching form field. The protection holds even
+  without HMAC signing the token — the secret is the cookie value the
+  attacker can't see.
+</p>
+<p>
+  <strong>The Bearer carve-out.</strong> CSRF check only fires when
+  <code>g.auth_source == "cookie"</code>. Bearer-authenticated requests
+  are exempt because the Bearer IS the explicit credential, not an
+  ambient session a cross-site attacker can ride on.
+</p>
+<p>
+  <strong>Token rotation (W9.5).</strong> CSRF tokens encode
+  <code>&lt;unix_seconds&gt;.&lt;random&gt;</code>. The engagement
+  blueprint's <code>after_request</code> rotates the cookie when its
+  age &gt; 1 hour. A leaked token's blast radius drops from 7 days to
+  1 hour. The decision lives in <code>_inject_csrf</code> so the
+  template's hidden input and the response cookie always agree on the
+  same value (the original W9.5 placed rotation in
+  <code>after_request</code> and broke this — wave-9 audit B-1).
+</p>
+<p>
+  <strong>What we rejected.</strong> Flask-WTF (extra dependency we
+  didn't need; CSRF as a single decorator was sufficient). Synchronizer
+  token pattern (requires server-side storage of all valid tokens).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c6">
+<h3>6. Bearer token revocation deny list</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A small server-side table of revoked Bearer tokens. Logging out adds the token's hash. The auth guard checks the list before identity resolution.</div>
+  <div><strong>Where</strong> <code>src/token_deny.py</code> — <code>TokenDenyList</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Cookie logout is easy (clear the
+  cookie). Bearer logout is harder because the token lives on the
+  client. Without revocation, "log me out" only ends the browser
+  session; an API client holding the Bearer can keep making requests
+  until the SSO provider expires the token.
+</p>
+<p>
+  <strong>How it works.</strong> SQLite table:
+</p>
+<pre><code>CREATE TABLE token_deny (
+    token_hash TEXT PRIMARY KEY,
+    revoked_at REAL NOT NULL,
+    expires_at REAL NOT NULL DEFAULT 0
+);</code></pre>
+<p>
+  <code>POST /logout</code> with <code>Authorization: Bearer &lt;tok&gt;</code>
+  computes <code>SHA-256(tok)</code> and INSERTs the hash with
+  <code>expires_at = now + 30 days</code>. The auth guard does a
+  <code>SELECT 1 FROM token_deny WHERE token_hash = ?</code> before
+  calling <code>provider.authenticate(token)</code>. Denied tokens
+  resolve to nobody.
+</p>
+<p>
+  <strong>Why hash, not raw.</strong> A database compromise would
+  leak live credentials if we stored raw tokens. SHA-256 is one-way;
+  the attacker gets the deny list but not the working tokens.
+</p>
+<p>
+  <strong>Why TTL.</strong> Without expiry, the table grows
+  monotonically forever. Lookup latency walks up. With TTL matching
+  the SSO provider's max token lifetime, prune jobs can drop entries
+  that would have expired upstream anyway. <code>flask --app app
+  prune-deny-list</code> runs the cleanup.
+</p>
+<p>
+  <strong>What we rejected.</strong> Calling the SSO provider's
+  revocation endpoint on every request (latency + reliability cost).
+  No revocation at all (the wave-6 audit blocker — "Bearer not revoked
+  by /logout" — is exactly this).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c7">
+<h3>7. SQLite WAL mode + per-process cached connections</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Two performance hardenings on the deny list (and any other hot-path SQLite store).</div>
+  <div><strong>Where</strong> <code>src/token_deny.py</code> <code>__init__</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> The original wave-6 deny list
+  opened and closed a fresh SQLite connection per
+  <code>is_revoked()</code> call. On the engagement blueprint's hot
+  path (every authenticated request), this is one
+  <code>fopen + fclose + fsync</code> per HTTP call. The wave-6 audit
+  M-W7-2 flagged it as an operational footgun.
+</p>
+<p>
+  <strong>WAL mode (Write-Ahead Logging).</strong> Default SQLite uses
+  the rollback journal: writers block readers. WAL flips this: writes
+  go to a separate log file, readers read from the main DB at their
+  snapshot, writes commit by atomically moving the log into the main
+  DB. Readers don't block writers and vice versa. Set with
+  <code>PRAGMA journal_mode=WAL</code>.
+</p>
+<p>
+  <strong>synchronous=NORMAL.</strong> WAL's default sync mode is
+  FULL, which fsyncs on every commit. NORMAL skips some fsyncs and is
+  durable enough for our use (a power loss might lose the last
+  millisecond of writes; SQLite's authors document this as the
+  recommended setting for WAL).
+</p>
+<p>
+  <strong>Cached connection.</strong> Single
+  <code>sqlite3.Connection(check_same_thread=False, isolation_level=None)</code>
+  per process. Threaded under a <code>RLock</code> so concurrent calls
+  serialise correctly. Eliminates the
+  <code>fopen + fclose + fsync</code> per call.
+</p>
+<p>
+  <strong>What we rejected.</strong> Connection pool (overkill for a
+  single-file SQLite store). In-memory SQLite (would lose state on
+  restart).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c8">
+<h3>8. Byte-stable xlsx output</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Two consecutive builds of the same xlsx workbook produce identical SHA-256.</div>
+  <div><strong>Where</strong> <code>src/xlsx_stability.py</code> — <code>pin_workbook_properties</code> + <code>stabilise_xlsx_bytes</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> The bundle ships a SHA-256 manifest;
+  the auditor recomputes hashes offline to verify nothing was modified
+  after generation. If the xlsx producer leaks wall-clock timestamps
+  into the output, every regeneration produces different bytes and the
+  manifest's claim "bit-for-bit reproducible" is false.
+</p>
+<p>
+  <strong>What openpyxl does wrong by default.</strong> Three sources
+  of non-determinism:
+</p>
+<ol>
+  <li><code>docProps/core.xml</code> writes <code>dcterms:created</code> + <code>dcterms:modified</code> with wall-clock timestamps.</li>
+  <li>Even if you pin <code>wb.properties.created</code>, openpyxl OVERRIDES <code>dcterms:modified</code> at <code>save()</code> with wall-clock.</li>
+  <li>Each zip entry's <code>date_time</code> field is wall-clock by default.</li>
+</ol>
+<p>
+  <strong>The fix.</strong> Two-stage:
+</p>
+<ol>
+  <li>Before <code>save()</code>, pin <code>wb.properties.{created, modified, creator, lastModifiedBy}</code> via <code>pin_workbook_properties(wb, anchor)</code>. Anchor is typically <code>engagement.created_at</code> — a stored timestamp the analyst can re-derive.</li>
+  <li>After <code>save()</code>, run <code>stabilise_xlsx_bytes(blob)</code>. This reads the zip, rewrites every entry with <code>ZipInfo(date_time=(1980,1,1,0,0,0))</code> (DOS epoch), AND scrubs <code>dcterms:modified</code> in <code>docProps/core.xml</code> to match the pinned <code>dcterms:created</code>.</li>
+</ol>
+<p>
+  Result: <code>build_diff_workpaper_xlsx(diff)</code> called twice
+  1.1s apart returns identical bytes.
+</p>
+<p>
+  <strong>What we rejected.</strong> Monkey-patching openpyxl
+  internals (fragile across upstream releases). Writing the xlsx zip
+  from scratch (would lose openpyxl's correct formula + styling
+  serialisation).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c9">
+<h3>9. Content negotiation (HTML vs JSON from one route)</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> One Flask route serves both an HTMX-rendered HTML page and a JSON API response depending on the client's preference.</div>
+  <div><strong>Where</strong> <code>src/engagement_routes.py</code> — <code>_wants_html()</code> + <code>_engagement_errors</code> decorator.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Wave 4 added a browser UI on top of
+  the existing JSON API. We didn't want to fork every route into
+  <code>/engagement/x</code> + <code>/ui/engagement/x</code> — that's
+  twice the test surface and twice the chance of drift.
+</p>
+<p>
+  <strong>How it works.</strong>
+</p>
+<pre><code>def _wants_html() -&gt; bool:
+    if request.args.get("html") == "1": return True
+    accept = request.headers.get("Accept", "").lower()
+    if not accept: return False
+    # Parse "text/html;q=0.9, application/json;q=0.5"
+    types = []
+    for chunk in accept.split(","):
+        parts = [p.strip() for p in chunk.strip().split(";")]
+        media = parts[0]; q = 1.0
+        for p in parts[1:]:
+            if p.startswith("q="): q = float(p[2:])
+        types.append((media, q))
+    types.sort(key=lambda t: t[1], reverse=True)
+    for media, _q in types:
+        if media in ("text/html", "application/xhtml+xml"): return True
+        if media == "application/json": return False
+    return False  # curl's */* defaults to JSON</code></pre>
+<p>
+  Each route ends with:
+</p>
+<pre><code>if _wants_html():
+    return render_template("engagement/detail.html", engagement=eng, ...)
+return jsonify(eng.model_dump(mode="json"))</code></pre>
+<p>
+  <strong>Error responses too.</strong> The <code>_engagement_errors</code>
+  decorator catches typed exceptions (<code>EngagementError</code>
+  subclasses) and branches on <code>_wants_html()</code> — returns the
+  styled error page for browsers, structured JSON for API clients.
+  Same HTTP status code either way.
+</p>
+<p>
+  <strong>Why the explicit ?html=1.</strong> Some HTMX form posts
+  arrive with <code>Accept: */*</code>. The explicit query flag is the
+  reliable signal.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c10">
+<h3>10. Role-based access control matrix</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A flat dict mapping roles to permission strings. Every mutating call checks the user's role against the action being requested.</div>
+  <div><strong>Where</strong> <code>src/identity.py</code> — <code>_PERMISSIONS</code> + <code>can(user, action)</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Four roles in the system: analyst,
+  reviewer, partner, read-only auditor. Each has a different scope.
+  Spec §3.2 codifies the matrix. Without enforcement, the spec is just
+  a wish.
+</p>
+<p>
+  <strong>How it works.</strong> One flat dict literal:
+</p>
+<pre><code>_PERMISSIONS: dict[Role, frozenset[str]] = {
+    Role.analyst: frozenset({
+        "engagement.create", "engagement.read",
+        "engagement.upload_cap_table", "engagement.add_snapshot",
+        "engagement.resolve_finding",
+        "engagement.transition_open_to_review",
+        "export.json", "export.xlsx", "export.memo_pdf",
+    }),
+    Role.partner: frozenset({
+        "engagement.read", "engagement.add_snapshot",
+        "engagement.resolve_finding", "engagement.add_reviewer_note",
+        "engagement.transition_review_to_signed",
+        "engagement.transition_signed_to_review",  # GAP-29 reopen
+        "engagement.transition_review_to_open",
+        "engagement.transition_to_archived",
+        "engagement.restore_archived",  # W8.10 90-day window
+        "engagement.pii_redact",  # GAP-03
+        "export.json", "export.xlsx", "export.memo_pdf",
+    }),
+    # ... reviewer, read_only_auditor
+}
+
+def can(user: User, action: str) -&gt; bool:
+    return action in _PERMISSIONS.get(user.role, frozenset())</code></pre>
+<p>
+  Every route does <code>if not can(user, "engagement.X"): return 403</code>.
+  Transitions also map (from_status, to_status) to an action so the
+  permission can be granular per state pair.
+</p>
+<p>
+  <strong>The dead-grant trap.</strong> Wave-5 audit M-3 caught a
+  transition listed in <code>_ALLOWED_TRANSITIONS</code> with no role
+  holding the matching permission — partners could see "review → open"
+  in the spec but no role could trigger it. The fix was a one-line
+  addition. The trap: keeping the transitions dict and the permissions
+  dict in sync requires discipline.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c11">
+<h3>11. Calendar-hour rate limiting buckets</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A per-user counter that increments on each request and resets at the top of every hour. Soft limit returns 429; hard limit writes an audit event.</div>
+  <div><strong>Where</strong> <code>src/rate_limit.py</code> — <code>ExportRateLimiter</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Bundle generation is expensive
+  (rule pack re-run + xlsx + PDF + zip post-process). Without a rate
+  limit, a misbehaving client can knock the engine over with a loop.
+</p>
+<p>
+  <strong>How it works.</strong> One SQLite row per (user_id,
+  hour_bucket) where <code>hour_bucket = floor(unix_seconds / 3600)</code>.
+  <code>consume(user_id)</code>:
+</p>
+<pre><code>INSERT INTO export_counter (user_id, hour_bucket, count)
+VALUES (?, ?, 1)
+ON CONFLICT(user_id, hour_bucket) DO UPDATE SET count = count + 1
+
+SELECT COALESCE(SUM(count), 0) AS n
+  FROM export_counter
+ WHERE user_id = ? AND hour_bucket = ?</code></pre>
+<p>
+  Result: <code>current_count</code>. Compare to <code>soft_limit</code>
+  (e.g. 30) and <code>hard_limit</code> (e.g. 100). Return 429 with
+  <code>Retry-After</code> seconds until the bucket rolls over. At
+  <code>current == hard_limit</code>, write a
+  <code>bulk_export_alert</code> audit event (edge-triggered: fires
+  exactly once at the boundary, not on every subsequent call).
+</p>
+<p>
+  <strong>The 2-bucket sum trap.</strong> Wave-5 audit M-8 caught the
+  original implementation summing the current AND the previous bucket
+  — which gave an effective window between 1h and 2h depending on
+  position. Switched to single-bucket calendar-hour (the simpler
+  contract spec §8.17 actually documents).
+</p>
+<p>
+  <strong>Why separate compute + export budgets.</strong>
+  <code>/whatif</code> and <code>/diff</code> burn CPU but don't
+  produce export artifacts. Sharing a budget with the memo path would
+  mean a scenario-spamming analyst couldn't generate a memo. Two
+  independent buckets (<code>EXPORT_LIMITER</code> at 30/hr,
+  <code>COMPUTE_LIMITER</code> at 300/hr) decouple the contention.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c12">
+<h3>12. Idempotent schema migrations</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Schema changes you can run safely on a fresh DB OR an already-migrated DB. No migration framework, no version table.</div>
+  <div><strong>Where</strong> <code>src/engagement.py</code> <code>EngagementStore.__post_init__</code>; <code>src/token_deny.py</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Multiple processes can boot
+  simultaneously. The first one to run the migration wins; the others
+  must tolerate "already migrated." Without a migration framework
+  (Alembic etc.), every schema change has to be idempotent by
+  construction.
+</p>
+<p>
+  <strong>How it works.</strong> The classic pattern:
+</p>
+<pre><code>cols = {row["name"] for row in conn.execute("PRAGMA table_info(engagement)")}
+if "bound_pack_json" not in cols:
+    try:
+        conn.execute("ALTER TABLE engagement ADD COLUMN bound_pack_json TEXT")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" not in str(e).lower():
+            raise</code></pre>
+<p>
+  <code>PRAGMA table_info</code> tells us what columns exist.
+  <code>ALTER TABLE ADD COLUMN</code> with the try/except handles the
+  race where two processes both pass the check before either commits.
+  "duplicate column name" is the only acceptable failure mode here;
+  everything else re-raises.
+</p>
+<p>
+  <strong>The legacy-row backfill (W8-m6).</strong> Adding a NOT NULL
+  column to an existing table doesn't help legacy rows that already
+  have a NULL there. The W8.10 archival migration ALSO backfills:
+</p>
+<pre><code>rows = conn.execute(
+    "SELECT id, created_at FROM engagement "
+    "WHERE status = 'archived' AND archived_at IS NULL"
+).fetchall()
+for row in rows:
+    base = datetime.fromisoformat(row["created_at"])
+    restore_until = base + timedelta(days=ARCHIVAL_RESTORE_DAYS)
+    conn.execute("UPDATE engagement SET archived_at = ?, "
+                 "restore_eligibility_until = ? WHERE id = ?",
+                 (base.isoformat(), restore_until.isoformat(), row["id"]))</code></pre>
+<p>
+  Idempotent because subsequent runs find no rows to update (the
+  columns are now populated).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c13">
+<h3>13. Black-Scholes-Merton + brentq for OPM Backsolve</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> The mathematical core of the OPM (Option Pricing Method) — model each waterfall tranche as a European call option and use a root-finder to back into the total equity value that matches the latest priced round's per-share price.</div>
+  <div><strong>Where</strong> <code>src/opm/backsolve.py</code> — <code>backsolve</code>, <code>_tranche_value</code>; <code>src/opm/bsm.py</code> — the call pricing formula.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> "OPM Backsolve" is the workhorse
+  technique for 409A valuations. It says: if I know what the Series C
+  investors just paid per share, what total equity value
+  <em>S</em> would the model say is consistent with that price? Solve
+  for S, then apply S to every other tranche to get per-class fair
+  values.
+</p>
+<p>
+  <strong>How Black-Scholes fits in.</strong> Each waterfall breakpoint
+  defines a tranche: between $X and $Y of exit value, this tranche
+  pays out. Model each tranche as the difference of two European call
+  options on S with strikes at X and Y. The call price formula:
+</p>
+<pre><code>C(S, K, T, r, sigma) = S * N(d1) - K * exp(-r * T) * N(d2)
+where d1 = (ln(S/K) + (r + sigma^2/2) * T) / (sigma * sqrt(T))
+      d2 = d1 - sigma * sqrt(T)
+      N = standard normal CDF</code></pre>
+<p>
+  Subtracting <code>C(K_upper) - C(K_lower)</code> gives the value of
+  that tranche. Sum across tranches that pay a given class and you get
+  the class's total expected payout at total equity value S.
+</p>
+<p>
+  <strong>The root-find.</strong> We have a target: anchor class's
+  per-share price = analyst-supplied value. We have a function:
+  <code>per_share(S) = total_payout_to_anchor(S) / anchor_shares</code>.
+  Define <code>residual(S) = per_share(S) - target</code>. The S we
+  want is the root of <code>residual</code>.
+</p>
+<pre><code>from scipy.optimize import brentq
+S_star = brentq(residual, _S_LOWER, _S_UPPER, xtol=1e-3, rtol=1e-9)</code></pre>
+<p>
+  brentq is Brent's method: a robust, bracketed root-finder that
+  converges quadratically near the root and falls back to bisection if
+  the quadratic step misbehaves. Needs the root bracketed (a sign
+  change between <code>_S_LOWER</code> and <code>_S_UPPER</code>);
+  raises if it can't.
+</p>
+<p>
+  <strong>What the tool DOES NOT do.</strong> Pick volatility. Pick
+  time-to-liquidity. Pick risk-free rate. Pick DLOM. Those are the
+  analyst's defended numbers. <code>MarketInputs.__post_init__</code>
+  (wave-9 audit M-2) rejects negative σ, NaN, Inf, out-of-range values
+  so a sign typo doesn't silently produce "defendable" output (Black-Scholes
+  squares σ; a negative σ is mathematically valid but semantically nonsense).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c14">
+<h3>14. Jinja2 autoescape and the |safe trap</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Jinja2 auto-escapes HTML special chars in <code>{{ var }}</code> output. The <code>|safe</code> filter disables this. Misusing <code>|safe</code> is how XSS ships.</div>
+  <div><strong>Where</strong> The wave-5 stitched audit's B-3 blocker; closed by switching to <code>{{ chart | tojson }}</code>.</div>
+</div>
+<p>
+  <strong>Why it matters.</strong> Class names flow from the
+  user-uploaded <code>.xlsx</code> straight through to JSON payloads
+  rendered inside <code>&lt;script&gt;</code> tags for the waterfall
+  chart. If we dump the JSON via <code>{{ chart_json | safe }}</code>,
+  a class name containing <code>&lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;</code>
+  breaks out of the script tag and executes JS in the analyst's browser.
+  Stored XSS, full session compromise.
+</p>
+<p>
+  <strong>The fix.</strong> Replace <code>|safe</code> with
+  <code>|tojson</code>. Flask's <code>tojson</code> filter escapes
+  <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code>,
+  <code>'</code>, U+2028, U+2029 — exactly the characters that would
+  break out of <code>&lt;script&gt;</code> context. The literal
+  <code>&lt;/script&gt;</code> in input becomes
+  <code></script></code> in output, which JS happily parses
+  as a normal string.
+</p>
+<p>
+  <strong>Defensive test.</strong> The regression test asserts
+  <code>"chart_json|safe" not in template_source</code> so a future
+  refactor can't quietly re-introduce the bug.
+</p>
+<p>
+  <strong>What we rejected.</strong> Manually escaping in Python
+  before rendering (fragile, easy to miss a case). Embedding via
+  <code>&lt;script type="application/json"&gt;...&lt;/script&gt;</code>
+  + <code>JSON.parse(document.getElementById('chart').textContent)</code>
+  (works but requires JS refactor; <code>|tojson</code> was cheaper).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c15">
+<h3>15. PDPA redaction with audit-log preservation</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Right-to-erasure: PII in the cap-table can be zeroed without breaking the audit chain that proves it once existed.</div>
+  <div><strong>Where</strong> <code>src/engagement.py</code> — <code>redact_snapshot_pii</code>; <code>Snapshot.safe_change_note()</code> + <code>safe_source_filename()</code> + <code>safe_created_by()</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> PDPA (Singapore) and GDPR (EU)
+  both grant data subjects a right to erasure. The cap table contains
+  holder names that map to natural persons. We have to be able to
+  scrub them without invalidating the integrity proofs.
+</p>
+<p>
+  <strong>How it works.</strong> Two complementary tactics:
+</p>
+<ol>
+  <li><strong>Sentinel-replace the PII column.</strong> <code>redact_snapshot_pii</code> UPDATEs the snapshot row: <code>cap_table_json = '{"_redacted": true, "redaction_event_id": "...", "redacted_at": "..."}'</code> AND <code>redacted = 1</code> AND zeros <code>change_note</code>, <code>source_filename</code> in the same transaction. The PII bytes are physically gone from the DB.</li>
+  <li><strong>Render-time gates.</strong> Every consumer that reads a snapshot for display calls <code>snap.safe_*()</code> accessors that return None / "[redacted]" when <code>snap.redacted</code> is True. Defense in depth: even if a future bug missed the DB update, the render layer wouldn't leak.</li>
+</ol>
+<p>
+  <strong>What stays.</strong> The audit_event chain. The
+  <code>pii_redacted</code> event records who requested it, the legal
+  basis (PDPA §13 etc.), and the redaction_event_id. The hash chain
+  proves the redaction happened at a specific time, on a specific
+  snapshot, by a specific actor.
+</p>
+<p>
+  <strong>The bundle leak (W7-B1).</strong> Wave-7 audit's biggest
+  blocker: <code>change_note</code> survived redaction in every
+  consumer (timeline JSON, diff JSON, diff HTML, xlsx, bundle).
+  Fix wired the safe accessors at every render boundary AND made the
+  bundle exporter <code>model_copy(update={"change_note": None, ...})</code>
+  for redacted snaps. The lesson: every new PII-bearing column needs
+  to be added to the safe-view contract from day one.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c16">
+<h3>16. Magnitude-tiered drift classification</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A four-tier system (none / minor / material / major) that classifies how much a numeric field moved between two snapshots.</div>
+  <div><strong>Where</strong> <code>src/snapshot_timeline.py</code> — <code>_classify_pct</code> + <code>_compute_field_tier</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> An analyst comparing 5 snapshots of
+  Series A shares isn't asking "is the number different." They're
+  asking "is the change material enough to require explanation in the
+  memo." A 0.1% drift is noise. A 50% jump means something happened.
+</p>
+<p>
+  <strong>How it works.</strong> Two thresholds:
+</p>
+<pre><code>MINOR_FRAC = 0.05      # ±5%
+MATERIAL_FRAC = 0.20   # ±20%
+
+def _classify_pct(prior, current) -&gt; str:
+    if prior is None and current is None: return "none"
+    if prior is None or current is None: return "major"  # presence change
+    if prior == 0 and current == 0: return "none"
+    if prior == 0: return "major"
+    delta = abs(current - prior) / abs(prior)
+    if delta &lt; 1e-9: return "none"
+    if delta &lt;= MINOR_FRAC: return "minor"
+    if delta &lt;= MATERIAL_FRAC: return "material"
+    return "major"</code></pre>
+<p>
+  Categorical fields (LP variant, AD variant, seniority rank) skip the
+  percentage logic — any change is "major" (variant change is legally
+  material; we don't try to quantify "more vs less generous").
+</p>
+<p>
+  Class-level overall tier is <code>max(field_tiers)</code> with
+  ordering <code>none &lt; minor &lt; material &lt; major</code>. The
+  UI renders it as a colour-coded pill;
+  <code>diff_workpaper.xlsx</code> fills the cell background with the
+  matching colour so the analyst sees the same visual cues in the
+  workpaper.
+</p>
+<p>
+  <strong>The NaN guard (W9-m6).</strong> Cap-table numeric fields
+  should never be NaN. If a corrupt CapTable smuggles one in,
+  <code>_classify_pct</code> raises <code>ValueError</code> — surfaces
+  the corruption at the diff layer instead of silently classifying as
+  'major'.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c17">
+<h3>17. WeasyPrint for HTML-to-PDF rendering</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A Python library that renders an HTML + CSS document to PDF using its own layout engine.</div>
+  <div><strong>Where</strong> <code>src/pdf_memo.py</code> — <code>render_pdf_memo</code>, <code>render_diff_workpaper_pdf</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> The audit memo and the diff
+  workpaper PDF need to be hand-off-grade documents. Building them as
+  Jinja-rendered HTML and then converting to PDF lets us reuse the
+  Jinja template muscle (escaping, includes, loops) instead of
+  hand-coding PDF primitives.
+</p>
+<p>
+  <strong>How it works.</strong>
+</p>
+<pre><code>env = Environment(
+    loader=FileSystemLoader(_TEMPLATES_DIR),
+    autoescape=select_autoescape(["html", "xml"]),
+    trim_blocks=True, lstrip_blocks=True,
+)
+template = env.get_template("base.html")
+html = template.render(**_build_context(inputs))
+return HTML(string=html).write_pdf()</code></pre>
+<p>
+  The template uses standard HTML + CSS with WeasyPrint extensions for
+  page-break control and <code>@page</code> rules. WeasyPrint's layout
+  engine handles fonts, tables, page breaks.
+</p>
+<p>
+  <strong>What we rejected.</strong> ReportLab (low-level PDF
+  primitive API — productive once you know it, but reusing Jinja
+  templates was a bigger win). Headless Chromium (heavyweight, requires
+  a browser dependency).
+</p>
+<p>
+  <strong>The pinned timestamp (M-1).</strong>
+  <code>PDFInputs.generated_at</code> lets callers pin the cover
+  timestamp to <code>engagement.created_at</code> so the memo is
+  byte-stable per engagement state. Stronger than spec §8.10 carve-out
+  (which permits wall-clock).
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c18">
+<h3>18. Audit loop discipline (stable finding IDs as test names)</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Every audit finding gets a stable ID. Every fix gets a regression test named for the ID. The finding's writeup explains the original context.</div>
+  <div><strong>Where</strong> <code>tests/test_wave{5..9}_audit_fixes.py</code>; <code>SYSTEM_AUDIT_*.md</code>.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Audits surface bugs the builder
+  didn't see. If you fix the bug without a test, the bug comes back
+  the next time someone refactors that area. The audit doc becomes
+  archaeology nobody reads.
+</p>
+<p>
+  <strong>How the discipline works.</strong>
+</p>
+<ol>
+  <li>Audit assigns each finding a stable ID with severity prefix: <code>B-W7-1</code> (blocker, wave 7, finding 1), <code>W8-M3</code> (wave 8, major 3), <code>SD-AUD-W9-B1</code> (stitched audit, wave 9, blocker 1).</li>
+  <li>Audit doc explains what's wrong, includes a reproduction, suggests a fix sketch.</li>
+  <li>Fix lands with one or more regression tests named <code>test_w7b1_redaction_zeros_change_note_in_db</code> etc.</li>
+  <li>Comments in the fix code cite the ID: <code># SD-AUD-W7-B1: redacted snapshots drop the PII-bearing fields...</code></li>
+</ol>
+<p>
+  Now when a future change re-introduces the bug, the failing test
+  name has the audit ID in it. The developer searches the codebase for
+  the ID, lands on the audit doc, reads the original context, and
+  fixes correctly instead of fighting the test.
+</p>
+<p>
+  <strong>The numbers.</strong> Across 9 waves: ~6 blockers, ~20
+  majors, ~50 minors found in audits. ~100 regression tests added that
+  encode finding IDs in their names. The suite catches re-introductions
+  reliably.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c19">
+<h3>19. Header injection and open-redirect prevention</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> Two adjacent attack classes against any route that takes a user-supplied URL and uses it in a redirect.</div>
+  <div><strong>Where</strong> <code>src/cookie_auth.py</code> — <code>_safe_next_url</code>.</div>
+</div>
+<p>
+  <strong>Open redirect.</strong> <code>/login?next=https://attacker.example/clone</code>.
+  After login the server redirects to the attacker site. URL bar
+  showed the legit domain, cookies got set legit, but the user lands
+  on a clone where the attacker can phish them again. Common bug
+  pattern in any auth flow with a <code>next</code> param.
+</p>
+<p>
+  <strong>Header injection.</strong> <code>next=/legit%0d%0aLocation:%20attacker</code>.
+  The <code>%0d%0a</code> is CRLF. If the server stuffs the value
+  unescaped into the Location header, the browser sees two Location
+  headers and follows whichever its parser prefers. Used to be a
+  serious bug class before werkzeug 3.x started raising on CRLF in
+  headers — now it shows up as 500s instead of redirects.
+</p>
+<p>
+  <strong>The fix (both).</strong>
+</p>
+<pre><code>def _safe_next_url(candidate, default=DEFAULT_NEXT_URL):
+    if not candidate: return default
+    # W8.1: any control char in candidate corrupts the Location header
+    if any(ord(c) &lt; 0x20 or ord(c) == 0x7f for c in candidate):
+        return default
+    p = urlparse(candidate)
+    if p.scheme or p.netloc: return default       # absolute URL
+    if not candidate.startswith("/"): return default
+    if candidate.startswith("//"): return default # protocol-relative
+    return candidate</code></pre>
+<p>
+  Only same-origin path-only URLs survive. Everything else falls back
+  to the safe default. Both attacks die.
+</p>
+</div>
+
+<!-- =================================================================== -->
+<div class="concept" id="c20">
+<h3>20. Spec-driven development with amendment rounds</h3>
+<div class="concept-meta">
+  <div><strong>What</strong> A single source-of-truth spec document that the code references and the audit checks against. Amendments come in numbered rounds, not commit-by-commit edits.</div>
+  <div><strong>Where</strong> <code>SYSTEM_SPEC.md</code> — 7 amendment rounds across waves 1-9.</div>
+</div>
+<p>
+  <strong>Why we need it.</strong> Without a written spec, the code IS
+  the spec. Audits become "find the bug" rather than "verify the code
+  matches the contract." With a spec, the auditor can compare two
+  things: "what the code does" vs "what the spec promises."
+</p>
+<p>
+  <strong>How the rounds work.</strong> Each round is appended as a
+  new section (§11 round 4, §12 round 5, §13 round 6, etc.). Within a
+  round, each amendment has a numbered subsection and references the
+  audit finding it closes (e.g. "§13.1 CSRF on cookie-authenticated
+  POSTs (closes wave-5 M-6)"). At the end of each round, re-tag the
+  spec (e.g. <code>spec-r6-2026-05-29</code>).
+</p>
+<p>
+  <strong>The §9.6 error code inventory.</strong> One table that lists
+  every <code>error_code</code> the API returns, the HTTP status, and
+  where it comes from. Audits check the implementation emits only
+  codes in the inventory; the inventory grows whenever a new code
+  ships. This is how you avoid "the spec drifted from the code"
+  silently.
+</p>
+<p>
+  <strong>The amendment-driven build pattern.</strong>
+  Audit-finding → fix → spec-amendment → regression-test. Four
+  artifacts that all reference each other through a stable ID. Future
+  archaeologists land in any one and can follow the breadcrumbs to the
+  other three.
+</p>
+</div>
+
+<h2 id="part-d">Part D — A real upload becomes a bundle (end-to-end walk)</h2>
+
+<p>
+  Trace one analyst flow from raw <code>.xlsx</code> to
+  <code>bundle.zip</code>. Each step lists the file and the key
+  function call.
+</p>
+
+<div class="flow">1. Analyst logs in
+   POST /login token=tok-analyst
+   src/cookie_auth.py login_post
+     provider.authenticate(token) -&gt; User
+     issue_session_cookie(user.id, secret_key) -&gt; cookie value
+     resp.set_cookie("qapita_session", value, httponly, samesite="Strict")
+     attach_csrf_cookie(resp, issue_csrf_token())
+
+2. Analyst creates an engagement
+   POST /engagement/?html=1 client_id=acme valuation_date=2025-06-01 csrf_token=...
+   src/engagement_routes.py create_engagement
+     _require_user() -&gt; g.current_user = analyst
+     verify_csrf() -&gt; OK (token matches cookie)
+     can(user, "engagement.create") -&gt; True
+     head_pack(today) -&gt; v2026.6.0
+     pack.model_dump_json() -&gt; bound_pack_json bytes
+     store.create_engagement(...)
+       INSERT INTO engagement (...)  with version=0
+       _append_audit_event(engagement_created, payload={client_id, standard, pack, engine})
+
+3. Analyst uploads the cap table
+   POST /engagement/abc/upload csrf_token=... expected_version=0 file=cap.xlsx change_note="initial"
+   src/engagement_routes.py upload
+     _require_user() -&gt; analyst
+     verify_csrf() -&gt; OK
+     can(user, "engagement.upload_cap_table") -&gt; True
+     parse_excel(tmp_path) -&gt; CapTable + ParseReport
+     store.add_snapshot(actor, eng_id, expected_version=0, cap_table, change_note)
+       _write_lock acquired
+       UPDATE engagement SET version = version + 1 WHERE id=? AND version=0
+       INSERT INTO snapshot (...)
+       _append_audit_event(snapshot_added)
+
+4. Engine runs the 60-rule pack against the snapshot
+   src/rule_pack.py run_pack(cap_table, pack=v2026.6.0)
+     for rid in pack.rule_ids:
+         fn, meta = _REGISTRY[rid]
+         findings.extend(fn(cap_table))
+     -&gt; [Finding(AD-MISSING-Series A, blocker, ...), ...]
+
+5. Analyst resolves the AD-MISSING blocker inline
+   POST /engagement/abc/resolve?html=1 snapshot_id=... finding_code=AD-MISSING-Series A
+        decision={"variant":"broad_based_weighted_average"}
+        citation="Charter §4.3(a)" csrf_token=...
+   src/engagement_routes.py resolve
+     store.record_resolution(...)
+       INSERT INTO resolution (...)
+       _append_audit_event(resolution_recorded)
+
+6. Analyst transitions to review
+   POST /engagement/abc/transition new_status=review expected_version=2 csrf_token=...
+   store.transition(actor=analyst, ..., new_status=review)
+     UPDATE engagement SET status=review, version=version+1 WHERE id=? AND version=2
+     _append_audit_event(transition, payload={from: open, to: review})
+
+7. Partner transitions to signed
+   POST /engagement/abc/transition new_status=signed expected_version=3 (partner Bearer)
+   store.transition(actor=partner, ..., new_status=signed)
+     _enforce_blockers_resolved(eng)
+       run_pack again, compare blocker codes against resolved set
+       if any unresolved: raise BlockerFindingsOutstanding -&gt; 409 engagement-blockers-unresolved
+     UPDATE engagement SET status=signed, version=version+1 WHERE id=? AND version=3
+     _append_audit_event(transition, payload={from: review, to: signed})
+
+8. Partner downloads the memo PDF
+   GET /engagement/abc/memo.pdf
+   src/engagement_routes.py memo
+     can(user, "export.memo_pdf") -&gt; True
+     _enforce_export_limit(eng, user) -&gt; OK (under soft limit)
+     compute_subsequent_events(...) -&gt; rollup
+     compute_timeline_diff(metas, cap_tables) -&gt; TimelineDiff  (W8.11)
+     finding_provenance_map(ct, pack, jurisdiction)  (W9.1 + M-3 fix)
+     render_pdf_memo(PDFInputs(...))
+       Jinja renders templates/memo/base.html with findings + drift table + provenance
+       WeasyPrint HTML(string=html).write_pdf() -&gt; bytes
+     return 200 application/pdf
+
+9. Partner downloads the bundle
+   GET /engagement/abc/bundle.zip
+   src/engagement_bundle.py build_engagement_bundle(store, eng_id)
+     eng_bytes = eng.model_dump_json(indent=2)
+     rp_bytes = bound_pack_json
+     for snap in snapshots:
+         if snap.redacted: snap = snap.model_copy(update={change_note: None, ...})
+         _zip_write(z, f"snapshots/{snap.id}.json", snap.model_dump_json(indent=2))
+     for audit event:
+         _zip_write line per event in audit_log.jsonl
+     _zip_write README.md (the offline verification recipe)
+     _zip_write manifest.json (SHA-256 per file + audit_head_hash)
+     every _zip_write uses ZipInfo(date_time=(1980,1,1,0,0,0))
+     generated_at = eng.created_at.isoformat()  (pinned, not wall-clock)
+   return 200 application/zip
+
+10. Big-4 reviewer offline:
+    unzip bundle.zip
+    cd bundle
+    prev = "00" * 32
+    for line in audit_log.jsonl:
+        event = json.loads(line)
+        canonical = f"{event_type}|{actor}|{ts}|{payload_json}"
+        recomputed = sha256(prev.encode() + b"\\x00" + canonical.encode()).hexdigest()
+        assert recomputed == event["row_hash"], "tamper detected"
+        prev = event["row_hash"]
+    assert prev == manifest["audit_head_hash"], "chain head mismatch"
+    for filename, expected_sha in manifest["files"].items():
+        assert sha256(open(filename, "rb").read()).hexdigest() == expected_sha
+    # re-load rule_pack.json and re-run against snapshots/head.json
+    findings = run_pack(load_cap_table_from(...), pack=load_pack_from(...))
+    # compare against the memo's findings table
+</div>
+
+<h2 id="part-e">Part E — The libraries and what role each plays</h2>
+
+<table>
+  <thead>
+    <tr><th>Library</th><th>Role</th><th>What it replaces / why we chose it</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>flask</code></td>
+      <td>Web framework. Blueprints for the engagement API + auth blueprint. before_request / after_request hooks. CLI commands.</td>
+      <td>Lighter than FastAPI for our HTML-heavy surface. Mature ecosystem.</td>
+    </tr>
+    <tr>
+      <td><code>pydantic</code> (v2)</td>
+      <td>Schema validation at the I/O boundary. <code>model_dump_json(sort_keys=True)</code> for deterministic serialisation. Field validators for date coercion.</td>
+      <td>v2 is Rust-backed under the hood — faster than v1, same API for our purposes.</td>
+    </tr>
+    <tr>
+      <td><code>openpyxl</code></td>
+      <td>Read + write xlsx files. Cell formulas, named ranges, defined names, styles.</td>
+      <td>Pure Python, no Excel runtime needed. Quirky on byte stability (the wave-8 reason for <code>xlsx_stability.py</code>).</td>
+    </tr>
+    <tr>
+      <td><code>scipy.optimize.brentq</code></td>
+      <td>Bracketed root finder for OPM Backsolve.</td>
+      <td>Robust convergence; the standard choice for 1-D root finding on smooth functions.</td>
+    </tr>
+    <tr>
+      <td><code>weasyprint</code></td>
+      <td>HTML + CSS to PDF for the audit memo and diff workpaper.</td>
+      <td>Lets us reuse Jinja templates; no headless browser dependency.</td>
+    </tr>
+    <tr>
+      <td><code>pdfplumber</code></td>
+      <td>Text extraction from PDF side letters.</td>
+      <td>Pure Python. Image-only PDFs return a warning, not a hallucination.</td>
+    </tr>
+    <tr>
+      <td><code>sqlite3</code> (stdlib)</td>
+      <td>Persistence for engagements, snapshots, resolutions, audit events, deny list, rate limit buckets.</td>
+      <td>Zero ops cost. WAL mode + cached connection makes it production-acceptable for the demo scale. Postgres swap is mechanical when Evelyn picks a target.</td>
+    </tr>
+    <tr>
+      <td><code>hmac</code> + <code>hashlib</code> (stdlib)</td>
+      <td>HMAC-SHA256 for session cookie signing; SHA-256 for the audit chain and Bearer revocation hashes.</td>
+      <td>Stdlib. <code>hmac.compare_digest</code> is the constant-time comparison primitive.</td>
+    </tr>
+    <tr>
+      <td><code>secrets</code> (stdlib)</td>
+      <td>Cryptographically random token generation for CSRF, session-key fallback.</td>
+      <td>Stdlib. Use this instead of <code>random</code> for any security context.</td>
+    </tr>
+    <tr>
+      <td><code>jinja2</code></td>
+      <td>HTMX templates + PDF memo templates. Autoescape on for HTML/XML.</td>
+      <td>Ships with Flask. Sandbox-safe by default.</td>
+    </tr>
+    <tr>
+      <td><code>HTMX</code> (CDN, browser-side)</td>
+      <td>Form posts that swap a server-rendered HTML fragment into the page without a full reload. Used for inline finding resolution + what-if scenarios + diff page.</td>
+      <td>Avoids the SPA tax. Server-rendered HTML stays the source of truth.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2>One-paragraph summary</h2>
+<p>
+  The cap-table reconciler is a Flask app with a Pydantic-validated
+  parsing layer, a 60-rule deterministic checklist, a hash-chained
+  engagement model on SQLite, byte-stable xlsx and PDF exporters, and a
+  Big-4 portable bundle with offline verification. It uses HMAC-signed
+  cookies plus a double-submit CSRF pattern for browser auth, a Bearer
+  revocation deny list for API auth, optimistic concurrency with
+  conditional UPDATEs for safe parallel mutations, calendar-hour rate
+  limiting for cost containment, and content negotiation so one route
+  serves both HTMX and JSON. The OPM Backsolve uses Black-Scholes-Merton
+  tranche valuation with brentq for the root find — the analyst supplies
+  every market input. Across 9 build waves with independent audits at
+  each, 842 regression tests encode the lessons (every audit finding
+  ID is a test name). Every prod-shaped knob has an explicit env-flag
+  opt-in. The only remaining work is Evelyn-blocked: real SSO, Postgres
+  swap, KMS, legal sign-off on the 90-day archival window, firm-specific
+  rule content, and tenancy isolation.
+</p>
+
+</div>
+</body>
+</html>

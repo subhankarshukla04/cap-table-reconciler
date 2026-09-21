@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Sources — ESOP Atlas{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Rule corpus — every rule, every citation</h1>
+  <p class="lede">
+    Every rule loaded into the engine, with its statutory citation, source URL, and date last verified.
+    Anything we couldn't cite is flagged <code>requires-counsel</code>.
+  </p>
+
+  <table class="sources-table">
+    <thead>
+      <tr>
+        <th>Rule ID</th>
+        <th>Parent → Employee</th>
+        <th>Event</th>
+        <th>Status</th>
+        <th>Treatment</th>
+        <th>Confidence</th>
+        <th>Citations</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rules %}
+      <tr>
+        <td><code>{{ r.rule_id }}</code></td>
+        <td>{{ r.parent_jurisdiction.value }} → {{ r.employee_jurisdiction.value }}</td>
+        <td>{{ r.event.value.replace('_',' ') }}</td>
+        <td>{{ r.tax_status.value if r.tax_status else "any" }}</td>
+        <td>{{ r.tax_treatment.value.replace('_',' ') }}</td>
+        <td><span class="confidence-{{ r.confidence.value }}">{{ r.confidence.value.replace('_',' ') }}</span></td>
+        <td>
+          {% for c in r.citations %}
+          <div class="src-line">
+            <strong>{{ c.authority }}</strong> — {{ c.reference }}
+            {% if c.source_url %}<a href="{{ c.source_url }}" target="_blank" rel="noopener">↗</a>{% endif %}
+            {% if c.retrieved_on %}<span class="dt">({{ c.retrieved_on }})</span>{% endif %}
+          </div>
+          {% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

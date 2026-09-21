@@ -1,0 +1,98 @@
+{% extends "engagement/base.html" %}
+{% block title %}Snapshots — {{ engagement.client_id }}{% endblock %}
+{% block content %}
+<div class="nav">
+  <a href="/engagement/?html=1">← All engagements</a>
+  <a href="/engagement/{{ engagement.id }}?html=1">Detail</a>
+  <a href="/engagement/{{ engagement.id }}/audit-log?html=1">Audit log</a>
+</div>
+
+<h1>Snapshot timeline</h1>
+<p class="small">
+  {{ engagement.client_id | e }} ·
+  {% if pagination %}
+    showing {{ snapshots|length }} of {{ pagination.total }} snapshot{% if pagination.total != 1 %}s{% endif %}
+    (offset {{ pagination.offset }})
+  {% else %}
+    {{ snapshots|length }} snapshot{% if snapshots|length != 1 %}s{% endif %}
+  {% endif %}
+  · head version {{ engagement.version }}
+</p>
+
+{% if pagination and (pagination.has_prev or pagination.has_next) %}
+<p>
+  {% if pagination.has_prev %}
+    <a class="btn secondary"
+       href="/engagement/{{ engagement.id }}/snapshots?html=1&limit={{ pagination.limit }}&offset={{ pagination.prev_offset }}">
+      &larr; Prev {{ pagination.limit }}
+    </a>
+  {% endif %}
+  {% if pagination.has_next %}
+    <a class="btn secondary"
+       href="/engagement/{{ engagement.id }}/snapshots?html=1&limit={{ pagination.limit }}&offset={{ pagination.next_offset }}">
+      Next {{ pagination.limit }} &rarr;
+    </a>
+  {% endif %}
+</p>
+{% endif %}
+
+{% if snapshots|length >= 2 %}
+<form method="get" action="/engagement/{{ engagement.id }}/diff"
+      style="background:#f4f4f4; padding:10pt 14pt; border-radius:4pt; margin-bottom:18pt;">
+  <input type="hidden" name="html" value="1">
+  <strong>Compare:</strong>
+  <span class="small">tick 2+ snapshots, then "View diff"</span>
+  <div style="margin-top:6pt;">
+    {% for s in snapshots %}
+      <label style="display:inline-block; margin-right:14pt;">
+        <input type="checkbox" name="snap" value="{{ s.id }}"
+               {% if s.id == engagement.head_snapshot_id %}checked{% endif %}>
+        v{{ loop.index }} · {{ s.created_at.strftime('%Y-%m-%d %H:%M') }}
+      </label>
+    {% endfor %}
+  </div>
+  <button type="submit" style="margin-top:10pt;">View diff</button>
+</form>
+{% endif %}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Created</th>
+      <th>By</th>
+      <th>Source</th>
+      <th>Change note</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in snapshots %}
+    <tr>
+      <td>v{{ loop.index }}</td>
+      <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+      <td>{{ s.created_by | e }}</td>
+      <td>{{ (s.source_filename or s.source.value) | e }}</td>
+      <td>
+        {% if s.redacted %}
+          <span class="pill" style="background:#ddd; color:#555;">redacted</span>
+        {% elif s.change_note %}
+          {{ s.change_note | e }}
+        {% else %}
+          <span class="muted">—</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if s.id == engagement.head_snapshot_id %}
+          <span class="pill status-signed">head</span>
+        {% elif s.superseded_by %}
+          <span class="muted small">superseded</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="muted">No snapshots yet. Upload a cap-table on the detail page.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

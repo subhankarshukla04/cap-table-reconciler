@@ -95,6 +95,24 @@ class FormulaWorkbookBuilder:
         self.cap_table = cap_table
         self.waterfall = waterfall
         self.wb = Workbook()
+        # W8.4: pin docProps timestamps so the workbook is bit-stable
+        # across regenerations. Anchor against the company's valuation_date
+        # when known (so two analysts in different timezones don't see
+        # different bytes); fall back to a fixed epoch otherwise.
+        from datetime import datetime as _dt, timezone as _tz
+        anchor = None
+        try:
+            vd = cap_table.company.valuation_date
+            if vd is not None:
+                anchor = _dt(vd.year, vd.month, vd.day, tzinfo=_tz.utc)
+        except AttributeError:
+            anchor = None
+        if anchor is None:
+            anchor = _dt(2026, 1, 1, tzinfo=_tz.utc)
+        self.wb.properties.created = anchor.replace(tzinfo=None)
+        self.wb.properties.modified = anchor.replace(tzinfo=None)
+        self.wb.properties.creator = "qapita-engine"
+        self.wb.properties.lastModifiedBy = "qapita-engine"
         # Remove default sheet — we'll create README explicitly first
         del self.wb["Sheet"]
 
@@ -1020,6 +1038,47 @@ class FormulaWorkbookBuilder:
         ws.add_chart(chart, "A4")
 
 
-def build_formula_workbook(cap_table: CapTable, waterfall: WaterfallResult) -> Workbook:
-    """Convenience entry point."""
-    return FormulaWorkbookBuilder(cap_table, waterfall).build()
+def build_formula_workbook(
+    cap_table: CapTable,
+    waterfall: WaterfallResult,
+    snapshot_stamp: Optional[dict] = None,
+) -> Workbook:
+    """Convenience entry point.
+
+    `snapshot_stamp` (W3.5 / closes GAP-32): when supplied, a hidden
+    "Snapshot Stamp" sheet records engagement_id, snapshot_id,
+    memo_version, engine_version, and generated_at. Lets a downstream
+    DCF builder detect a stale sidecar by comparing the stamp's
+    snapshot_id to the engagement's current head_snapshot_id.
+    """
+    wb = FormulaWorkbookBuilder(cap_table, waterfall).build()
+    if snapshot_stamp:
+        # W3-AUDIT M4: refuse to silently inject datetime.now(). Wall-
+        # clock timestamps break SYSTEM_SPEC §8.10 cell-payload
+        # determinism. The caller must pass an explicit `generated_at`
+        # (snapshot.created_at is the natural deterministic source).
+        if not snapshot_stamp.get("generated_at"):
+            raise ValueError(
+                "snapshot_stamp.generated_at is required (use snapshot.created_at "
+                "or another deterministic source). Auto-filling with "
+                "datetime.now() breaks SYSTEM_SPEC §8.10 determinism."
+            )
+        ws = wb.create_sheet("Snapshot Stamp")
+        rows = [
+            ("Field", "Value"),
+            ("engagement_id", str(snapshot_stamp.get("engagement_id", ""))),
+            ("snapshot_id", str(snapshot_stamp.get("snapshot_id", ""))),
+            ("memo_version", str(snapshot_stamp.get("memo_version", ""))),
+            ("engine_version", str(snapshot_stamp.get("engine_version", ""))),
+            ("pack_version", str(snapshot_stamp.get("pack_version", ""))),
+            ("generated_at", snapshot_stamp["generated_at"]),
+            ("schema_version", "1"),
+        ]
+        for r, (k, v) in enumerate(rows, start=1):
+            ws.cell(row=r, column=1, value=k)
+            ws.cell(row=r, column=2, value=v)
+        ws.column_dimensions["A"].width = 20
+        ws.column_dimensions["B"].width = 50
+        # Hide so the analyst's DCF model doesn't render it.
+        ws.sheet_state = "hidden"
+    return wb

@@ -1,0 +1,61 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ issuer.legal_name }} — Tender Radar{% endblock %}
+{% block content %}
+<section class="title-block">
+  <p class="breadcrumb"><a href="{{ url_for('digest') }}">← Digest</a></p>
+  <h1>{{ issuer.legal_name }}</h1>
+  <p class="dateline">
+    {{ issuer.sector }} · {{ issuer.state }} · {{ issuer.geography }}
+    {% if issuer.employee_count %} · {{ "{:,}".format(issuer.employee_count) }} employees{% endif %}
+  </p>
+</section>
+
+{% if score %}
+<section class="card">
+  <div class="card-head">
+    <h2>Tender-readiness score</h2>
+    <span class="score-pill score-{{ 'alert' if score.score >= 80 else 'watch' if score.score >= 60 else 'monitor' }}">
+      {{ score.score }} / 100
+    </span>
+  </div>
+  <table class="components">
+    <thead><tr><th>Rule</th><th>Rationale</th><th class="num">Points</th><th>Source</th></tr></thead>
+    <tbody>
+      {% for c in score.components %}
+      <tr>
+        <td class="muted mono">{{ c.rule_id }}</td>
+        <td>{{ c.rationale }}</td>
+        <td class="num">+{{ c.points }}</td>
+        <td>{% if c.signal_url %}<a href="{{ c.signal_url }}" target="_blank" rel="noopener">link</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<section class="card">
+  <div class="card-head">
+    <h2>Mechanics preview</h2>
+    <span class="muted">Live recompute · pure rule engine · zero pricing judgment</span>
+  </div>
+  <form hx-post="{{ url_for('issuer_preview', issuer_id=issuer.id) }}"
+        hx-target="#preview-target" hx-trigger="input changed delay:120ms from:input, load">
+    <div class="input-row">
+      <label>Tender size (USD)
+        <input type="range" name="tender_size_usd" min="5000000" max="100000000" step="1000000"
+               value="{{ default_params.tender_size_usd | int }}"
+               oninput="document.getElementById('tsv').textContent = '$' + (this.value/1000000).toFixed(0) + 'M'">
+        <span id="tsv" class="mono">${{ (default_params.tender_size_usd / 1000000) | int }}M</span>
+      </label>
+      <label>Price per share (USD)
+        <input type="number" name="price_per_share_usd" step="0.01"
+               value="{{ default_params.price_per_share_usd }}">
+      </label>
+    </div>
+  </form>
+  <div id="preview-target">
+    {% include "_preview.html.j2" %}
+  </div>
+</section>
+{% endblock %}

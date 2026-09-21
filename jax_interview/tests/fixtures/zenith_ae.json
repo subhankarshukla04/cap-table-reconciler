@@ -1,0 +1,14 @@
+{
+  "_scenario_name": "Zenith Cap — Dubai DIFC holdco, Indian founders, IN engineer exercises",
+  "_narrative": "Zenith Cap is a Dubai DIFC-incorporated holding company (Indian founders flipped from Delaware in 2025). Most engineering remains at Zenith Tech India Pvt Ltd in Gurugram. A principal engineer exercises 10,000 NSOs at USD 1.00 strike, FMV USD 6.00 on 1 May 2026. Founder's question: does the Dubai parent owe anything? No — UAE has no personal income tax. The full incidence is on India via §17(2)(vi) perquisite tax.",
+  "parent_jurisdiction": "AE",
+  "employee_jurisdiction": "IN",
+  "event": "exercise",
+  "tax_status": "resident",
+  "grant_date": "2025-01-01",
+  "vesting_date": "2026-01-01",
+  "event_date": "2026-05-01",
+  "fmv_at_event": 6.00,
+  "exercise_price": 1.00,
+  "options_in_event": 10000
+}

@@ -112,15 +112,28 @@ def _pool_share_count(sc: ShareClass) -> float:
 
 
 def _compute_lp_breakpoints(cap_table: CapTable) -> list[Breakpoint]:
+    """One breakpoint per pari-passu group (combined LP), not per class.
+
+    Pre-pari-passu code emitted one BP per preferred class. With pari-passu
+    support, classes at the same seniority_rank share a single LP-paying
+    tranche; the marginal $1 within that tranche is split proportionally to
+    LP amounts (handled in _alloc_marginal).
+    """
     bps: list[Breakpoint] = [Breakpoint(id="BP1", value=0.0, event="origin")]
     cum = 0.0
-    for sc in cap_table.preferred_classes_by_seniority:
-        cum += sc.liquidation_preference.amount
+    for group in cap_table.preferred_seniority_groups:
+        group_lp = sum(sc.liquidation_preference.amount for sc in group)
+        cum += group_lp
+        if len(group) == 1:
+            event = f"{group[0].name} LP satisfied"
+        else:
+            names = ", ".join(sc.name for sc in group)
+            event = f"pari-passu group LP satisfied: {names}"
         bps.append(
             Breakpoint(
                 id=f"BP{len(bps) + 1}",
                 value=cum,
-                event=f"{sc.name} LP satisfied",
+                event=event,
             )
         )
     return bps
@@ -460,37 +473,55 @@ def _build_tranches(
     result: WaterfallResult,
 ) -> list[Tranche]:
     tranches: list[Tranche] = []
-    preferred_by_seniority = cap_table.preferred_classes_by_seniority
+    groups = cap_table.preferred_seniority_groups
 
     for i, low in enumerate(breakpoints):
         high = breakpoints[i + 1] if i + 1 < len(breakpoints) else None
         mid = (low + high) / 2 if high is not None else low + 1.0
 
         # Determine: are we still in LP-paying region?
+        # Iterate pari-passu groups, not individual classes — a pari-passu
+        # group consumes one combined LP tranche, with within-group marginal
+        # split proportionally to LP amounts (SEA market convention for
+        # B-1 / B-2 same-day closes).
         cum = 0.0
-        lp_class = None
-        for sc in preferred_by_seniority:
+        lp_group = None
+        for group in groups:
             prev = cum
-            cum += sc.liquidation_preference.amount
-            # LP-paying tranches only exist when no conversions/caps have happened.
-            # At very low values, all classes still in "lp" state.
+            group_lp_total = sum(sc.liquidation_preference.amount for sc in group)
+            cum += group_lp_total
             state = _regime_at_value(cap_table, mid, result)
-            if state.states[sc.name] == "lp" and prev <= mid < cum:
-                lp_class = sc
+            if all(state.states[sc.name] == "lp" for sc in group) and prev <= mid < cum:
+                lp_group = group
                 break
 
-        if lp_class is not None:
-            alloc = {
-                sc.name: 100.0 if sc.name == lp_class.name else 0.0
-                for sc in cap_table.share_classes
-                if not sc.excluded_from_waterfall
-            }
+        if lp_group is not None:
+            group_lp_total = sum(sc.liquidation_preference.amount for sc in lp_group)
+            in_group = {sc.name for sc in lp_group}
+            alloc = {}
+            for sc in cap_table.share_classes:
+                if sc.excluded_from_waterfall:
+                    continue
+                if sc.name in in_group:
+                    if group_lp_total > 0:
+                        alloc[sc.name] = (
+                            sc.liquidation_preference.amount / group_lp_total * 100.0
+                        )
+                    else:
+                        alloc[sc.name] = 0.0
+                else:
+                    alloc[sc.name] = 0.0
+            if len(lp_group) == 1:
+                desc = f"{lp_group[0].name} LP being paid"
+            else:
+                names = ", ".join(sc.name for sc in lp_group)
+                desc = f"pari-passu LP being paid: {names}"
             tranches.append(
                 Tranche(
                     id=f"T{i+1}",
                     range_low=low,
                     range_high=high,
-                    description=f"{lp_class.name} LP being paid",
+                    description=desc,
                     common_pool_shares=None,
                     marginal_allocation_pct=alloc,
                 )

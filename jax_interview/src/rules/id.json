@@ -1,0 +1,308 @@
+[
+  {
+    "rule_id": "id.id.grant.any",
+    "parent_jurisdiction": "ID",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "ID",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indonesian tax at grant. Indonesia has no specific stock-option regulation; the perquisite is captured under general PPh 21 (Article 21 income tax) employment-income rules, which are triggered on receipt of value — i.e., at exercise — not at grant.",
+    "withholding": "no",
+    "filing_requirement": "No filing at grant. Employer records the grant in payroll records for later PPh 21 reporting.",
+    "documents_required": ["Grant letter", "Vesting schedule"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UU PPh (Indonesian Income Tax Law)",
+        "reference": "Law No. 7/1983 as amended by Law No. 36/2008 and Law No. 7/2021 (UU HPP) — Article 4(1)(a) defines taxable income as economic capability received or accrued; an unexercised option does not yet confer accrued value to the employee",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11",
+        "note": "No standalone Indonesian regulation governs option grant. Treatment derived from general PPh 21 employment-income provisions."
+      },
+      {
+        "authority": "PwC Indonesian Pocket Tax Book 2025",
+        "reference": "Section on Benefits in Kind (BIKs) — employee equity treated under PPh 21 employment-income head",
+        "source_url": "https://www.pwc.com/id/en/pocket-tax-book/english/pocket-tax-book-2025.pdf",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Indonesia has no jurisdiction-specific stock-option tax regulation comparable to Singapore's IRAS e-Tax Guide or India's Rule 3(8). The treatment described here is the settled industry practice derived from general PPh 21 rules. Aggressive plan designs (e.g., grants with immediate vesting) may attract DGT scrutiny."
+    ]
+  },
+  {
+    "rule_id": "id.id.vest.any",
+    "parent_jurisdiction": "ID",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "ID",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indonesian tax at vest. Vesting alone does not allot a share to the employee; PPh 21 attaches on actual receipt of value (exercise).",
+    "withholding": "no",
+    "filing_requirement": "No filing.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UU PPh",
+        "reference": "Law No. 36/2008 Article 4(1)(a) — taxable income requires actual or constructive receipt",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries — Indonesia (Income determination)",
+        "reference": "Employment income recognized on receipt; equity grants triggered at exercise",
+        "source_url": "https://taxsummaries.pwc.com/indonesia/corporate/income-determination",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": []
+  },
+  {
+    "rule_id": "id.id.exercise.resident",
+    "parent_jurisdiction": "ID",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "ID",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Spread on exercise (FMV at exercise minus exercise price, multiplied by options exercised) is taxed as PPh 21 employment income at progressive resident PIT rates under UU HPP (Law 7/2021): 5% up to IDR 60M, 15% IDR 60M–250M, 25% IDR 250M–500M, 30% IDR 500M–5B, 35% above IDR 5B. Surtax / cess: none (Indonesia does not impose a separate cess on PIT).",
+    "withholding": "yes",
+    "withholding_note": "Indonesian employer-of-record (the local PT entity, even if the option was granted by an overseas parent) withholds PPh 21 in the month of exercise and remits to DGT by the 10th of the following month. Reported in monthly PPh 21 SPT Masa and consolidated in annual SPT 1721-A1.",
+    "filing_requirement": "Monthly SPT Masa PPh 21 (employer, by 10th of following month) + Annual SPT 1721-A1 (employer, by end-January following FY) + Annual SPT 1770 / 1770S (employee, by end-March).",
+    "documents_required": ["NPWP (employee tax ID)", "Vesting schedule", "FMV evidence at exercise date (independent valuer for unlisted shares)", "Notice of exercise", "PPh 21 calculation worksheet"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UU PPh",
+        "reference": "Law No. 36/2008 Article 4(1)(a) — employment income (gaji, upah, honorarium, tunjangan, dan pembayaran lain) — and Article 21 (PPh 21 withholding obligation)",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PMK 168/PMK.03/2023",
+        "reference": "Minister of Finance Regulation on technical aspects of Article 21 income tax withholding (effective 1 January 2024); supersedes PMK 252/PMK.03/2008",
+        "source_url": "https://muc.co.id/en/article/pmk-168-year-2023-issued-on-the-technical-aspects-of-income-tax-withholding-for-ita-21-a-detailed-description",
+        "retrieved_on": "2026-05-11",
+        "note": "PMK 168/2023 codifies the TER (Tarif Efektif Rata-rata) approach to monthly PPh 21 withholding."
+      },
+      {
+        "authority": "UU HPP",
+        "reference": "Law No. 7/2021 (Harmonization of Tax Regulations) — added the 35% top PIT bracket above IDR 5B",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries — Indonesia (Withholding taxes)",
+        "reference": "PPh 21 mechanism for employment income, including share-based remuneration",
+        "source_url": "https://taxsummaries.pwc.com/indonesia/corporate/withholding-taxes",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "DGT Direktorat Jenderal Pajak",
+        "reference": "Withholding Article 21 Tax — official DGT guidance page",
+        "source_url": "https://www.pajak.go.id/en/withholding-article-21-tax",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "FMV determination for unlisted overseas-parent shares is the most-litigated area. DGT may challenge low-ball FMVs; a contemporaneous independent valuation report is the practical safe harbor.",
+      "Non-NPWP employees suffer a 20% surcharge on PPh 21 withholding; ensure the employee's NPWP is on file before exercise to avoid this.",
+      "PMK 168/2023 introduced the TER monthly-rate methodology — interim calculations during the year may differ from the year-end true-up, but the annual liability is unchanged."
+    ]
+  },
+  {
+    "rule_id": "id.id.sale.resident",
+    "parent_jurisdiction": "ID",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "ID",
+    "event": "sale",
+    "tax_status": "resident",
+    "tax_treatment": "capital_gain",
+    "rate_description": "Indonesian resident seller — capital gain on sale of shares acquired via ESOP. LISTED shares (Indonesia Stock Exchange / IDX): final 0.1% tax on gross transaction value (no offset for cost basis), withheld at source by the broker — PP No. 41/1994 as amended. UNLISTED shares (including foreign parent's unlisted equity): treated as ordinary capital gain at progressive PIT rates on the net gain (sale price minus cost basis = FMV at exercise).",
+    "withholding": "conditional",
+    "withholding_note": "For listed-share sales, the IDX broker withholds 0.1% at trade settlement. For unlisted-share sales, no withholding — the gain is reported in the annual SPT 1770.",
+    "filing_requirement": "Listed: broker remits final tax; no separate employee filing required for the share-sale portion. Unlisted: employee reports gain in Annual SPT 1770 (Schedule for capital gains), pays via self-assessment.",
+    "documents_required": ["Share sale contract / IDX trade confirmation", "FMV-on-exercise evidence (cost basis)", "Demat / share-register statement"],
+    "confidence": "conditional",
+    "citations": [
+      {
+        "authority": "Peraturan Pemerintah (PP) No. 41/1994",
+        "reference": "Government Regulation on Income Tax for IDX-listed share transactions — 0.1% final tax on gross transaction value",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11",
+        "note": "PP 41/1994 is the primary statute for IDX-listed-share sale taxation."
+      },
+      {
+        "authority": "UU PPh",
+        "reference": "Law No. 36/2008 Article 4(1)(d) — capital gain from sale of unlisted shares is taxable as 'penghasilan dari penjualan harta' (income from disposal of assets)",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries — Indonesia",
+        "reference": "Capital gains: IDX-listed shares — 0.1% final on transaction; unlisted shares — taxed as ordinary income at PIT rates on net basis (resident sellers)",
+        "source_url": "https://taxsummaries.pwc.com/indonesia/corporate/income-determination",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Acclime Indonesia — Withholding tax guide",
+        "reference": "0.1% IDX final-tax mechanism + non-resident 5% gross-basis rule (latter relevant to in.id.sale.non_resident, not modeled in v1)",
+        "source_url": "https://indonesia.acclime.com/guides/withholding-tax/",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Founder-shareholder option: an additional 0.5% tax on share value at IPO may be paid in lieu of subsequent capital-gain tax on those shares — relevant only if the employee was a pre-IPO founder shareholder.",
+      "Confidence is 'conditional' because the unlisted-share rate for resident sellers depends on whether the gain is characterized as regular PIT income (slab) vs separate capital-gain head — practice varies by tax-office interpretation.",
+      "Non-resident sale of unlisted Indonesian shares: 5% final on gross transfer value (not modeled here; Phase 2 rule).",
+      "Cost basis = FMV at exercise (which was already taxed as PPh 21 perquisite). Double-counting is avoided this way; ensure the prior Form 1721-A1 is on file to evidence cost basis."
+    ]
+  },
+  {
+    "rule_id": "sg.id.exercise.resident.id_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "ID",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Indonesian PPh 21 applies to the Indonesian-resident employee on exercise, regardless of whether the parent is in Singapore or elsewhere. The local Indonesian PT entity (subsidiary or representative office that employs the individual) is the PPh 21 withholding agent. Spread = FMV at exercise minus exercise price; taxed at the same progressive resident PIT rates as id.id.exercise.resident.",
+    "withholding": "yes",
+    "withholding_note": "Indonesian subsidiary (PT) is the withholding agent — not the Singapore parent. Cross-charge from SG parent to ID subsidiary is the standard transfer-pricing arrangement, evidenced by an inter-company service / cost-recovery invoice at arm's length.",
+    "filing_requirement": "Same as id.id.exercise.resident — monthly SPT Masa PPh 21 (by 10th) + annual SPT 1721-A1 (by end-January) + employee SPT 1770 (by end-March).",
+    "documents_required": ["NPWP", "Cross-charge invoice from SG parent (transfer-pricing evidence)", "Independent valuation of SG parent's unlisted shares", "Notice of exercise", "PPh 21 worksheet"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UU PPh",
+        "reference": "Law No. 36/2008 Article 21 — withholding tax on employment income paid TO a resident individual, regardless of payer's domicile (the obligation attaches to the Indonesian employer-of-record)",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PMK 168/PMK.03/2023",
+        "reference": "Technical regulation on PPh 21 withholding — applies to overseas-parent option grants when the Indonesian PT is the employer-of-record",
+        "source_url": "https://muc.co.id/en/article/pmk-168-year-2023-issued-on-the-technical-aspects-of-income-tax-withholding-for-ita-21-a-detailed-description",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries — Indonesia (Withholding taxes)",
+        "reference": "PPh 21 attaches to employment income regardless of the payer's jurisdiction; the Indonesian employer-of-record is the responsible withholder",
+        "source_url": "https://taxsummaries.pwc.com/indonesia/corporate/withholding-taxes",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Transfer-pricing exposure: SG parent must cross-charge the ID subsidiary at arm's length for the perquisite cost; absence of cross-charge documentation can be reassessed by DGT.",
+      "FMV of an unlisted SG-parent share is the highest-risk technical point — DGT may require an independent valuation by a registered Indonesian appraiser (KJPP).",
+      "If the ID subsidiary refuses to act as withholding agent (rare), the employee defaults to self-assessment via SPT 1770 — but the burden of demonstrating FMV is then entirely on the employee.",
+      "Singapore-Indonesia DTAA (Article 14 — Dependent Personal Services): Indonesia retains primary taxing right because services are rendered in Indonesia."
+    ]
+  },
+  {
+    "rule_id": "sg.id.exercise.resident.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Singapore tax on the exercise gain. IRAS's territorial nexus rule attaches Singapore tax only where the option grant relates to Singapore-source employment. An Indonesian-resident employee who never rendered services in Singapore has no Singapore nexus.",
+    "withholding": "no",
+    "filing_requirement": "No Singapore filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Gains from the exercise of stock options — territorial nexus rule (Singapore taxes only when grant relates to SG employment)",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947 (Singapore)",
+        "reference": "Section 10(1)(b) — employment income derived from services rendered in Singapore",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee performs zero services in Singapore during the vesting and pre-exercise period. Any partial-period workdays in Singapore can attach a source-tax claim under IRAS apportionment rules; re-run with apportionment if material.",
+      "If the employee was previously SG-resident, apportionment between the SG and ID periods may be required."
+    ]
+  },
+  {
+    "rule_id": "in.id.exercise.resident.id_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "ID",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Indonesian PPh 21 applies to the Indonesian-resident employee on exercise, regardless of whether the parent is in India. The local Indonesian PT entity is the withholding agent. Spread = FMV at exercise minus exercise price; taxed at progressive resident PIT rates (5%–35% under UU HPP).",
+    "withholding": "yes",
+    "withholding_note": "Indonesian PT subsidiary withholds — cross-charged from the Indian parent through inter-company arrangements.",
+    "filing_requirement": "Monthly SPT Masa PPh 21 + Annual SPT 1721-A1 + Employee Annual SPT 1770.",
+    "documents_required": ["NPWP", "Cross-charge invoice from IN parent", "Independent valuation of IN parent's unlisted shares (KJPP report)", "Notice of exercise"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UU PPh",
+        "reference": "Law No. 36/2008 Article 21 — PPh 21 attaches to employment income paid to Indonesian residents irrespective of payer's domicile",
+        "source_url": "https://www.pajak.go.id/en/regulations",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Indonesia-India Tax Treaty",
+        "reference": "Article 15 (Dependent Personal Services) — salary income taxable in the country of employment exercise (Indonesia for an ID-resident performing services in ID)",
+        "source_url": "https://www.pajak.go.id/en/tax-treaty-rates",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries — Indonesia",
+        "reference": "Cross-border option grants from overseas parents are taxed under standard PPh 21 mechanics",
+        "source_url": "https://taxsummaries.pwc.com/indonesia/corporate/withholding-taxes",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Transfer-pricing arrangement between IN parent and ID subsidiary must be evidenced before relying on this verdict. Documentation gap exposes the ID subsidiary to PPh 26 (Article 26 withholding on offshore payments) reassessment.",
+      "Indonesia-India DTAA confers primary taxing right on Indonesia; no Indian tax claim on the ID-resident employee's salary income (see in.id.exercise.resident.in_view secondary rule)."
+    ]
+  },
+  {
+    "rule_id": "in.id.exercise.resident.in_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "ID",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax on the exercise gain for an Indonesian-resident, non-Indian-source employee. Salary income is sourced where services are rendered (Indonesia, in this case); India has no source claim under Section 9(1)(ii). The Indonesia-India DTAA Article 15 confirms primary taxing right rests with Indonesia.",
+    "withholding": "no",
+    "filing_requirement": "No Indian filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 5 read with Section 9(1)(ii) — non-resident income taxable in India only if earned for services rendered in India",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Indonesia-India Tax Treaty",
+        "reference": "Article 15 (Dependent Personal Services) — primary taxing right on the country where employment is exercised",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee performs zero services in India during the vesting and pre-exercise period. Any partial-period workdays in India can attach a source-tax claim under India apportionment rules; re-run with apportionment if material.",
+      "If the employee was previously India-resident or holds OCI status with India workdays, residency analysis may shift; verify employee profile before applying."
+    ]
+  }
+]

@@ -29,11 +29,19 @@ def _build_text_pdf(text: str) -> bytes:
 
 
 def test_extract_text_from_simple_pdf():
-    pdf = _build_text_pdf("Hello World\nSecond line")
+    # Need > 100 chars so the OCR fallback (W2.4) doesn't trigger on a
+    # legitimate text PDF that just happens to be short.
+    body = (
+        "This is a realistic side letter sample with enough body text to "
+        "exceed the OCR fallback threshold. It includes multiple sentences "
+        "across two lines so that pdfplumber yields well over 100 characters."
+    )
+    pdf = _build_text_pdf(body + "\nSecond paragraph also.")
     text, warnings = extract_text(pdf)
-    assert "Hello World" in text
-    assert "Second line" in text
-    assert warnings == []
+    assert "realistic side letter" in text
+    assert "Second paragraph" in text
+    # No OCR-fallback warnings when text is recovered.
+    assert not any("pdf-ocr" in w for w in warnings)
 
 
 def test_extract_returns_warning_on_empty_pdf():

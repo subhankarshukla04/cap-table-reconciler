@@ -1,0 +1,103 @@
+{% extends "engagement/base.html" %}
+
+{% block title %}Engagements{% endblock %}
+
+{% block content %}
+<h1>Engagements</h1>
+
+<form method="get" class="filter-bar">
+  <div class="form-row">
+    <label>Client ID</label>
+    <input type="text" name="client_id" value="{{ filters.client_id or '' }}">
+  </div>
+  <div class="form-row">
+    <label>Status</label>
+    <select name="status">
+      <option value=""></option>
+      {% for s in ('open', 'review', 'signed', 'archived') %}
+        <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form-row">
+    <label>Standard</label>
+    <select name="standard_of_value">
+      <option value=""></option>
+      {% for s in ('ifrs13', 'asc820', 'sec409a', 'ifrs2') %}
+        <option value="{{ s }}" {% if filters.standard_of_value == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form-row">
+    <label>Search</label>
+    <input type="text" name="q" value="{{ filters.q or '' }}" placeholder="client/id/standard">
+  </div>
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <button type="submit">Filter</button>
+  </div>
+</form>
+
+<p class="small">
+  {{ total }} engagement{% if total != 1 %}s{% endif %}
+  {% if total > 0 %}
+    &nbsp;·&nbsp; showing {{ offset + 1 }}–{{ offset + items|length }}
+  {% endif %}
+</p>
+
+{% if items %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Client</th>
+        <th>Standard</th>
+        <th>Status</th>
+        <th>Valuation date</th>
+        <th>Version</th>
+        <th>Pack</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in items %}
+        <tr>
+          <td><a href="/engagement/{{ e.id }}"><code>{{ e.id[:8] | e }}</code></a></td>
+          <td>{{ e.client_id | e }}</td>
+          <td><code>{{ e.standard_of_value | e }}</code></td>
+          <td><span class="pill status-{{ e.status }}">{{ e.status | e }}</span></td>
+          <td>{{ e.valuation_date or '—' }}</td>
+          <td>v{{ e.version }}</td>
+          <td><code>{{ e.pack_version | e }}</code></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="small">No engagements match.</p>
+{% endif %}
+
+{% if can_create %}
+  <h2>Create new engagement</h2>
+  <form method="post" action="/engagement/?html=1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label>Client ID</label>
+      <input type="text" name="client_id" required>
+    </div>
+    <div class="form-row">
+      <label>Standard of value</label>
+      <select name="standard_of_value">
+        <option value="ifrs13">IFRS 13</option>
+        <option value="asc820">ASC 820</option>
+        <option value="sec409a">Section 409A</option>
+        <option value="ifrs2">IFRS 2</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Valuation date (ISO YYYY-MM-DD)</label>
+      <input type="date" name="valuation_date">
+    </div>
+    <button type="submit">Create engagement</button>
+  </form>
+{% endif %}
+{% endblock %}

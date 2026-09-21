@@ -1,8 +1,8 @@
-{% if scenario_chart_json %}
+{% if scenario_chart %}
 <script>
   (function() {
     try {
-      const p = {{ scenario_chart_json|safe }};
+      const p = {{ scenario_chart|tojson }};
       if (window.__updatePayoutChart) window.__updatePayoutChart(p);
     } catch (e) { console.error("whatif chart refresh failed", e); }
   })();

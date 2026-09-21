@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}DRHP Reader · Qapita Secondaries Desk{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brand">
+      <span class="mark">Q.</span>
+      <span class="name">DRHP Reader</span>
+      <span class="divider"></span>
+      <span class="sub">Secondaries Desk · Pre-Deal Intelligence</span>
+    </div>
+    <nav>
+      <a href="{{ url_for('landing') }}" class="active">Filings</a>
+      <a href="#" title="Coming month-1">Compliance Library</a>
+      <a href="#" title="Coming month-1">Mechanics</a>
+    </nav>
+  </div>
+</header>
+
+{% block crumbs %}{% endblock %}
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer>
+  <div class="footer-row">
+    <p class="disclaimer-text">
+      <span class="mark">Q.</span> &nbsp; DRHP Reader extracts cap-table structure from public SEBI DRHP / RHP filings to compute indicative tender mechanics. Built on public information only. Publishes no opinion on legality or fair value. Fair-value proxy = last-round price-per-share disclosed in the filing. Counsel sign-off required for any real transaction.
+    </p>
+    <p class="mono small" style="white-space:nowrap;color:var(--muted);">v0.9 · prototype</p>
+  </div>
+</footer>
+</body>
+</html>

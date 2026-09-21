@@ -131,7 +131,10 @@ def _diff_class(left: Optional[ShareClass], right: Optional[ShareClass]) -> list
         return deltas
     if left.shares_outstanding != right.shares_outstanding:
         deltas.append(FieldDelta("shares_outstanding", left.shares_outstanding, right.shares_outstanding))
-    if (left.issue_price or 0) != (right.issue_price or 0):
+    # BUG-014 fix: compare None vs 0 (and None vs 1.0) as DIFFERENT.
+    # `(None or 0) == 0` masks meaningful "unknown → 0" changes; same for
+    # `(None or 1.0) == 1.0` masking a freshly-applied conversion_ratio.
+    if left.issue_price != right.issue_price:
         deltas.append(FieldDelta("issue_price", left.issue_price, right.issue_price))
     if left.seniority_rank != right.seniority_rank:
         deltas.append(FieldDelta("seniority_rank", left.seniority_rank, right.seniority_rank))
@@ -139,7 +142,7 @@ def _diff_class(left: Optional[ShareClass], right: Optional[ShareClass]) -> list
     right_lp_desc = _describe_lp(right)
     if left_lp_desc != right_lp_desc:
         deltas.append(FieldDelta("liquidation_preference", left_lp_desc, right_lp_desc))
-    if (left.conversion_ratio or 1.0) != (right.conversion_ratio or 1.0):
+    if left.conversion_ratio != right.conversion_ratio:
         deltas.append(FieldDelta("conversion_ratio", left.conversion_ratio, right.conversion_ratio))
     left_ad = left.anti_dilution.variant.value if (left.anti_dilution and left.anti_dilution.variant) else None
     right_ad = right.anti_dilution.variant.value if (right.anti_dilution and right.anti_dilution.variant) else None

@@ -1,0 +1,33 @@
+<h3>What-if scenario</h3>
+{% if scenario %}
+  <table>
+    <thead>
+      <tr>
+        <th>BP</th>
+        <th class="num">Baseline value</th>
+        <th class="num">Scenario value</th>
+        <th>Event</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in scenario.rows %}
+        <tr>
+          <td><code>{{ row.id }}</code></td>
+          <td class="num">{{ row.baseline_value | e }}</td>
+          <td class="num">{{ row.scenario_value | e }}</td>
+          <td>{{ row.event | e }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if scenario.changed %}
+    <h4>Inputs changed</h4>
+    <ul>
+      {% for c in scenario.changed %}
+        <li>{{ c | e }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% else %}
+  <p class="small">Adjust a share count or LP multiple and submit to compute a scenario.</p>
+{% endif %}

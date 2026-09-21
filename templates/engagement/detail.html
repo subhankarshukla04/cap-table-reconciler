@@ -1,0 +1,244 @@
+{% extends "engagement/base.html" %}
+{% block title %}Engagement {{ engagement.id[:8] }}{% endblock %}
+
+{% block content %}
+<h1>Engagement <code>{{ engagement.id[:8] }}</code></h1>
+
+<p>
+  <span class="pill status-{{ engagement.status.value }}">{{ engagement.status.value }}</span>
+  &nbsp;·&nbsp; Client <strong>{{ engagement.client_id | e }}</strong>
+  &nbsp;·&nbsp; Standard <code>{{ engagement.standard_of_value | e }}</code>
+  &nbsp;·&nbsp; v{{ engagement.version }}
+  &nbsp;·&nbsp; Pack <code>{{ engagement.pack_version | e }}</code>
+</p>
+
+<h2>Snapshots ({{ snapshots|length }})</h2>
+{% if snapshots %}
+  <table>
+    <thead>
+      <tr>
+        <th>Snapshot</th>
+        <th>Source</th>
+        <th>Filename</th>
+        <th>Created</th>
+        <th>Status</th>
+        <th>Superseded by</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in snapshots %}
+        <tr>
+          <td><code>{{ s.id[:8] | e }}</code></td>
+          <td>{{ s.source | e }}</td>
+          <td>{{ s.source_filename or '—' }}</td>
+          <td class="small">{{ s.created_at }}</td>
+          <td>
+            {% if s.redacted %}<span class="pill" style="background:#8a1f1f;color:#fff;">REDACTED</span>
+            {% elif not s.superseded_by %}<span class="pill" style="background:#d6efd9;color:#2d6a30;">HEAD</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>{% if s.superseded_by %}<code>{{ s.superseded_by[:8] | e }}</code>{% else %}—{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="small">No snapshots yet.</p>
+{% endif %}
+
+{% if can_upload %}
+  <h2>Upload new snapshot</h2>
+  <form method="post" action="/engagement/{{ engagement.id }}/upload?html=1"
+        enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="expected_version" value="{{ engagement.version }}">
+    <div class="form-row">
+      <label>Cap-table .xlsx</label>
+      <input type="file" name="file" accept=".xlsx,.xlsm" required>
+    </div>
+    <div class="form-row">
+      <label>What changed since the last snapshot? <span class="small">(optional, surfaces in the diff timeline)</span></label>
+      <input type="text" name="change_note" placeholder="e.g. Series C closing — added 1.5M shares at $1.50" style="width:100%;">
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+{% endif %}
+
+<h2>Lifecycle</h2>
+<p class="small">
+  Transitions available from current status (<code>{{ engagement.status.value }}</code>):
+</p>
+{% if allowed_transitions %}
+  {% for target_status in allowed_transitions %}
+    <form method="post" action="/engagement/{{ engagement.id }}/transition?html=1"
+          style="display:inline-block; margin-right:8pt;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="new_status" value="{{ target_status }}">
+      <input type="hidden" name="expected_version" value="{{ engagement.version }}">
+      <button type="submit"
+              {% if target_status == 'archived' %}class="danger"{% endif %}>
+        Move to {{ target_status }}
+      </button>
+    </form>
+  {% endfor %}
+{% else %}
+  <p class="small">No transitions allowed for your role.</p>
+{% endif %}
+
+{# W5.2 — Inline finding-resolution form #}
+{% if findings_for_ui %}
+  <h2>Findings ({{ findings_for_ui|length }})</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Severity</th>
+        <th>Summary</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in findings_for_ui %}
+        <tr>
+          <td><code>{{ f.code | e }}</code></td>
+          <td><span class="pill {{ f.severity }}">{{ f.severity }}</span></td>
+          <td>{{ f.summary | e }}</td>
+          <td>
+            {% if f.resolved %}
+              <span class="pill" style="background:#d6efd9; color:#2d6a30;">resolved</span>
+            {% elif can_resolve %}
+              <details>
+                <summary class="btn secondary" style="display:inline-block;">Resolve…</summary>
+                <form hx-post="/engagement/{{ engagement.id }}/resolve?html=1"
+                      hx-target="this" hx-swap="outerHTML"
+                      hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'
+                      style="margin-top:8pt;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <input type="hidden" name="snapshot_id" value="{{ f.snapshot_id }}">
+                  <input type="hidden" name="finding_code" value="{{ f.code }}">
+                  <div class="form-row">
+                    <label>Decision (free text or JSON)</label>
+                    <textarea name="decision" rows="2"
+                              placeholder='{"variant":"broad_based_weighted_average"}'></textarea>
+                  </div>
+                  <div class="form-row">
+                    <label>Citation (required)</label>
+                    <input type="text" name="citation"
+                           placeholder="Charter §4.3(a)" required>
+                  </div>
+                  <button type="submit">Record resolution</button>
+                </form>
+              </details>
+            {% else %}
+              <span class="small">open</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{# W5.3 — Snapshot diff visualization #}
+{% if subsequent_events and subsequent_events.rollup.has_changes %}
+  <h2>Subsequent events</h2>
+  <p class="small">
+    Changes since the engagement's original snapshot
+    ({{ subsequent_events.rollup.original_snapshot_id[:8] | e }} →
+    {{ subsequent_events.rollup.head_snapshot_id[:8] | e }}).
+  </p>
+  {% for category, events in subsequent_events.by_category.items() %}
+    <details>
+      <summary><strong>{{ category | e }}</strong> ({{ events|length }})</summary>
+      <ul>
+        {% for ev in events %}
+          <li>
+            <span class="small">[{{ ev.source_snapshot_id[:8] | e }}]</span>
+            {{ ev.description | e }}
+            {% if ev.rule_implications %}
+              <br><span class="small">Rule implications:
+                {{ ev.rule_implications | join(', ') | e }}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endfor %}
+  {% if subsequent_events.rollup.historical_resolutions %}
+    <h3>Resolutions across the engagement</h3>
+    <table>
+      <thead>
+        <tr><th>Snapshot</th><th>Finding</th><th>Citation</th><th>By</th></tr>
+      </thead>
+      <tbody>
+        {% for r in subsequent_events.rollup.historical_resolutions %}
+          <tr>
+            <td class="small">{{ r.snapshot_id[:8] | e }}</td>
+            <td><code>{{ r.finding_code | e }}</code></td>
+            <td class="small">{{ r.citation | e }}</td>
+            <td>{{ r.resolved_by | e }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endif %}
+
+<h2>What-if scenarios</h2>
+<p class="small">Adjust share counts or LP multiples on any preferred class
+  and see the impact on breakpoints. Does not modify the cap table —
+  read-only simulation.</p>
+<form hx-post="/engagement/{{ engagement.id }}/whatif?html=1"
+      hx-target="#whatif-result" hx-swap="innerHTML"
+      hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'
+      style="background:#f9f9f9; padding:10pt; border-radius:4pt;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if preferred_classes %}
+    <table>
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th class="num">Current shares</th>
+          <th>Override shares</th>
+          <th class="num">Current LP×</th>
+          <th>Override LP×</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pc in preferred_classes %}
+          <tr>
+            <td><strong>{{ pc.name | e }}</strong></td>
+            <td class="num">{{ "{:,}".format(pc.shares) }}</td>
+            <td><input type="text" name="shares_{{ pc.name }}" placeholder="{{ pc.shares }}"></td>
+            <td class="num">{{ pc.lp_mult }}</td>
+            <td><input type="text" name="lp_mult_{{ pc.name }}" placeholder="{{ pc.lp_mult }}"></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="small">No preferred classes on the head snapshot yet.</p>
+  {% endif %}
+  <button type="submit" class="secondary">Compute scenario</button>
+</form>
+<div id="whatif-result" style="margin-top:14pt;"></div>
+
+<h2>Exports</h2>
+<p>
+  <a class="btn" href="/engagement/{{ engagement.id }}/memo.pdf?reviewer={{ current_user.display_name | urlencode }}">
+    Generate memo PDF
+  </a>
+  <a class="btn secondary" href="/engagement/{{ engagement.id }}/bundle.zip">
+    Download bundle.zip
+  </a>
+  <a class="btn secondary" href="/engagement/{{ engagement.id }}/snapshots?html=1">
+    Snapshot timeline
+  </a>
+  <a class="btn secondary" href="/engagement/{{ engagement.id }}/audit-log">
+    Audit log
+  </a>
+  <a class="btn secondary" href="/engagement/{{ engagement.id }}/verify">
+    Verify hash chain
+  </a>
+</p>
+{% endblock %}

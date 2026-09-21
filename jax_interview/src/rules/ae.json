@@ -1,0 +1,264 @@
+[
+  {
+    "rule_id": "ae.ae.grant.any",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "AE",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE personal income tax. The UAE imposes no income tax on individuals — neither on salaries, wages, nor on share-based remuneration. There is no personal income tax legislation in force. Federal Decree-Law No. 47 of 2022 introduced a 9% Corporate Tax on businesses (effective FY commencing on or after 1 June 2023), but Article 11(6) explicitly excludes salary and personal investment income from the scope of Corporate Tax. No UAE filing arises at grant for the individual employee.",
+    "withholding": "no",
+    "filing_requirement": "None for the individual employee. The UAE employer may have IFRS 2 stock-based compensation accounting entries for its own financial statements, but no payroll tax obligation arises.",
+    "documents_required": ["Grant agreement", "Stock plan document", "Vesting schedule"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "There is no personal income tax law in the UAE. Confirmed by the FTA's published guidance and the absence of any income-tax statute applicable to natural persons.",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Federal Decree-Law No. 47 of 2022",
+        "reference": "Article 11(6) — salary and other personal employment income, dividends, capital gains and other income from holding shares are excluded from the scope of Corporate Tax for natural persons",
+        "source_url": "https://mof.gov.ae/wp-content/uploads/2022/12/Federal-Decree-Law-No.-47-of-2022-EN.pdf",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries",
+        "reference": "United Arab Emirates — Individual: Taxes on personal income — 'There is currently no personal income tax in the UAE'",
+        "source_url": "https://taxsummaries.pwc.com/united-arab-emirates/individual/taxes-on-personal-income",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the individual carries on a 'Business or Business Activity' in the UAE with annual turnover > AED 1,000,000 (Cabinet Decision No. 49 of 2023), they may be subject to Corporate Tax at 9% on income above AED 375,000 — but this is a business-tax framework, not personal-employment taxation, and would not apply to a typical salaried employee receiving stock options.",
+      "GCC nationals working in the UAE are subject to UAE pension contributions (GPSSA), but these are not income tax. They do not apply to share option gains and do not apply to expatriates."
+    ]
+  },
+  {
+    "rule_id": "ae.ae.vest.any",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "AE",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE tax on vesting of options or RSUs. The UAE imposes no personal income tax — neither on salaries, perquisites, nor on share-based remuneration. RSU vesting (which would be a chargeable event in most jurisdictions) is not taxable in the UAE for an individual employee.",
+    "withholding": "no",
+    "filing_requirement": "None.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "No personal income tax regime in the UAE — confirmed by the absence of any income-tax statute applicable to natural persons",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Federal Decree-Law No. 47 of 2022",
+        "reference": "Article 11(6) — personal employment income excluded from Corporate Tax scope for natural persons",
+        "source_url": "https://mof.gov.ae/wp-content/uploads/2022/12/Federal-Decree-Law-No.-47-of-2022-EN.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": []
+  },
+  {
+    "rule_id": "ae.ae.exercise.any",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "AE",
+    "event": "exercise",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE income tax on exercise. The share option gain — (FMV − exercise price) × shares — is not subject to any UAE tax for a natural person. No payroll withholding, no individual return filing.",
+    "withholding": "no",
+    "filing_requirement": "None for the employee. No FTA registration or filing arises from exercising employee share options.",
+    "documents_required": ["Notice of exercise (for internal records)"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "No personal income tax regime in the UAE",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Federal Decree-Law No. 47 of 2022",
+        "reference": "Article 11(6) — salary and personal investment income excluded from Corporate Tax for natural persons",
+        "source_url": "https://mof.gov.ae/wp-content/uploads/2022/12/Federal-Decree-Law-No.-47-of-2022-EN.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "Foreign-tax exposure remains relevant. A US citizen working in the UAE is still subject to US worldwide tax under §61 — see ae.us / us.ae cross-border rules. The UAE has no double-tax treaty with the US, but the absence of UAE personal tax means there is generally no double-tax issue (only one country charges).",
+      "If the employee subsequently becomes resident in a tax jurisdiction (e.g., returns to India), prior options exercised while UAE-resident remain non-taxable in the UAE, but the gain may be partially sourced to the prior employment jurisdiction depending on workday apportionment during the vesting period."
+    ]
+  },
+  {
+    "rule_id": "ae.ae.sale.any",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "AE",
+    "event": "sale",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE capital gains tax for individuals. The disposal of shares acquired by an individual is not subject to any UAE tax. Federal Decree-Law No. 47 of 2022 Article 11(6) explicitly excludes individual capital gains from share holdings from Corporate Tax scope.",
+    "withholding": "no",
+    "filing_requirement": "None.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Federal Decree-Law No. 47 of 2022",
+        "reference": "Article 11(6) — capital gains and other income from holding shares by natural persons are excluded from Corporate Tax",
+        "source_url": "https://mof.gov.ae/wp-content/uploads/2022/12/Federal-Decree-Law-No.-47-of-2022-EN.pdf",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries",
+        "reference": "United Arab Emirates — Individual: 'There is no capital gains tax on disposal of shares by individuals'",
+        "source_url": "https://taxsummaries.pwc.com/united-arab-emirates/individual/income-determination",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the individual is engaged in a Business or Business Activity (turnover > AED 1M under Cabinet Decision 49/2023), share trading as a business may attract Corporate Tax at 9% — but incidental disposal of employee-acquired shares is not a Business Activity."
+    ]
+  },
+  {
+    "rule_id": "ae.in.exercise.resident.ae_view",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "AE",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE tax. The UAE imposes no personal income tax on the Indian-resident employee regardless of whether the parent is UAE-based. The UAE parent's identity does not create any individual-tax exposure in the UAE for an employee residing in India.",
+    "withholding": "no",
+    "filing_requirement": "None in the UAE.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "No personal income tax in the UAE — applies to all individuals regardless of residence",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Federal Decree-Law No. 47 of 2022",
+        "reference": "Article 11(6) — personal employment and investment income excluded from Corporate Tax for natural persons",
+        "source_url": "https://mof.gov.ae/wp-content/uploads/2022/12/Federal-Decree-Law-No.-47-of-2022-EN.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "All tax incidence falls on the Indian side — see in.json for the primary IN perquisite rule.",
+      "The India–UAE DTAA (notified 1992, amended 2007) Article 14 (Income from Employment) confirms employment income is taxable only where services are exercised — services in India means India taxes; no UAE charge arises in any event."
+    ]
+  },
+  {
+    "rule_id": "in.ae.exercise.resident.ae_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "AE",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE tax. The UAE-resident employee of an Indian parent (typically via a UAE branch or subsidiary, or directly with the Indian parent under a UAE work permit) pays no UAE personal income tax on the share option gain. The Indian parent's grant is fully tax-free in the UAE on the employee's side.",
+    "withholding": "no",
+    "filing_requirement": "None in the UAE.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "No personal income tax in the UAE",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "India–UAE DTAA",
+        "reference": "India–UAE Double Taxation Avoidance Agreement (notified 29 September 1993, amended 2007), Article 15 (Dependent Personal Services) — employment income taxable in the state where services are exercised",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "PwC Worldwide Tax Summaries",
+        "reference": "United Arab Emirates — Individual: tax-free salary, no withholding, no individual return",
+        "source_url": "https://taxsummaries.pwc.com/united-arab-emirates/individual/taxes-on-personal-income",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the employee was resident in India during any part of the vesting period and services were rendered there, that proportion of the gain may be Indian-sourced and chargeable in India under ITA §9(1)(ii). See in.json for the IN-perspective view.",
+      "On a subsequent sale of Indian-parent shares, India may still tax the capital gain under ITA §9(1)(i) (shares of an Indian company deemed situated in India) — UAE side remains tax-free."
+    ]
+  },
+  {
+    "rule_id": "ae.sg.exercise.resident.ae_view",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "AE",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE tax. A Singapore-resident employee of a UAE parent pays no UAE personal income tax — both because the UAE has no individual income tax and because the employee has no UAE nexus.",
+    "withholding": "no",
+    "filing_requirement": "None in the UAE.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "No personal income tax in the UAE",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Singapore–UAE DTA",
+        "reference": "Singapore–UAE Avoidance of Double Taxation Agreement, Article 15 (Dependent Personal Services)",
+        "source_url": "https://www.iras.gov.sg/taxes/international-tax/list-of-dtas-limited-dtas-and-eoi-arrangements",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "Tax incidence on the SG side — see sg.json for the IRAS overseas-parent rule."
+    ]
+  },
+  {
+    "rule_id": "sg.ae.exercise.resident.ae_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "AE",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UAE tax. A UAE-resident employee of a Singapore parent pays no UAE personal income tax on the share option gain.",
+    "withholding": "no",
+    "filing_requirement": "None in the UAE.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "UAE Federal Tax Authority",
+        "reference": "No personal income tax in the UAE",
+        "source_url": "https://tax.gov.ae/en/legislation.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Singapore–UAE DTA",
+        "reference": "Article 15 (Dependent Personal Services) — employment income taxable only where services exercised",
+        "source_url": "https://www.iras.gov.sg/taxes/international-tax/list-of-dtas-limited-dtas-and-eoi-arrangements",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the employee was SG-resident during any part of the vesting period and services were rendered in SG, IRAS may apply a deemed-exercise / time-apportionment charge — verify SG workday log."
+    ]
+  }
+]

@@ -30,8 +30,20 @@ import pdfplumber
 _QUESTION_PREFIX = re.compile(r"^\s*(q\d*\.?:|question[:\s]|todo[:\s])", re.IGNORECASE)
 
 
-def extract_text(blob_or_path) -> tuple[str, list[str]]:
-    """Return (full_text, warnings). full_text='' if no text recovered."""
+# W2.4 OCR fallback configuration.
+# A text yield below this threshold triggers the OCR backend (likely a
+# scanned/image PDF).
+_OCR_FALLBACK_MIN_CHARS = 100
+
+
+def extract_text(blob_or_path, *, enable_ocr: bool = True) -> tuple[str, list[str]]:
+    """Return (full_text, warnings). full_text='' if no text recovered.
+
+    When pdfplumber's text yield is below `_OCR_FALLBACK_MIN_CHARS` and
+    `enable_ocr=True`, route the PDF through the registered OCR backend
+    (SYSTEM_SPEC §4.3). When confidence < 0.85 the spec banner code is
+    appended to warnings.
+    """
     warnings: list[str] = []
     src = blob_or_path
     if isinstance(src, (bytes, bytearray)):
@@ -43,22 +55,63 @@ def extract_text(blob_or_path) -> tuple[str, list[str]]:
     try:
         with pdfplumber.open(src) as pdf:
             if not pdf.pages:
-                warnings.append("PDF has no pages.")
+                warnings.append("pdf-no-pages")
                 return "", warnings
             for page in pdf.pages:
                 t = page.extract_text() or ""
                 pages_text.append(t)
     except Exception as e:
-        warnings.append(f"pdfplumber failed: {e}")
+        warnings.append(f"pdf-no-text-recovered: pdfplumber failed: {e}")
         return "", warnings
 
     full = "\n\n".join(p.strip() for p in pages_text if p.strip())
-    if not full.strip():
-        warnings.append(
-            "No text recovered. The PDF may be scanned (image-only). "
-            "Side-letter intake supports text PDFs only — re-export from the "
-            "source application as a text PDF, or transcribe manually."
-        )
+    if len(full.strip()) < _OCR_FALLBACK_MIN_CHARS and enable_ocr:
+        # OCR fallback path. B5 fix from CODE_AUDIT_WAVE_2: spill bytes
+        # to a tempfile so user-uploaded PDFs (which arrive as bytes via
+        # the Flask upload route) hit the OCR backend rather than
+        # silently being dropped with the "image PDF" warning.
+        import tempfile
+
+        ocr_path: Optional[Path] = None
+        spilled = False
+        if isinstance(blob_or_path, (str, Path)):
+            ocr_path = Path(str(blob_or_path))
+        elif isinstance(blob_or_path, (bytes, bytearray)):
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as fh:
+                fh.write(bytes(blob_or_path))
+                ocr_path = Path(fh.name)
+                spilled = True
+        if ocr_path is not None:
+            from .ocr import LOW_CONFIDENCE_THRESHOLD, select_backend
+
+            backend = select_backend()
+            try:
+                ocr_result = backend.ocr_pdf(ocr_path)
+            finally:
+                if spilled:
+                    try:
+                        ocr_path.unlink()
+                    except OSError:
+                        pass
+            warnings.append(
+                f"pdf-ocr-fallback: backend={ocr_result.backend_name}, "
+                f"confidence={ocr_result.confidence:.2f}"
+            )
+            if ocr_result.warnings:
+                warnings.extend(ocr_result.warnings)
+            if ocr_result.below_confidence_threshold:
+                warnings.append(
+                    "pdf-ocr-low-confidence: OCR confidence below "
+                    f"{LOW_CONFIDENCE_THRESHOLD}. Recommend manual review."
+                )
+            if ocr_result.text.strip():
+                full = ocr_result.text
+            elif not full.strip():
+                warnings.append("pdf-no-text-recovered")
+        elif not full.strip():
+            warnings.append("pdf-no-text-recovered: image PDF + non-path/non-bytes input")
+    elif not full.strip():
+        warnings.append("pdf-no-text-recovered")
     return full, warnings
 
 

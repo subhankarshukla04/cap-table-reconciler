@@ -1,0 +1,374 @@
+[
+  {
+    "rule_id": "uk.uk.grant.any",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No UK income tax at grant for standard option grants under ITEPA 2003 Part 7 (employment-related securities options). EMI (Schedule 5), CSOP (Schedule 4), SAYE (Schedule 3) and unapproved/non-statutory options all share this treatment — the chargeable event is on exercise (or earlier 'chargeable event' per §477), not at grant.",
+    "withholding": "no",
+    "filing_requirement": "Employer must file the ERS Annual Return (form 42 / ERS Online) by 6 July following the tax year, listing all grants. EMI options additionally require notification to HMRC within 92 days of grant (ETASSUM50000).",
+    "documents_required": ["Grant agreement", "Stock plan document", "EMI notification (Form EMI1) if applicable", "Vesting schedule"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Section 471 — definition of securities option for employment-related-securities purposes; no charge to tax on grant of an option that is not itself a 'readily ascertainable' transferable right",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/7",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "ITEPA 2003 Schedule 5",
+        "reference": "Schedule 5 — Enterprise Management Incentives (EMI). Notification within 92 days of grant required for the scheme to qualify.",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/schedule/5",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "HMRC ETASSUM",
+        "reference": "Employee Tax-Advantaged Share Scheme User Manual — EMI section (ETASSUM50000)",
+        "source_url": "https://www.gov.uk/hmrc-internal-manuals/employee-tax-advantaged-share-scheme-user-manual",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "EMI notification must be filed via the HMRC ERS Online service within 92 days of grant — missing this deadline disqualifies the option from EMI tax-advantaged status (it reverts to unapproved-option treatment with PAYE/NIC at exercise).",
+      "For EMI eligibility: the granting company must be an independent trading company with gross assets ≤ £30M, < 250 employees, and the option must be granted to a qualifying employee. Many startups fail one of these tests as they scale; check status annually."
+    ]
+  },
+  {
+    "rule_id": "uk.uk.vest.any",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No UK tax at vest for option grants. Vesting merely removes the substantial risk of forfeiture; under ITEPA Part 7, taxation is deferred to a §477 chargeable event (typically exercise).",
+    "withholding": "no",
+    "filing_requirement": "No filing at vest.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Section 477 — chargeable events for employment-related securities options. Vesting is not a chargeable event.",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/section/477",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Restricted Stock Units (RSUs) follow a different path — RSU vesting IS a chargeable event under §62 (general earnings). This rule applies to options, not RSUs."
+    ]
+  },
+  {
+    "rule_id": "uk.uk.exercise.resident",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Treatment varies by scheme type. (1) EMI (Schedule 5): if all conditions met and option exercised within 10 years, NO income tax and NO NIC at exercise — the only event is CGT on subsequent sale, qualifying for BADR. (2) CSOP (Schedule 4): NO income tax / NIC at exercise if held ≥3 years from grant. (3) SAYE (Schedule 3): NO income tax at exercise. (4) UNAPPROVED / non-statutory options: the spread (market value at exercise minus exercise price) is taxed as employment income at the employee's marginal rate (20% / 40% / 45%) under ITEPA §477. If the shares are 'readily convertible assets' (e.g., listed or sale arranged), PAYE + NIC (employee 12% / 2%, employer 13.8%) operate via the payroll under §700.",
+    "withholding": "conditional",
+    "withholding_note": "Unapproved options on readily-convertible-asset shares: PAYE + NIC operate through payroll (employer remits monthly via RTI). EMI / CSOP / SAYE: no PAYE / NIC at exercise. The 'readily convertible asset' test is the critical trigger — see §702 for definition.",
+    "filing_requirement": "Employer ERS Annual Return (by 6 July following the tax year). Employee Self Assessment SA100 reporting exercise gains where PAYE didn't fully cover the liability.",
+    "documents_required": ["Notice of exercise", "Share valuation evidence (HMRC ESS Valuation Manual for unlisted)", "ERS Annual Return", "Payslip showing PAYE / NIC on the spread (unapproved options only)"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Section 477 — chargeable events; Section 478 — amount of charge (spread between market value at exercise and amount paid)",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/7",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "ITEPA 2003 Schedule 5",
+        "reference": "Paragraph 44 — EMI exercise within 10 years and qualifying conditions: no income tax or NIC charge",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/schedule/5",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Section 700 — PAYE operation on chargeable events for options where shares are readily convertible assets",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/section/700",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "HMRC EIM11875",
+        "reference": "Employment Income Manual EIM11875 — PAYE: special type of income: gains from share options",
+        "source_url": "https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim11875",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "HMRC ETASSUM54320",
+        "reference": "ETASSUM54320 — EMI: requirements relating to options: 'When and How' an option may be exercised",
+        "source_url": "https://www.gov.uk/hmrc-internal-manuals/employee-tax-advantaged-share-scheme-user-manual/etassum54320",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "EMI 'disqualifying events' (Schedule 5 Part 6) — e.g., loss of independence, employee leaving, or option modifications — can trigger income tax/NIC if exercised more than 90 days after the event. Track disqualifying-event dates carefully.",
+      "Employer's NIC (13.8%) on unapproved-option spread can be transferred to the employee by joint election under §431, increasing the employee's deduction.",
+      "Section 431 election: where shares are 'restricted securities', the employee can elect within 14 days of exercise to pay tax on unrestricted value upfront, avoiding subsequent post-acquisition charges.",
+      "Readily convertible asset test (§702) — shares are RCA if there's a trading arrangement, market, or the employer-funded NIC arrangement applies. Most listed shares and many private-co secondaries qualify."
+    ]
+  },
+  {
+    "rule_id": "uk.uk.sale.resident",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "sale",
+    "tax_status": "resident",
+    "tax_treatment": "capital_gain",
+    "rate_description": "Capital gain on sale of ESOP-acquired shares is subject to UK CGT. Gain = sale proceeds − cost basis (exercise price + any amount taxed as employment income at exercise). Rates effective 30 October 2024: 18% basic-rate band / 24% higher-rate band (TCGA 1992 §1H, §1I). Annual exempt amount £3,000 for 2024/25 and 2025/26. Business Asset Disposal Relief (BADR, §169H–169S): 14% rate for disposals on/after 6 April 2025, rising to 18% from 6 April 2026; £1M lifetime cap. Investors' Relief similar trajectory.",
+    "withholding": "no",
+    "withholding_note": "No PAYE on share-disposal proceeds. Employee declares via Self Assessment SA100 + CG Pages.",
+    "filing_requirement": "Self Assessment SA100 Capital Gains pages + SA108 (Capital Gains Summary). 'Real time CGT service' permits in-year reporting and payment. Payment deadline: 31 January following the tax year of disposal.",
+    "documents_required": ["Brokerage / share register evidence of sale", "Cost basis evidence (exercise notice + Form 42 from employer if unapproved)", "Section 431 election (if made at exercise)"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "TCGA 1992",
+        "reference": "Section 1H — main rates of CGT (18%/24% from 30 Oct 2024); Section 1I — BADR rate (10% pre-Apr 2025, 14% from 6 Apr 2025, 18% from 6 Apr 2026)",
+        "source_url": "https://www.legislation.gov.uk/ukpga/1992/12",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "TCGA 1992 §169H–169S",
+        "reference": "Business Asset Disposal Relief: £1M lifetime cap; 5% personal company / employee requirement",
+        "source_url": "https://www.legislation.gov.uk/ukpga/1992/12/part/V/chapter/3",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "HMRC — Capital Gains Tax rates page",
+        "reference": "Capital Gains Tax: rates and allowances (current rate schedule)",
+        "source_url": "https://www.gov.uk/capital-gains-tax/rates",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Finance Act 2025",
+        "reference": "Capital gains tax rates — confirmed rate trajectory for BADR and main CGT",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2025/8/part/1",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "EMI BADR: holding period for BADR purposes runs from grant date (not exercise) for EMI shares — a major advantage over non-EMI. The 2-year minimum still applies.",
+      "Cost basis for unapproved options sold = exercise price + spread already taxed at exercise (avoiding double tax).",
+      "Annual exempt amount £3,000 (much lower than pre-2023 £12,300) — most employee disposals will be taxable.",
+      "Post 30 October 2024 disposals fall under the new 18%/24% rates. Disposals on/before 29 October 2024 used the old 10%/20% rates. Verify disposal date against the rate-change cut-off."
+    ]
+  },
+  {
+    "rule_id": "uk.in.exercise.resident.uk_view",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UK tax on the exercise gain for an India-resident employee who has rendered no services in the UK. ITEPA 2003 §41A and §41C source employment income to where duties are performed; HMRC's residency / NRD rules confirm no UK liability for an Indian-resident performing services in India.",
+    "withholding": "no",
+    "filing_requirement": "No UK filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Sections 14, 15, 25, 26 — UK income tax on employment income limited to UK duties for non-residents",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/2",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-UK Double Tax Convention (1993)",
+        "reference": "Article 16 — Dependent Personal Services: salary taxable in the country where employment is exercised (India for IN-resident)",
+        "source_url": "https://www.gov.uk/government/publications/india-tax-treaties",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee performs zero services in the UK during the vesting and pre-exercise period. UK workdays during the option-period attach apportionment liability under §41C.",
+      "If the employee was previously UK-resident, ITEPA §41F (post-departure earnings from securities options) can attach UK tax on a portion of the gain even after relocation."
+    ]
+  },
+  {
+    "rule_id": "uk.us.exercise.resident.uk_view",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UK tax on the exercise gain for a US-resident employee who has performed no services in the UK. UK-US tax treaty Article 14 (Dependent Personal Services) confirms primary taxing right rests with the country where employment is exercised (US).",
+    "withholding": "no",
+    "filing_requirement": "No UK filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Sections 14, 15, 25, 26 — UK source rules for non-resident employees",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/2",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "UK-US Double Taxation Convention (2001, in force 2003)",
+        "reference": "Article 14 — Income from Employment: primary taxing right rests with country of services",
+        "source_url": "https://www.gov.uk/government/publications/usa-tax-treaties",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes zero UK workdays in the vesting period. UK-US treaty does NOT exempt UK workdays — apportionment applies under §41C.",
+      "If the employee was previously UK-resident, §41F post-departure rule may attach UK tax on a vesting-period-proportionate share of the gain."
+    ]
+  },
+  {
+    "rule_id": "uk.sg.exercise.resident.uk_view",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No UK tax on the exercise gain for a Singapore-resident employee who has performed no services in the UK.",
+    "withholding": "no",
+    "filing_requirement": "No UK filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Sections 14, 15, 25, 26 — UK source rules for non-resident employees",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/2",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "UK-Singapore Double Taxation Agreement (2012)",
+        "reference": "Article 14 — Income from Employment: salary taxable in country of services",
+        "source_url": "https://www.gov.uk/government/publications/singapore-tax-treaties",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes zero UK workdays in the option-period.",
+      "§41F post-departure rule applies if the employee was previously UK-resident."
+    ]
+  },
+  {
+    "rule_id": "in.uk.exercise.resident.uk_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "UK income tax on the exercise spread regardless of where the option was granted. ITEPA §471 brings options granted by overseas parents into the ERS regime if the employee is performing UK employment. The spread (FMV at exercise minus exercise price) is employment income at the employee's marginal rate (20%/40%/45%). If the shares are readily convertible assets, PAYE + NIC operate under §700.",
+    "withholding": "conditional",
+    "withholding_note": "PAYE + NIC operate if shares are readily convertible assets (most listed-parent shares qualify, as do private-co shares with active liquidity arrangements). UK employer-of-record (subsidiary or PE) is the withholding agent.",
+    "filing_requirement": "ERS Annual Return + Self Assessment SA100. Employer files within RTI if PAYE applies.",
+    "documents_required": ["Notice of exercise", "Share valuation", "ERS Annual Return entry", "Cross-charge from IN parent to UK employer-of-record"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003",
+        "reference": "Section 471 — applies to securities options granted by reason of employment, regardless of grantor's jurisdiction",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/section/471",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "ITEPA 2003 §477",
+        "reference": "Chargeable events: spread on exercise = taxable employment income",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/section/477",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "ITEPA 2003 §700",
+        "reference": "PAYE on readily convertible asset shares",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/section/700",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-UK Double Tax Convention (1993)",
+        "reference": "Article 16 — primary taxing right to UK (country of employment exercise)",
+        "source_url": "https://www.gov.uk/government/publications/india-tax-treaties",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "ISO/§422 (US) and EMI (UK) are not interchangeable — Indian-parent options cannot qualify as EMI (Schedule 5 requires UK-resident granting company; IN parent fails this).",
+      "Transfer pricing: IN parent must cross-charge the UK employer-of-record at arm's length.",
+      "If the employee was previously India-resident or holds India workdays, partial apportionment of the gain may attach to India under DTAA Article 16."
+    ]
+  },
+  {
+    "rule_id": "us.uk.exercise.resident.uk_view",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "UK income tax + NIC on the exercise spread regardless of where the option was granted. US-parent options brought into ITEPA §471 ERS regime for UK-employed staff. Treated as unapproved option for UK purposes (US parent fails EMI Schedule 5 independence + UK-residency tests). Marginal rate 20%/40%/45% + employer NIC 13.8% + employee NIC 12%/2% if shares are RCAs.",
+    "withholding": "conditional",
+    "withholding_note": "PAYE + NIC operate if shares are RCAs. UK employer-of-record withholds.",
+    "filing_requirement": "ERS Annual Return + Self Assessment.",
+    "documents_required": ["Notice of exercise", "Share valuation", "Form 3921 (US ISO record if applicable)", "Cross-charge from US parent"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003 §471, §477, §700",
+        "reference": "ERS regime applies to overseas-parent grants for UK-employed staff",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/7",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "UK-US Double Taxation Convention (2001)",
+        "reference": "Article 14 — UK has primary taxing right where employment exercised in UK",
+        "source_url": "https://www.gov.uk/government/publications/usa-tax-treaties",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "US-parent options cannot qualify as EMI (Schedule 5 requires UK-incorporated granting company).",
+      "US §422 ISO status irrelevant for UK tax purposes — UK applies its own rules.",
+      "If US tax also withheld on the same income, FTC under §901 (US) / DT relief (UK) avoids double tax."
+    ]
+  },
+  {
+    "rule_id": "sg.uk.exercise.resident.uk_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "UK",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "UK income tax + NIC on the exercise spread regardless of where the option was granted. SG-parent options brought into ITEPA §471 ERS regime for UK-employed staff. Treated as unapproved option (SG parent fails EMI Schedule 5 requirements).",
+    "withholding": "conditional",
+    "withholding_note": "PAYE + NIC operate if shares are RCAs. UK employer-of-record withholds.",
+    "filing_requirement": "ERS Annual Return + Self Assessment.",
+    "documents_required": ["Notice of exercise", "Share valuation", "Cross-charge from SG parent"],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "ITEPA 2003 §471, §477, §700",
+        "reference": "ERS regime applies to overseas-parent grants for UK-employed staff",
+        "source_url": "https://www.legislation.gov.uk/ukpga/2003/1/part/7",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "UK-Singapore Double Taxation Agreement (2012)",
+        "reference": "Article 14 — UK has primary taxing right where employment exercised in UK",
+        "source_url": "https://www.gov.uk/government/publications/singapore-tax-treaties",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "SG-parent options cannot qualify as EMI.",
+      "Singapore has no comprehensive treaty conflict here — DTAA Article 14 confers primary taxing right on UK."
+    ]
+  }
+]

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}ESOP Atlas — Query{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Cross-border ESOP compliance — pick the inputs</h1>
+  <p class="lede">
+    Input parent jurisdiction, employee jurisdiction, event, and residency status.
+    Output: a fully-cited compliance verdict. Every rule has a statutory reference.
+    Anything uncited returns <strong>requires-counsel</strong>; the tool never bluffs.
+  </p>
+
+  <form hx-post="/resolve" hx-target="#verdict" hx-swap="innerHTML" class="query-form">
+    <div class="form-grid">
+      <label>Parent jurisdiction
+        <select name="parent_jurisdiction">
+          {% for j in jurisdictions %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Employee jurisdiction
+        <select name="employee_jurisdiction">
+          {% for j in jurisdictions %}<option value="{{ j }}" {% if j == 'IN' %}selected{% endif %}>{{ j }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Event
+        <select name="event">
+          {% for e in events %}<option value="{{ e }}" {% if e == 'exercise' %}selected{% endif %}>{{ e }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Tax status
+        <select name="tax_status">
+          {% for s in tax_statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Grant date
+        <input type="date" name="grant_date">
+      </label>
+      <label>Vesting date
+        <input type="date" name="vesting_date">
+      </label>
+      <label>Event date
+        <input type="date" name="event_date">
+      </label>
+      <label>FMV at event
+        <input type="number" step="0.01" name="fmv_at_event" placeholder="e.g. 0.50">
+      </label>
+      <label>Exercise price
+        <input type="number" step="0.01" name="exercise_price" placeholder="e.g. 0.10">
+      </label>
+      <label>Options in event
+        <input type="number" step="1" name="options_in_event" placeholder="e.g. 4000">
+      </label>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Answer</button>
+      <span class="hint">Or load a built-in scenario from the top nav.</span>
+    </div>
+  </form>
+</section>
+
+<section id="verdict" class="panel verdict-target">
+  <p class="placeholder">Verdict will render here.</p>
+</section>
+{% endblock %}

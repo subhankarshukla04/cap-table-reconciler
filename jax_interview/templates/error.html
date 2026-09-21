@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} — ESOP Atlas{% endblock %}
+{% block content %}
+<section class="panel error-panel">
+  <h1>Error {{ code }}</h1>
+  <p>{{ message }}</p>
+  <p><a href="/">← Back to Query</a></p>
+</section>
+{% endblock %}

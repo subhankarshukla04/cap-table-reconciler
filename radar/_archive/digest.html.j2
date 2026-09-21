@@ -1,0 +1,72 @@
+{% extends "base.html.j2" %}
+{% block title %}Tender Radar — {{ run_date }}{% endblock %}
+{% block content %}
+<section class="title-block">
+  <h1>Daily Tender-Readiness Digest</h1>
+  <p class="dateline">{{ run_date }} · 07:00 SGT · {{ score_count }} issuers scored</p>
+</section>
+
+<section class="alert-strip">
+  {% set alerts = top_10 | selectattr("score.score", "ge", 80) | list %}
+  {% if alerts %}
+    {% for row in alerts %}
+      <div class="alert">
+        <span class="tag">ALERT · score {{ row.score.score }}</span>
+        <span class="alert-text">
+          <strong>{{ row.issuer.legal_name }}</strong> crossed the 80-point threshold.
+          Top trigger: {{ row.score.components[0].rationale }}.
+        </span>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert empty">No issuer crossed the 80-point threshold today.</div>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Top 10 by Tender-Readiness</h2>
+  <table class="rank">
+    <thead>
+      <tr>
+        <th class="num">#</th>
+        <th>Issuer</th>
+        <th class="num">Score</th>
+        <th>Top trigger</th>
+        <th class="num">Signals</th>
+        <th>Geography</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in top_10 %}
+        {% set tier = "alert" if row.score.score >= 80
+                       else "watch" if row.score.score >= 60
+                       else "monitor" %}
+      <tr class="tier-{{ tier }}">
+        <td class="num muted">{{ loop.index }}</td>
+        <td><a href="{{ url_for('issuer_page', issuer_id=row.score.issuer_id) }}">
+          {{ row.issuer.legal_name or row.score.issuer_id }}
+        </a></td>
+        <td class="num score-cell">{{ row.score.score }}</td>
+        <td>{{ row.score.components[0].rationale if row.score.components else "—" }}</td>
+        <td class="num muted">{{ row.score.components | length }}</td>
+        <td class="muted">{{ row.issuer.geography }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if reg_signals %}
+<section>
+  <h2>Today's regulatory delta</h2>
+  <ul class="reg-list">
+    {% for sig in reg_signals %}
+    <li>
+      <span class="src">{{ sig.source.replace("_", " ").upper() }}</span>
+      <a href="{{ sig.url }}" target="_blank" rel="noopener">{{ sig.raw_title or sig.value }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

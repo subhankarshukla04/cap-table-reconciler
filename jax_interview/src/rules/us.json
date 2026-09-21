@@ -1,0 +1,639 @@
+[
+  {
+    "rule_id": "us.us.grant.any",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No US tax at grant for either Incentive Stock Options (ISO, IRC \u00a7422) or Non-statutory Stock Options (NSO, governed by IRC \u00a783). An NSO at grant has no readily ascertainable FMV in the typical private-company case (Reg. \u00a71.83-7), so no \u00a783 inclusion. An ISO at grant similarly produces no tax event. The \u00a783(b) election is only available for restricted stock, not for standard option grants.",
+    "withholding": "no",
+    "filing_requirement": "No tax filing at grant. Employer maintains records for ISO \u00a76039 information reporting and NSO \u00a76051 W-2 reporting at later events.",
+    "documents_required": [
+      "Grant agreement",
+      "Stock plan document",
+      "Vesting schedule"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a7422",
+        "reference": "26 U.S.C. \u00a7 422 \u2014 Incentive stock options (governs ISO requirements and tax treatment)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/422",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a783",
+        "reference": "26 U.S.C. \u00a7 83 \u2014 Property transferred in connection with performance of services (governs NSO at exercise; no income at grant absent readily ascertainable FMV)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/83",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Treasury Regulation \u00a71.83-7",
+        "reference": "Treas. Reg. \u00a71.83-7 \u2014 Taxation of nonqualified stock options. Options without readily ascertainable FMV at grant are taxed at exercise, not at grant.",
+        "source_url": "https://www.law.cornell.edu/cfr/text/26/1.83-7",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS Topic 427",
+        "reference": "Topic 427 \u2014 Stock options (IRS general guidance on ISO vs NSO timing)",
+        "source_url": "https://www.irs.gov/taxtopics/tc427",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If the option has a readily ascertainable FMV at grant (rare; typically only for actively-traded options), \u00a783 inclusion may occur at grant \u2014 Reg. \u00a71.83-7(b).",
+      "\u00a7409A penalty risk: if the option strike is below FMV at grant ('discounted option'), the IRS may treat it as deferred compensation under \u00a7409A, triggering 20% additional tax + interest on the holder. Strike at or above contemporaneous FMV (typically supported by a \u00a7409A valuation) is the safe harbor."
+    ]
+  },
+  {
+    "rule_id": "us.us.vest.any",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No US tax at vest for standard ISO or NSO. Vesting merely lifts the substantial risk of forfeiture; for options that confer no readily ascertainable FMV, taxation is deferred to exercise.",
+    "withholding": "no",
+    "filing_requirement": "No filing at vest.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Treasury Regulation \u00a71.83-7",
+        "reference": "Treas. Reg. \u00a71.83-7 \u2014 Vesting of a non-readily-ascertainable-FMV option is not a \u00a783 inclusion event",
+        "source_url": "https://www.law.cornell.edu/cfr/text/26/1.83-7",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS Topic 427",
+        "reference": "Topic 427 \u2014 Stock options",
+        "source_url": "https://www.irs.gov/taxtopics/tc427",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Restricted Stock (not options) at vest IS a \u00a783 inclusion unless an \u00a783(b) election was made within 30 days of grant. This rule applies to option grants, not direct restricted-stock grants \u2014 separate rule set in Phase 2."
+    ]
+  },
+  {
+    "rule_id": "us.us.exercise.resident",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Dual treatment by instrument: (1) NSO \u2014 spread (FMV at exercise minus exercise price) is ordinary compensation income at marginal rates (10\u201337% federal + state); subject to FICA (\u00a73121, 7.65% employee share up to wage base + 1.45% Medicare on uncapped wages + 0.9% Additional Medicare for high earners) and federal income tax withholding (\u00a73402). Reported in W-2 Box 1 with code V in Box 12. (2) ISO \u2014 no regular tax at exercise, BUT the spread is an AMT preference item under \u00a756(b)(3), reported on Form 6251 line 2i. If the AMT calculation exceeds regular tax, the employee owes AMT. ISO exercise has no FICA / FIT withholding.",
+    "withholding": "yes",
+    "withholding_note": "Required for NSO only: federal income tax (supplemental wages \u2014 flat 22% up to $1M, 37% above; or aggregate method) + FICA (6.2% Social Security + 1.45% Medicare) + state withholding where applicable. NOT required for ISO at exercise.",
+    "filing_requirement": "NSO: W-2 (Form W-2, Box 1 + Box 12 code V) annually. ISO: Form 3921 (Exercise of an Incentive Stock Option Under \u00a7422(b)) by 31 January following exercise. Employee files Form 6251 if AMT applies.",
+    "documents_required": [
+      "Form 3921 (ISO exercise)",
+      "Form W-2 (NSO compensation)",
+      "\u00a7409A valuation report (FMV evidence)",
+      "Notice of exercise",
+      "Form 6251 (AMT computation for ISO)"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a783",
+        "reference": "26 U.S.C. \u00a7 83 \u2014 NSO spread at exercise = ordinary compensation income",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/83",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a7422",
+        "reference": "26 U.S.C. \u00a7 422 \u2014 ISO requirements (employee, plan, $100K limit, holding period); \u00a7421 defers ordinary income on qualifying ISO exercise",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/422",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a756(b)(3)",
+        "reference": "26 U.S.C. \u00a7 56(b)(3) \u2014 ISO spread is an AMT preference item; \u00a7421 favorable treatment turned off for AMT purposes",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/56",
+        "retrieved_on": "2026-05-11",
+        "note": "AMT adjustment = FMV at exercise minus exercise price, reported on Form 6251 line 2i."
+      },
+      {
+        "authority": "IRC \u00a73121, \u00a73402",
+        "reference": "26 U.S.C. \u00a7\u00a7 3121 (FICA wage base) and 3402 (federal income tax withholding) \u2014 apply to NSO spread, NOT to ISO exercise",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/3121",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS Form 3921 Instructions",
+        "reference": "Form 3921 \u2014 Exercise of an Incentive Stock Option Under \u00a7422(b); employer files by 31 January following exercise",
+        "source_url": "https://www.irs.gov/forms-pubs/about-form-3921",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS Form 6251 Instructions (2025)",
+        "reference": "Form 6251 line 2i \u2014 Exercise of incentive stock options (excess of AMT income over regular income)",
+        "source_url": "https://www.irs.gov/instructions/i6251",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS Topic 427",
+        "reference": "Topic 427 \u2014 Stock options; ISO vs NSO tax treatment summary",
+        "source_url": "https://www.irs.gov/taxtopics/tc427",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "ISO $100,000 limit: the aggregate FMV at GRANT of stock for which ISOs first become exercisable in any calendar year is capped at $100,000. Anything above is treated as NSO. Check the limit against the grant agreement before assuming ISO treatment.",
+      "ISO holding-period requirements (for the sale event, not this one): 2 years from grant AND 1 year from exercise. Failing both = disqualifying disposition \u2014 see (US, US, sale, resident) rule.",
+      "California / state-specific: California taxes ISO spread at exercise even though federal regular tax doesn't (separate state AMT). High-tax-state employees may owe state tax at exercise on the same spread that's only AMT preference federally.",
+      "\u00a7409A 'cashless exercise' funded by share withholding is fine for NSO but is treated as a disqualifying disposition for ISO (the employer-taken shares break the 1-year holding from exercise).",
+      "Additional Medicare Tax 0.9% applies to NSO spread above $200K wages (single) / $250K (joint)."
+    ]
+  },
+  {
+    "rule_id": "us.us.sale.resident",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "sale",
+    "tax_status": "resident",
+    "tax_treatment": "capital_gain",
+    "rate_description": "Capital gain on sale depends on instrument type and holding period: (a) NSO \u2014 gain = sale proceeds minus cost basis (FMV at exercise, already taxed as ordinary income). Long-term if held >1 year from exercise (0% / 15% / 20% LTCG rates + 3.8% NIIT for high earners); short-term if \u22641 year (ordinary rates). (b) ISO QUALIFYING disposition (held \u22652 years from grant AND \u22651 year from exercise): entire gain over the exercise price is LTCG. (c) ISO DISQUALIFYING disposition (sold earlier): the lesser of (FMV at exercise minus strike) or (sale proceeds minus strike) is ordinary compensation income; any remaining gain is capital gain (LT/ST based on actual holding from exercise).",
+    "withholding": "no",
+    "withholding_note": "No US withholding on share-sale proceeds for US persons. NRA: see (US, US, sale, non_resident) \u2014 not modeled in v1. ISO disqualifying disposition: employer should report the ordinary-income portion on W-2 Box 1 in the year of disposition.",
+    "filing_requirement": "Form 1040 Schedule D + Form 8949 (Sales and other dispositions of capital assets). Schedule 3 if claiming the AMT credit from prior-year ISO exercise (\u00a753).",
+    "documents_required": [
+      "Brokerage 1099-B",
+      "Form 3921 (original ISO exercise)",
+      "Form W-2 (NSO compensation evidence)",
+      "Holding-period evidence (acquisition + disposition dates)"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a7422(a)",
+        "reference": "26 U.S.C. \u00a7 422(a) \u2014 ISO qualifying disposition: 2 years from grant + 1 year from exercise = full LTCG",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/422",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a7421(b)",
+        "reference": "26 U.S.C. \u00a7 421(b) \u2014 Disqualifying disposition reverses the \u00a7421 deferral; ordinary income recognized in disposition year",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/421",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a71(h)",
+        "reference": "26 U.S.C. \u00a7 1(h) \u2014 Maximum capital gains rates (0%, 15%, 20% LTCG by income band)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/1",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a71411",
+        "reference": "26 U.S.C. \u00a7 1411 \u2014 Net Investment Income Tax 3.8% on capital gains for AGI above $200K single / $250K joint",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/1411",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a753",
+        "reference": "26 U.S.C. \u00a7 53 \u2014 Credit for prior-year AMT (recover AMT paid on ISO exercise via the regular-tax credit in subsequent years)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/53",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS Topic 427",
+        "reference": "Topic 427 \u2014 Stock options (sale treatment for ISO and NSO)",
+        "source_url": "https://www.irs.gov/taxtopics/tc427",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "ISO AMT basis \u2260 regular tax basis. AMT basis includes the spread that was taxed as AMT preference at exercise. On sale, you re-do the AMT capital-gain calculation with the AMT basis and may claim AMT credit.",
+      "Wash-sale rules under \u00a71091 apply if the employee repurchases substantially identical stock within 30 days before or after a loss-generating sale.",
+      "California: separate state AMT applies to ISOs; cost basis tracking for state purposes may differ.",
+      "QSBS (\u00a71202) exclusion may apply if the stock was acquired at issuance and held \u22655 years \u2014 separate rule set, Phase 2."
+    ]
+  },
+  {
+    "rule_id": "us.in.exercise.resident.in_view",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "perquisite",
+    "rate_description": "Indian perquisite tax applies in full. Perquisite value = (FMV on exercise date \u2212 exercise price) \u00d7 options exercised. Slab-rate tax (up to 30% + surcharge + 4% cess). TDS by the Indian subsidiary as the employer-of-record under \u00a7192 / ITA 2025 \u00a7392(1). Same treatment as SG-IN cross-border \u2014 the parent's jurisdiction does not alter Indian rule.",
+    "withholding": "yes",
+    "withholding_note": "Indian subsidiary deducts TDS \u2014 funded via cash recovery from employee or via parent cross-charge documented at arm's length.",
+    "filing_requirement": "Indian subsidiary issues Form 12BA + Form 16. Employee files ITR-2 / ITR-3.",
+    "documents_required": [
+      "Form 12BA",
+      "Form 16",
+      "SEBI Cat-I merchant banker valuation (for unlisted US parent shares)",
+      "Cross-charge invoice from US parent (transfer-pricing trail)",
+      "Form 15CA/CB if remittance is involved"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) \u2014 perquisite from specified-security allotment by any employer (including foreign parent)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Rules 1962",
+        "reference": "Rule 3(8) \u2014 FMV via SEBI Cat-I merchant banker for unlisted shares of US parent",
+        "source_url": "https://incometaxindia.gov.in/Pages/rules/income-tax-rules-1962.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-US Income Tax Treaty (1989)",
+        "reference": "Article 16 (Dependent Personal Services) \u2014 salary income taxable in country of employment exercise (India for India-resident); does not displace Indian primary right",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "FEMA / RBI Liberalised Remittance Scheme (LRS): employee's exercise-price payment in USD to the US parent must be routed via LRS, capped at US$250,000 per FY per resident individual. Cashless exercise (net-settled by parent) avoids LRS engagement.",
+      "Transfer pricing: US parent invoices Indian subsidiary at arm's length for the perquisite cost. Documentation gap exposes the subsidiary to Indian TP reassessment.",
+      "DPIIT-startup TDS deferral (\u00a7192(1C)) applies only if the *Indian subsidiary* is the DPIIT-recognized startup, not the US parent.",
+      "Form 15CA/CB may be required for the cross-charge remittance from India to US parent under Indian forex reporting rules."
+    ]
+  },
+  {
+    "rule_id": "us.in.exercise.resident.us_view",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No US tax on the exercise gain for a non-US-person India-resident employee. US source-of-income rules under \u00a7861\u2013\u00a7863 source compensation to where the services are performed (India in this case); the US parent's grant does not create US source income for non-US-person foreign-services employees.",
+    "withholding": "no",
+    "filing_requirement": "No US filing required by the employee. The US parent has no Form W-2 obligation for non-US-person foreign employees.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a7861(a)(3)",
+        "reference": "26 U.S.C. \u00a7 861(a)(3) \u2014 Compensation for labor or personal services performed without the United States is foreign-source income (not US-source)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/861",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a7871",
+        "reference": "26 U.S.C. \u00a7 871 \u2014 Nonresident alien individuals taxed only on US-source income (and effectively connected income); foreign-source compensation is exempt",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/871",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-US Income Tax Treaty (1989)",
+        "reference": "Article 16 \u2014 Dependent Personal Services source rule confirms India taxing right",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the India-resident employee is NOT a US person (no US citizenship, no green card, no substantial-presence-test residency). A US person living in India is taxed by the US on worldwide income \u2014 separate rule needed.",
+      "Assumes zero services rendered in the US between grant and exercise. Any US-workday days create proportional US-source compensation under \u00a7861-2(c) apportionment rules.",
+      "If the employee has equity from a US parent and ever held an L-1 / H-1B / business-travel status with US workdays during the vesting period, partial US tax may attach. Re-evaluate with \u00a7861-2 apportionment."
+    ]
+  },
+  {
+    "rule_id": "us.sg.exercise.resident.sg_view",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Singapore taxes the gain on exercise as employment income at progressive resident PIT rates (0\u201324%). IRAS's overseas-parent rule applies: options granted by an overseas parent (US, in this case) are taxed identically to options granted by the SG employer, provided the grant relates to Singapore employment.",
+    "withholding": "no",
+    "withholding_note": "No PAYE in Singapore. Employer (SG entity or SG branch) reports on Form IR8A; employee files Form B.",
+    "filing_requirement": "Form IR8A + Appendix 8B by 1 March; Form B by 15 April.",
+    "documents_required": [
+      "Appendix 8B",
+      "Form IR8A",
+      "Open-market price evidence at exercise",
+      "Cross-charge invoice from US parent"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "ESOP/ESOW guidance \u2014 overseas-parent grants treated equally to SG-employer grants when the grant relates to SG employment",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947 (Singapore)",
+        "reference": "Section 10(6) \u2014 gains from share-based remuneration on exercise; Section 10(1)(b) \u2014 employment income from SG-services",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If grant pre-dated SG employment, the gain may be apportioned or treated as foreign-source.",
+      "Local SG entity must be designated as the responsible reporting employer if the US parent has no SG presence.",
+      "No comprehensive US-Singapore income tax treaty \u2014 foreign tax credit under IRC \u00a7901 is the relief mechanism for a US person SG-resident, not treaty relief."
+    ]
+  },
+  {
+    "rule_id": "us.sg.exercise.resident.us_view",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No US tax on the exercise gain for a non-US-person Singapore-resident employee. \u00a7861(a)(3) sources compensation to where services are performed (Singapore here); \u00a7871 confirms NRAs are taxed only on US-source / ECI income.",
+    "withholding": "no",
+    "filing_requirement": "No US filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a7861(a)(3)",
+        "reference": "26 U.S.C. \u00a7 861(a)(3) \u2014 compensation for services performed outside the US is foreign-source",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/861",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a7871",
+        "reference": "26 U.S.C. \u00a7 871 \u2014 NRA taxation limited to US-source / ECI income",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/871",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the Singapore-resident employee is NOT a US person (citizen, green card holder, or substantial-presence-test resident). A US person SG-resident is taxed by the US on worldwide income; foreign tax credit (\u00a7901) is the relief mechanism, NOT treaty (there is no comprehensive US-SG income tax treaty).",
+      "Assumes zero US workdays during the vesting period; any US-workday apportionment under \u00a7861-2(c) attaches partial US source.",
+      "If the SG entity is a US-controlled subsidiary, withholding obligations under \u00a71441/1442 do NOT apply to the foreign-source spread, but reporting under \u00a76038 may apply to the parent."
+    ]
+  },
+  {
+    "rule_id": "in.us.exercise.resident.us_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "US person (citizen / green-card / substantial-presence resident) is taxed by the US on worldwide income. Foreign-parent option grant is treated identically to a US-employer NSO at exercise under \u00a783: spread (FMV at exercise minus strike) is ordinary compensation income at marginal rates + FICA + FIT withholding by the US employer-of-record (typically a US subsidiary of the Indian parent, or a US PEO). If the option qualifies as an ISO under \u00a7422, the AMT treatment applies \u2014 but ISO status requires the grant to be made by the employer corporation or a parent/subsidiary chain that qualifies, which is uncommon for foreign-parent grants.",
+    "withholding": "yes",
+    "withholding_note": "US subsidiary (or US payroll provider) withholds federal income tax (supplemental wage rate 22% / 37%) + FICA (6.2% + 1.45%) + state tax. The Indian parent has no direct US withholding obligation; the burden falls on the US payroll entity.",
+    "filing_requirement": "Form W-2 from US payroll; employee files Form 1040; FBAR (FinCEN 114) if foreign accounts exceed $10K; Form 8938 (specified foreign financial assets) for high thresholds.",
+    "documents_required": [
+      "W-2 from US subsidiary",
+      "\u00a7409A valuation evidence",
+      "Form 8938 / FBAR if applicable",
+      "Cross-charge invoice from US sub to IN parent"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a71",
+        "reference": "26 U.S.C. \u00a7 1 \u2014 US persons taxed on worldwide income",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/1",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a761",
+        "reference": "26 U.S.C. \u00a7 61 \u2014 Gross income definition includes compensation for services, from any source",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/61",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a783",
+        "reference": "26 U.S.C. \u00a7 83 \u2014 NSO spread at exercise = ordinary compensation income for US persons regardless of grantor's jurisdiction",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/83",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a7422(b)(1)",
+        "reference": "26 U.S.C. \u00a7 422(b)(1) \u2014 ISO must be granted by the employer corporation or a related corporation in \u00a7424(f) chain; foreign-parent grants generally fail this test unless the foreign parent has US-incorporated subsidiary chain qualifying under \u00a7424",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/422",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-US Income Tax Treaty (1989)",
+        "reference": "Article 16 (Dependent Personal Services); foreign tax credit under \u00a7901 for any Indian tax paid",
+        "source_url": "https://www.irs.gov/businesses/international-businesses/united-states-income-tax-treaties-a-to-z",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Foreign-parent grants almost always fall under NSO treatment (not ISO), because \u00a7422 + \u00a7424(f) require the grantor to be in the employer's corporate chain.",
+      "FBAR (FinCEN 114) and Form 8938 reporting are commonly missed by employees with foreign-parent equity. Penalties are substantial ($10K+ per missed filing).",
+      "Wage-tax sourcing for FICA: only US workdays generate FICA-wage; if the employee splits work between US and India during the vesting period, partial FICA apportionment may apply.",
+      "If the US employer is a totalization-agreement country's entity (India-US do NOT have a totalization agreement), full FICA applies."
+    ]
+  },
+  {
+    "rule_id": "in.us.exercise.resident.in_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax on the exercise gain for a non-resident, non-Indian-source employee. India-US DTAA Article 16 confirms primary taxing right rests with the US (country where employment is exercised).",
+    "withholding": "no",
+    "filing_requirement": "No Indian filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 5 read with Section 9(1)(ii) \u2014 non-resident income taxable in India only if earned for services in India",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-US Income Tax Treaty (1989)",
+        "reference": "Article 16 (Dependent Personal Services) \u2014 primary taxing right rests with country where employment is exercised",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee performs zero services in India during the vesting and pre-exercise period; any partial-period India workdays attach a source-tax claim under apportionment.",
+      "OCI status, prior India tax residency, or India-workday counts during the vesting window can shift the analysis; verify employee profile before applying."
+    ]
+  },
+  {
+    "rule_id": "sg.us.exercise.resident.us_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "US person taxed on worldwide income. SG-parent option treated as NSO at exercise under \u00a783: spread = ordinary compensation income, FICA + FIT withholding by US payroll entity. ISO \u00a7422 unavailable for foreign-parent grants in nearly all cases (\u00a7424(f) corporate-chain requirement).",
+    "withholding": "yes",
+    "withholding_note": "US subsidiary / payroll provider withholds. No comprehensive US-Singapore income tax treaty, so foreign tax credit (\u00a7901) \u2014 not treaty \u2014 is the relief mechanism if SG also asserts tax.",
+    "filing_requirement": "Form W-2, Form 1040, plus FBAR / Form 8938 reporting for foreign-parent equity holdings.",
+    "documents_required": [
+      "W-2",
+      "\u00a7409A valuation evidence (or SG-equivalent FMV report)",
+      "FBAR / Form 8938 if applicable",
+      "Cross-charge documentation"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a783",
+        "reference": "26 U.S.C. \u00a7 83 \u2014 NSO spread = ordinary compensation income, applies regardless of grantor's jurisdiction",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/83",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a71, \u00a761",
+        "reference": "Worldwide income taxation of US persons",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/61",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRS \u2014 US income tax treaties A\u2013Z",
+        "reference": "There is NO comprehensive income tax treaty between the US and Singapore. Only limited shipping/aircraft agreement (1983) + FATCA IGA. Foreign tax credit (\u00a7901) is the only relief mechanism.",
+        "source_url": "https://www.irs.gov/businesses/international-businesses/united-states-income-tax-treaties-a-to-z",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRC \u00a7901",
+        "reference": "26 U.S.C. \u00a7 901 \u2014 Foreign tax credit (for any Singapore tax paid on the same income)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/901",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "NO comprehensive US-Singapore income tax treaty exists. Standard domestic rules in both jurisdictions apply with potential for double taxation, partially relieved via FTC under \u00a7901.",
+      "Foreign-parent grants almost always fail \u00a7422 ISO chain requirements \u2014 default to NSO treatment.",
+      "FBAR + Form 8938 reporting required if foreign asset thresholds met.",
+      "FICA applies on US workdays only; if employee splits work between US and SG, FICA apportionment may apply (no US-SG totalization agreement)."
+    ]
+  },
+  {
+    "rule_id": "sg.us.exercise.resident.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Singapore tax on the exercise gain for a US-resident employee whose services are not rendered in Singapore. IRAS's territorial nexus rule requires the grant to relate to SG employment; a US-resident employee with no SG employment has no SG nexus.",
+    "withholding": "no",
+    "filing_requirement": "No Singapore filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Gains from the exercise of stock options \u2014 territorial nexus rule",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947 (Singapore)",
+        "reference": "Section 10(1)(b) \u2014 employment income derived from services rendered in Singapore",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes zero services performed in Singapore between grant and exercise. Any partial-period SG workdays can attach a source-tax claim under IRAS apportionment rules.",
+      "If the employee was previously SG-resident, apportionment between SG and US periods may apply."
+    ]
+  },
+  {
+    "rule_id": "uk.us.exercise.resident.us_view",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "US",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "US person (citizen / green-card / substantial-presence resident) is taxed by the US on worldwide income. UK-parent option treated as NSO at exercise under \u00a783: spread is ordinary compensation income at marginal rates + FICA + FIT withholding by US payroll entity. ISO \u00a7422 status unavailable for foreign-parent grants in nearly all cases (\u00a7424(f) chain test fails).",
+    "withholding": "yes",
+    "withholding_note": "US subsidiary / payroll provider withholds. UK-US tax treaty Article 14 confers primary taxing right where employment is exercised (US here); FTC under \u00a7901 for any UK tax paid.",
+    "filing_requirement": "Form W-2, Form 1040, FBAR/Form 8938 reporting for UK parent equity holdings.",
+    "documents_required": [
+      "W-2",
+      "\u00a7409A valuation evidence",
+      "FBAR/Form 8938",
+      "Cross-charge from UK parent"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a783",
+        "reference": "26 U.S.C. \u00a7 83 \u2014 NSO spread = ordinary compensation income for US persons, applies regardless of grantor's jurisdiction",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/83",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "UK-US Double Taxation Convention (2001)",
+        "reference": "Article 14 \u2014 Income from Employment: primary taxing right rests with country of services (US for US-resident).",
+        "source_url": "https://www.irs.gov/businesses/international-businesses/united-states-income-tax-treaties-a-to-z",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "IRC \u00a7901",
+        "reference": "26 U.S.C. \u00a7 901 \u2014 Foreign tax credit for any UK tax paid on the same income (when employee has UK workdays)",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/901",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      }
+    ],
+    "caveats": [
+      "Foreign-parent grants default to NSO treatment (\u00a7422 ISO chain requirement under \u00a7424(f) typically fails for UK parents).",
+      "FBAR (FinCEN 114) and Form 8938 reporting required for high-value UK parent equity.",
+      "If employee has UK workdays in the vesting period, partial UK tax applies \u2014 see uk.us.exercise.resident.uk_view for the UK perspective."
+    ]
+  },
+  {
+    "rule_id": "us.uk.exercise.resident.us_view",
+    "parent_jurisdiction": "US",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "US",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No US tax on the exercise gain for a non-US-person UK-resident employee. \u00a7861(a)(3) sources compensation to where services are performed (UK); \u00a7871 confirms NRAs are taxed only on US-source / ECI income.",
+    "withholding": "no",
+    "filing_requirement": "No US filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRC \u00a7861(a)(3)",
+        "reference": "26 U.S.C. \u00a7 861(a)(3) \u2014 compensation for services performed outside the US is foreign-source",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/861",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "IRC \u00a7871",
+        "reference": "26 U.S.C. \u00a7 871 \u2014 NRA taxation limited to US-source / ECI",
+        "source_url": "https://www.law.cornell.edu/uscode/text/26/871",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "UK-US Double Taxation Convention (2001)",
+        "reference": "Article 14 \u2014 primary taxing right rests with country of services (UK for UK-resident).",
+        "source_url": "https://www.irs.gov/businesses/international-businesses/united-states-income-tax-treaties-a-to-z",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      }
+    ],
+    "caveats": [
+      "Assumes the UK-resident employee is NOT a US person (no citizenship, no green card, no substantial-presence-test residency).",
+      "Assumes zero US workdays in the vesting period; US-workday apportionment under \u00a7861-2(c) attaches partial US source."
+    ]
+  }
+]

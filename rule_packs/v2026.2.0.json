@@ -1,0 +1,38 @@
+{
+  "version": "v2026.2.0",
+  "effective_from": "2026-02-01",
+  "effective_to": "2026-02-28",
+  "jurisdictions": [],
+  "standards": [
+    "IFRS 13",
+    "ASC 820",
+    "Section 409A",
+    "IFRS 2"
+  ],
+  "rule_ids": [
+    "G-AD-001",
+    "G-AD-002",
+    "G-LP-001",
+    "G-POOL-001",
+    "G-SAFE-001",
+    "G-WAR-001",
+    "G-SL-001",
+    "G-VOTE-001",
+    "G-AD-003",
+    "G-AD-004",
+    "G-AD-005",
+    "G-LP-002",
+    "G-LP-003",
+    "G-SAFE-002",
+    "G-SAFE-003",
+    "G-POOL-002",
+    "G-POOL-003",
+    "G-VOTE-002",
+    "G-ROUND-001",
+    "G-ROUND-002",
+    "G-SL-002",
+    "G-IN-001",
+    "G-CURR-001"
+  ],
+  "description": "Expansion pack: adds 15 rules across AD mechanics, participation, SAFE/convertible, pool, voting, round mechanics, side-letter integrity, India / currency jurisdiction rules."
+}

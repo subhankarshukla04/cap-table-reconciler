@@ -21,9 +21,12 @@ from __future__ import annotations
 import io
 import json
 import secrets
+import tempfile
+import zipfile
 from dataclasses import asdict
 from pathlib import Path
 
+import openpyxl
 from flask import (
     Flask,
     Response,
@@ -34,10 +37,15 @@ from flask import (
     send_file,
     url_for,
 )
+from pydantic import ValidationError
 
 from src.audit_memo import build_audit_memo
 from src.checklist import run_checklist
 from src.diff import diff_cap_tables
+from src.cookie_auth import attach_login_blueprint
+from src.engagement import EngagementStore
+from src.engagement_routes import attach_engagement_blueprint
+from src.rate_limit import ExportRateLimiter
 from src.formula_workbook import build_formula_workbook
 from src.parser import load_from_canonical_json, parse_excel
 from src.pdf_intake import parse_pdf_to_side_letter
@@ -57,6 +65,109 @@ def _no_cache(resp):
 # SQLite-backed session store. Survives server restart.
 _DB_PATH = Path(__file__).parent / "data" / "sessions.db"
 SESSIONS: SessionStore = SessionStore(_DB_PATH)
+
+# Engagement store (W2.1). Lives alongside the Phase-0 SessionStore until
+# the legacy demo routes are removed.
+_ENGAGEMENT_DB_PATH = Path(__file__).parent / "data" / "engagements.db"
+ENGAGEMENTS: EngagementStore = EngagementStore(db_path=_ENGAGEMENT_DB_PATH)
+EXPORT_LIMITER: ExportRateLimiter = ExportRateLimiter(
+    db_path=Path(__file__).parent / "data" / "export_limits.db",
+)
+# W5.5: separate compute budget for /whatif. Higher soft limit (300/hr)
+# since scenarios are interactive analyst work, not exports.
+COMPUTE_LIMITER: ExportRateLimiter = ExportRateLimiter(
+    db_path=Path(__file__).parent / "data" / "compute_limits.db",
+    soft_limit=300, hard_limit=600,
+)
+# W6.4: shared Bearer-token deny list — /logout writes here; engagement
+# auth guard consults here before identity resolution.
+from src.token_deny import TokenDenyList
+TOKEN_DENY_LIST = TokenDenyList(
+    db_path=Path(__file__).parent / "data" / "token_deny.db",
+)
+app.config["TOKEN_DENY_LIST"] = TOKEN_DENY_LIST
+
+# W8.2: this app IS the dev/demo runtime. Tell the IdP that it's
+# expected to be a stub so it doesn't raise on construction.
+from src.identity import StubSSOProvider as _StubSSOProvider
+_STUB_PROVIDER = _StubSSOProvider(allow_in_prod=True)
+app.config["IDENTITY_PROVIDER"] = _STUB_PROVIDER
+
+attach_engagement_blueprint(
+    app, ENGAGEMENTS,
+    identity_provider=_STUB_PROVIDER,
+    export_limiter=EXPORT_LIMITER,
+    compute_limiter=COMPUTE_LIMITER,
+)
+# SD-AUD-m2: app-level secret resolution. SESSION_SECRET_KEY MUST come from
+# env in production (cookies invalidate on every restart otherwise); a
+# per-process dev key is used only when neither env nor config has one,
+# keeping the demo app runnable without ops setup.
+import os as _os
+import secrets as _secrets
+if "SESSION_SECRET_KEY" not in app.config:
+    _env_secret = _os.environ.get("SESSION_SECRET_KEY")
+    if _env_secret:
+        app.config["SESSION_SECRET_KEY"] = _env_secret.encode("utf-8")
+    else:
+        app.config["SESSION_SECRET_KEY"] = _secrets.token_bytes(32)
+attach_login_blueprint(app)
+
+# W6.2: refuse boot if two rules collide on the same Finding.code.
+# Soft-fail in TESTING so existing test apps don't break on a new probe
+# rule; strict-fail otherwise so prod cannot deploy a silent collision.
+from src.rule_pack import assert_no_collisions_at_startup as _assert_no_collisions
+_assert_no_collisions(strict=not app.config.get("TESTING", False))
+
+
+# W8.2: phase-0 demo routes (/upload, /review/<tok>, /waterfall/<tok>,
+# /whatif/<tok>, /resolve/<tok>/..., /export/<tok>.*, /compare/<tok>,
+# /sessions, /demo/<id>) are intentionally unauthenticated for the
+# screen-share demo flow. In any prod-shaped deploy they would be a
+# pre-auth credential-free attack surface — refuse to serve them unless
+# the operator explicitly opts in via ALLOW_PHASE_0_DEMO=1 (or the app
+# is in TESTING / dev __main__ mode). Evaluated per-request so test
+# fixtures that flip TESTING=True after import time are honoured.
+# W9.4 / closes SD-AUD-W8-m3: split into exact paths + true prefixes so a
+# future top-level route named `/diff*` or `/sessions*` doesn't silently
+# get 404'd. `startswith("/diff")` would match `/diffx`; an exact-match
+# entry doesn't.
+_PHASE_0_EXACT = frozenset({
+    "/upload", "/diff", "/sessions",
+})
+_PHASE_0_PREFIXES = (
+    "/review/", "/waterfall/", "/whatif/", "/resolve/",
+    "/export/", "/compare/", "/upload_side_letter/",
+    "/demo/", "/diff/", "/sessions/",
+)
+
+
+@app.before_request
+def _gate_phase_0_demo_routes():
+    from flask import request as _req, jsonify as _jsonify
+    allow = (
+        _os.environ.get("ALLOW_PHASE_0_DEMO") == "1"
+        or app.config.get("TESTING", False)
+    )
+    if allow:
+        return None
+    path = _req.path
+    matched = (
+        path in _PHASE_0_EXACT
+        or any(path.startswith(p) for p in _PHASE_0_PREFIXES)
+    )
+    if matched:
+        resp = _jsonify({
+            "error": (
+                "Phase-0 demo routes are disabled in this deploy. "
+                "Set ALLOW_PHASE_0_DEMO=1 to enable, or use the "
+                "/engagement/* surface."
+            ),
+            "error_code": "phase-0-demo-disabled",
+        })
+        resp.status_code = 404
+        return resp
+    return None
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -172,20 +283,25 @@ def upload():
     if not file.filename.lower().endswith(".xlsx"):
         return render_template("index.html", error="Only .xlsx files are supported.")
 
+    # OS-portable temp file (BUG-006); guaranteed cleanup via context manager.
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp_fh:
+        tmp = Path(tmp_fh.name)
+        tmp_fh.write(file.read())
     try:
-        data = file.read()
-        tmp = Path("/tmp") / f"cap_{secrets.token_hex(4)}.xlsx"
-        tmp.write_bytes(data)
         try:
             cap_table, report = parse_excel(tmp)
             raw_excerpt = _read_xlsx_raw_excerpt(tmp)
-        finally:
-            try:
-                tmp.unlink()
-            except OSError:
-                pass
-    except Exception as e:
-        return render_template("index.html", error=f"Could not parse file: {e}")
+        except (ValueError, KeyError, ValidationError,
+                openpyxl.utils.exceptions.InvalidFileException,
+                zipfile.BadZipFile) as e:
+            # Known-shape input failures. Render the friendly page.
+            app.logger.info("upload parse error: %s: %s", type(e).__name__, e)
+            return render_template("index.html", error=f"Could not parse file: {e}")
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
 
     token = _store_session(cap_table, report, raw_excerpt=raw_excerpt)
     return redirect(url_for("review", token=token))
@@ -555,16 +671,22 @@ def waterfall(token: str):
         cap_table=sess["cap_table"],
         waterfall=sess["waterfall"],
         chart=chart,
-        chart_json=json.dumps(chart),
         explanations=explanations,
     )
 
 
 @app.post("/whatif/<token>")
 def whatif(token: str):
-    """In-browser sensitivity slider. Recomputes the waterfall against an
+    """Phase-0 demo sensitivity slider. Recomputes the waterfall against an
     overridden cap table without persisting. Returns an HTML fragment for
     HTMX to swap into the waterfall page.
+
+    NB (SD-AUD-M4): SPEC §10.2 declares the engagement-bound
+    `POST /engagement/<id>/whatif` route canonical. This legacy demo route
+    survives only for the unauthenticated phase-0 upload→waterfall walkthrough.
+    It MUST consume the same compute rate limit as the canonical route so
+    a runaway client cannot bypass W5.5's compute budget; the session token
+    is the rate-limit subject (no real user identity exists in this flow).
 
     Form fields:
       shares_<class_name>   — override share count
@@ -573,6 +695,15 @@ def whatif(token: str):
     sess = SESSIONS.get(token)
     if sess is None:
         return Response("Session expired.", status=404)
+    rl = COMPUTE_LIMITER.consume(f"phase0:{token}")
+    if not rl.allowed:
+        resp = Response(
+            f"Compute budget exhausted ({rl.current_count}/{rl.soft_limit} per hour). "
+            "Wait and retry.",
+            status=429,
+        )
+        resp.headers["Retry-After"] = str(rl.retry_after_seconds)
+        return resp
     cap_table = sess["cap_table"]
     baseline = sess["waterfall"]
 
@@ -603,13 +734,27 @@ def whatif(token: str):
                         changed.append(f"{sc.name} LP mult: {old_lp.multiple}× → {mu}×")
                 except ValueError:
                     pass
-            shares_ratio = (new_shares / sc.shares_outstanding) if sc.shares_outstanding else 1.0
             mult_ratio = new_mult / old_lp.multiple if old_lp.multiple else 1.0
-            if abs(shares_ratio * mult_ratio - 1.0) > 1e-9:
+            if sc.shares_outstanding == 0 and new_shares > 0:
+                # BUG-010 fix: cannot scale a zero-baseline class. Recompute
+                # LP from override values (shares × price × multiple). Falls
+                # back to legacy LP amount if no issue_price available.
+                price = sc.issue_price or 0.0
+                if price > 0:
+                    new_amount = new_shares * price * new_mult
+                else:
+                    new_amount = old_lp.amount * mult_ratio
                 upd["liquidation_preference"] = old_lp.model_copy(update={
                     "multiple": new_mult,
-                    "amount": old_lp.amount * shares_ratio * mult_ratio,
+                    "amount": new_amount,
                 })
+            else:
+                shares_ratio = (new_shares / sc.shares_outstanding) if sc.shares_outstanding else 1.0
+                if abs(shares_ratio * mult_ratio - 1.0) > 1e-9:
+                    upd["liquidation_preference"] = old_lp.model_copy(update={
+                        "multiple": new_mult,
+                        "amount": old_lp.amount * shares_ratio * mult_ratio,
+                    })
         new_classes.append(sc.model_copy(update=upd) if upd else sc)
 
     scenario_ct = cap_table.model_copy(update={"share_classes": new_classes})
@@ -622,7 +767,7 @@ def whatif(token: str):
         baseline=baseline,
         scenario=scenario_wf,
         changed=changed,
-        scenario_chart_json=json.dumps(scenario_chart),
+        scenario_chart=scenario_chart,
     )
 
 
@@ -636,18 +781,25 @@ def export_xlsx(token: str):
 
 def _build_clean_xlsx_bytes(sess: dict) -> bytes:
     """Generate the static clean .xlsx and return raw bytes."""
+    from src.xlsx_stability import pin_workbook_properties, stabilise_xlsx_bytes
+    wb = _build_clean_workbook(sess)
+    # SD-AUD-W8-m1: same stability treatment as the live + diff producers.
+    vd = sess["cap_table"].company.valuation_date
+    anchor = None
+    if vd is not None:
+        from datetime import datetime as _dt, timezone as _tz
+        anchor = _dt(vd.year, vd.month, vd.day, tzinfo=_tz.utc)
+    pin_workbook_properties(wb, anchor)
     bio = io.BytesIO()
-    _build_clean_workbook(sess).save(bio)
-    return bio.getvalue()
+    wb.save(bio)
+    return stabilise_xlsx_bytes(bio.getvalue())
 
 
 def _build_clean_xlsx(sess: dict, token: str):
     """Generate a clean structured-output .xlsx for the analyst to hand off."""
-    bio = io.BytesIO()
-    _build_clean_workbook(sess).save(bio)
-    bio.seek(0)
+    blob = _build_clean_xlsx_bytes(sess)
     return send_file(
-        bio,
+        io.BytesIO(blob),
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=f"cap_table_clean_{token}.xlsx",
@@ -873,10 +1025,13 @@ def export_live_xlsx(token: str):
     wb = build_formula_workbook(sess["cap_table"], sess["waterfall"])
     bio = io.BytesIO()
     wb.save(bio)
-    bio.seek(0)
+    # SD-AUD-W8-m1: stabilise the live workbook bytes via the shared
+    # helper so two consecutive exports produce identical SHA-256.
+    from src.xlsx_stability import stabilise_xlsx_bytes
+    stable = stabilise_xlsx_bytes(bio.getvalue())
     company_slug = (sess["cap_table"].company.name or "captable").replace(" ", "_").replace(".", "")
     return send_file(
-        bio,
+        io.BytesIO(stable),
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=f"{company_slug}_live_{token}.xlsx",
@@ -937,8 +1092,6 @@ def export_bundle_zip(token: str):
     sess = SESSIONS.get(token)
     if sess is None:
         return render_template("session_expired.html", token=token), 404
-
-    import zipfile
 
     cap_table = sess["cap_table"]
     waterfall = sess["waterfall"]
@@ -1135,30 +1288,232 @@ def diff_run():
         if not f.filename.lower().endswith(".xlsx"):
             return render_template("diff.html", diff=None, error="Only .xlsx supported.")
 
+    # OS-portable temps (BUG-006). delete=False so we control cleanup; we
+    # always unlink in the finally block.
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as l_fh:
+        l_path = Path(l_fh.name)
+        l_fh.write(left_file.read())
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as r_fh:
+        r_path = Path(r_fh.name)
+        r_fh.write(right_file.read())
     try:
-        l_path = Path("/tmp") / f"diff_l_{secrets.token_hex(4)}.xlsx"
-        r_path = Path("/tmp") / f"diff_r_{secrets.token_hex(4)}.xlsx"
-        l_path.write_bytes(left_file.read())
-        r_path.write_bytes(right_file.read())
         try:
             left_ct, _ = parse_excel(l_path)
             right_ct, _ = parse_excel(r_path)
-        finally:
-            for p in (l_path, r_path):
-                try:
-                    p.unlink()
-                except OSError:
-                    pass
-    except Exception as e:
-        return render_template("diff.html", diff=None, error=f"Parse failed: {e}")
+        except (ValueError, KeyError, ValidationError,
+                openpyxl.utils.exceptions.InvalidFileException,
+                zipfile.BadZipFile) as e:
+            app.logger.info("diff parse error: %s: %s", type(e).__name__, e)
+            return render_template("diff.html", diff=None, error=f"Parse failed: {e}")
+    finally:
+        for p in (l_path, r_path):
+            try:
+                p.unlink()
+            except OSError:
+                pass
 
     diff = diff_cap_tables(left_ct, right_ct)
     return render_template("diff.html", diff=diff, error=None)
 
 
+# W8.9: ops-grade pruning CLI. Schedule via systemd-timer / k8s CronJob.
+# Without these, the deny list + rate-limit tables grow monotonically
+# (correctness unaffected, disk slowly fills).
+
+
+@app.cli.command("prune-deny-list")
+def cli_prune_deny_list():
+    """Drop deny-list entries whose expires_at has passed."""
+    n = TOKEN_DENY_LIST.prune_expired()
+    print(f"prune-deny-list: removed {n} expired token deny entries")
+
+
+@app.cli.command("prune-rate-limits")
+def cli_prune_rate_limits():
+    """Drop rate-limit bucket rows older than 7 days (covers any
+    plausible cumulative-bucket lookback)."""
+    import time as _time
+    cutoff = _time.time() - 7 * 86400
+    cutoff_bucket = int(cutoff // 3600)
+    n_export = EXPORT_LIMITER.prune_older_than(cutoff_bucket * 3600)
+    n_compute = COMPUTE_LIMITER.prune_older_than(cutoff_bucket * 3600)
+    print(
+        f"prune-rate-limits: removed {n_export} export + "
+        f"{n_compute} compute rate-limit rows"
+    )
+
+
+@app.cli.command("hard-delete-archived")
+def cli_hard_delete_archived():
+    """W8.10: hard-delete engagements whose archival restore window has
+    passed. Idempotent; safe to schedule daily."""
+    deleted = ENGAGEMENTS.hard_delete_expired_archived()
+    print(
+        f"hard-delete-archived: deleted {deleted} engagement(s) whose "
+        f"90-day restore window has expired"
+    )
+
+
+@app.cli.command("rule-coverage")
+def cli_rule_coverage():
+    """W9.8: report which rules fire on which fixtures. Useful for
+    spotting rules that never fire on any analyst-realistic input
+    (dead code) and rules that fire too broadly (over-eager).
+    """
+    from src.rule_pack import _REGISTRY
+    from src.parser import parse_excel
+    from pathlib import Path as _P
+    fixtures_dir = _P(__file__).parent / "fixtures"
+    fixture_dirs = sorted(p for p in fixtures_dir.iterdir() if p.is_dir())
+    if not fixture_dirs:
+        print("rule-coverage: no fixtures found")
+        return
+    # rule_id → set(fixture_names)
+    coverage: dict[str, set[str]] = {rid: set() for rid in _REGISTRY}
+    for fdir in fixture_dirs:
+        xlsx = fdir / "cap_table.xlsx"
+        if not xlsx.exists():
+            continue
+        try:
+            ct, _report = parse_excel(xlsx)
+        except Exception as exc:
+            print(f"  [skip {fdir.name}: {exc}]")
+            continue
+        for rid, (fn, _meta) in _REGISTRY.items():
+            try:
+                findings = fn(ct)
+            except Exception:
+                continue
+            if findings:
+                coverage[rid].add(fdir.name)
+    # Sort: rules with zero coverage first (most surprising), then alpha.
+    zero = [rid for rid, hits in coverage.items() if not hits]
+    nonzero = [rid for rid, hits in coverage.items() if hits]
+    print(f"Total rules: {len(_REGISTRY)}")
+    print(f"  Fires on >= 1 fixture: {len(nonzero)}")
+    print(f"  Fires on NO fixture:    {len(zero)}")
+    print()
+    print("Rules that never fire on any fixture (review for dead code):")
+    for rid in sorted(zero):
+        print(f"  {rid}")
+    print()
+    print("Coverage detail (rule_id -> fixtures):")
+    for rid in sorted(nonzero):
+        hits = sorted(coverage[rid])
+        print(f"  {rid:24s} {', '.join(hits)}")
+
+
 @app.get("/healthz")
 def healthz():
-    return {"status": "ok", "active_sessions": len(SESSIONS)}
+    """Minimal liveness — every probe must succeed quickly. Returns
+    {"status":"ok"} only."""
+    return {"status": "ok"}
+
+
+@app.get("/readyz")
+def readyz():
+    """SD-AUD-W8-M1 + W8-M3: anonymous readiness probe. Returns
+    {"status":"ok"} HTTP 200 when every dependency probes successfully;
+    {"status":"degraded"} HTTP 503 when ANY dependency fails. Detailed
+    operational counters (engine commit, deny size, audit totals) live
+    behind admin auth at /readyz/detailed so anonymous callers don't
+    learn business scale or revocation tempo."""
+    from src.rule_pack import head_pack
+    from datetime import date as _date
+    # Probe each dependency. Any failure → degraded + 503.
+    try:
+        head = head_pack(_date.today())
+        if head is None:
+            return {"status": "degraded", "reason": "no-head-pack"}, 503
+    except Exception:
+        return {"status": "degraded", "reason": "pack-load-failed"}, 503
+    try:
+        with ENGAGEMENTS._connect() as conn:
+            conn.execute("SELECT 1 FROM engagement LIMIT 1").fetchone()
+    except Exception:
+        return {"status": "degraded", "reason": "engagement-db-unreachable"}, 503
+    deny = app.config.get("TOKEN_DENY_LIST") or TOKEN_DENY_LIST
+    if deny is not None:
+        try:
+            deny.size()
+        except Exception:
+            return {"status": "degraded", "reason": "deny-db-unreachable"}, 503
+    return {"status": "ok"}
+
+
+@app.get("/readyz/detailed")
+def readyz_detailed():
+    """SD-AUD-W8-M3: admin-only operational counters. Requires Bearer
+    auth resolving to a partner (the closest role we have to 'admin'
+    today) OR a configured operator key. Anonymous callers get 401.
+
+    Returns the rich payload the wave-8 spec originally promised:
+    engine commit, pack version, deny list size, audit/engagement
+    counts, last-create timestamp. SREs scrape this from inside the
+    cluster with a credential; public ingresses get /readyz only.
+    """
+    # Token check: Bearer matching a partner identity OR explicit
+    # READYZ_ADMIN_TOKEN env var (for in-cluster scraper).
+    import os as _os
+    from flask import request as _req
+    auth = _req.headers.get("Authorization", "")
+    operator_token = _os.environ.get("READYZ_ADMIN_TOKEN", "").strip()
+    authed = False
+    if operator_token and auth == f"Bearer {operator_token}":
+        authed = True
+    elif auth.startswith("Bearer "):
+        token = auth.split(" ", 1)[1].strip()
+        provider = app.config.get("IDENTITY_PROVIDER")
+        if provider is not None:
+            user = provider.authenticate(token)
+            if user is not None and user.role.value == "partner":
+                authed = True
+    if not authed:
+        from flask import jsonify as _jsonify
+        resp = _jsonify({
+            "error": "readyz/detailed requires partner Bearer or operator token",
+            "error_code": "auth-required",
+        })
+        resp.status_code = 401
+        resp.headers["WWW-Authenticate"] = "Bearer"
+        return resp
+
+    from src.rule_pack import current_engine_commit, head_pack
+    from datetime import date as _date
+    try:
+        head = head_pack(_date.today())
+        pack_version = head.version if head else None
+    except Exception:
+        pack_version = None
+    out = {
+        "status": "ok",
+        "engine_commit": current_engine_commit(),
+        "rule_pack_head_version": pack_version,
+    }
+    deny = app.config.get("TOKEN_DENY_LIST") or TOKEN_DENY_LIST
+    if deny is not None:
+        try:
+            out["deny_list_size"] = deny.size()
+        except Exception:
+            out["deny_list_size"] = None
+    try:
+        with ENGAGEMENTS._connect() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n, MAX(created_at) AS last "
+                "FROM engagement"
+            ).fetchone()
+            out["engagements_total"] = int(row["n"]) if row else 0
+            out["last_engagement_created_at"] = (
+                row["last"] if row and row["last"] else None
+            )
+            row = conn.execute(
+                "SELECT COUNT(*) AS n FROM audit_event"
+            ).fetchone()
+            out["audit_log_total"] = int(row["n"]) if row else 0
+    except Exception:
+        out["engagements_total"] = None
+        out["audit_log_total"] = None
+    return out
 
 
 if __name__ == "__main__":

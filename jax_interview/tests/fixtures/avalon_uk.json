@@ -1,0 +1,14 @@
+{
+  "_scenario_name": "Avalon UK — London-incorporated, Indian engineer, EMI option",
+  "_narrative": "Avalon Labs Ltd is a London-incorporated AI startup, < 250 employees, qualifies for EMI. Their data-platform lead is based in Pune (India). The grant was issued under the EMI scheme (Schedule 5 ITEPA 2003) but the employee never worked in the UK — so EMI status is moot from the Indian-resident perspective. She exercises 5,000 options at £0.20 strike with FMV £1.50 on 1 May 2026. The cross-border edge case: UK-resident grantor + Indian-resident employee with no UK workdays.",
+  "parent_jurisdiction": "UK",
+  "employee_jurisdiction": "IN",
+  "event": "exercise",
+  "tax_status": "resident",
+  "grant_date": "2024-03-15",
+  "vesting_date": "2025-03-15",
+  "event_date": "2026-05-01",
+  "fmv_at_event": 1.50,
+  "exercise_price": 0.20,
+  "options_in_event": 5000
+}
