@@ -56,7 +56,7 @@
 
 <script>
 (function() {
-  const payload = {{ chart_json|safe }};
+  const payload = {{ chart|tojson }};
   const ctx = document.getElementById("payoutChart").getContext("2d");
   const locale = (payload.currency === "INR") ? "en-IN" : "en-US";
   const inrCompact = (v) => {

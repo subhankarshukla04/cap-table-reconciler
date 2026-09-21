@@ -1,0 +1,63 @@
+<div class="verdict-row">
+  <span class="verdict-label">RBI / Fair-Value Floor</span>
+  <span class="verdict verdict-{{ compliance.rbi_floor_verdict | lower }}">{{ compliance.rbi_floor_verdict }}</span>
+  {% if compliance.rbi_floor_verdict != "N/A" %}
+    <span class="delta-readout">{{ "%+.1f%%"|format(compliance.rbi_floor_delta_pct) }}</span>
+  {% endif %}
+</div>
+
+{% if compliance.error_reason %}
+<div class="alert" style="background:var(--fail-bg);border-left-color:var(--fail);">
+  <span class="tag" style="color:var(--fail);">ERR · input</span>
+  <span class="alert-text">{{ compliance.error_reason }}</span>
+</div>
+{% endif %}
+
+<div class="preview-sub">
+  <span>Waterfall</span>
+  <span style="font-weight:400;text-transform:none;letter-spacing:0;">@ ${{ "%.2f"|format(params.price_per_share_usd) }} / share</span>
+</div>
+<table class="kv">
+  <tr><td>Eligible holders</td><td class="num">{{ "{:,}".format(waterfall.eligible_holder_count) }}</td></tr>
+  <tr><td>Eligible unit pool</td><td class="num">{{ "{:,}".format(waterfall.eligible_unit_pool) }}</td></tr>
+  <tr><td>Eligible pool (USD)</td><td class="num">${{ "{:,.0f}".format(waterfall.eligible_pool_usd) }}</td></tr>
+  <tr><td>Scaleback at request</td><td class="num">{{ "{:.2%}".format(waterfall.scaleback_factor) }}</td></tr>
+  <tr><td>Scaleback if 2× over</td><td class="num">{{ "{:.2%}".format(waterfall.scaleback_factor_if_2x) }}</td></tr>
+  <tr><td>Top-10 concentration</td><td class="num">{{ "{:.1f}%".format(waterfall.top_10_concentration_pct) }}</td></tr>
+</table>
+
+{% if waterfall.per_class_breakdown %}
+<div class="preview-sub"><span>Per-Class Allocation</span></div>
+<table class="rank slim">
+  <thead><tr><th>Class</th><th class="num">Holders</th><th class="num">Units</th><th class="num">Alloc (USD)</th></tr></thead>
+  <tbody>
+    {% for row in waterfall.per_class_breakdown %}
+    <tr>
+      <td class="mono">{{ row.class_name }}</td>
+      <td class="num">{{ "{:,}".format(row.eligible_holders) }}</td>
+      <td class="num">{{ "{:,}".format(row.eligible_units) }}</td>
+      <td class="num">${{ "{:,.0f}".format(row.allocation_usd) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<div class="preview-sub">
+  <span>Compliance</span>
+  <span style="font-weight:400;text-transform:none;letter-spacing:0;">{{ compliance.stamp_duty_rate_used * 100 | round(4) }}% stamp duty</span>
+</div>
+<table class="kv">
+  <tr><td>Cross-border filings est.</td><td class="num">{{ "{:,}".format(compliance.cross_border_filings_estimated) }}</td></tr>
+  <tr><td>Stamp duty (local)</td><td class="num">{{ "{:,.2f}".format(compliance.stamp_duty_local) }}</td></tr>
+  <tr><td>Citation</td><td><span class="muted small">{{ compliance.state_duty_citation }}</span></td></tr>
+</table>
+
+<div class="preview-sub"><span>Required Attachments</span></div>
+<ul class="attachments">
+  {% for a in compliance.required_attachments %}
+  <li>{{ a }}</li>
+  {% endfor %}
+</ul>
+
+<p class="disclaimer">{{ compliance.proxy_disclaimer }}</p>

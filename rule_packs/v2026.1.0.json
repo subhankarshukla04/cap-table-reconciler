@@ -1,0 +1,23 @@
+{
+  "version": "v2026.1.0",
+  "effective_from": "2026-01-01",
+  "effective_to": "2026-01-31",
+  "jurisdictions": [],
+  "standards": [
+    "IFRS 13",
+    "ASC 820",
+    "Section 409A",
+    "IFRS 2"
+  ],
+  "rule_ids": [
+    "G-AD-001",
+    "G-AD-002",
+    "G-LP-001",
+    "G-POOL-001",
+    "G-SAFE-001",
+    "G-WAR-001",
+    "G-SL-001",
+    "G-VOTE-001"
+  ],
+  "description": "Baseline rule pack containing the 8 founding gap-detection rules. See SYSTEM_SPEC.md \u00a71.4 for individual rule semantics."
+}

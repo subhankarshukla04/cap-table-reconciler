@@ -1,0 +1,699 @@
+[
+  {
+    "rule_id": "sg.sg.grant.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No tax at grant. Singapore taxes employee share options on exercise, not on grant.",
+    "withholding": "no",
+    "filing_requirement": "No filing at grant. Employer records grant for later reporting.",
+    "documents_required": [
+      "Grant agreement",
+      "Vesting schedule"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "e-Tax Guide on Tax Treatment of ESOP and Other Forms of ESOW Plans (rev. 30 Jan 2026)",
+        "source_url": "https://www.iras.gov.sg/media/docs/default-source/e-tax/etaxguides_iit_esop_2026-01-30.pdf",
+        "retrieved_on": "2026-05-11",
+        "note": "IRAS practice: stock options are taxed upon exercise, not grant."
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(1)(b) — gains or profits from any employment",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947?ProvIds=pr10-",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": []
+  },
+  {
+    "rule_id": "sg.sg.vest.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No tax at vest. Singapore does not have a vesting-trigger for share options.",
+    "withholding": "no",
+    "filing_requirement": "No filing at vest.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "e-Tax Guide on Tax Treatment of ESOP and Other Forms of ESOW Plans (rev. 30 Jan 2026)",
+        "source_url": "https://www.iras.gov.sg/media/docs/default-source/e-tax/etaxguides_iit_esop_2026-01-30.pdf",
+        "retrieved_on": "2026-05-11",
+        "note": "IRAS treats vesting as a non-taxable milestone for stock options. Exercise is the trigger."
+      }
+    ],
+    "caveats": []
+  },
+  {
+    "rule_id": "sg.sg.exercise.resident",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Gain on exercise (open-market price at exercise minus exercise price) is taxed as employment income at progressive resident PIT rates (currently 0%–24%).",
+    "withholding": "no",
+    "withholding_note": "No PAYE-style withholding in Singapore. Employee declares via Form B; employer reports on Form IR8A.",
+    "filing_requirement": "Employer Form IR8A + Appendix 8B (annual, by 1 March). Employee files Form B by 15 April.",
+    "documents_required": [
+      "Appendix 8B (stock option detail)",
+      "Form IR8A",
+      "Notice of exercise",
+      "Market price evidence at exercise date"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Gains from the exercise of stock options — IRAS guidance page",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(6) — gains or profits from a right or benefit to acquire shares",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947?ProvIds=pr10-",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Open-market price is the IRAS-prescribed FMV for listed shares; for unlisted shares the issuer-approved valuation as at exercise date is used.",
+      "If the employee was non-resident at grant but became resident, apportionment may apply — re-run with non-resident status."
+    ]
+  },
+  {
+    "rule_id": "sg.sg.exercise.non_resident",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "non_resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Non-resident employee gain on exercise is taxed at a flat 15% on employment income, or at resident rates, whichever is higher. Stock-option gain follows the employment-income head.",
+    "withholding": "no",
+    "filing_requirement": "Employer Form IR8A; employee files via Form M.",
+    "documents_required": [
+      "Form IR8A",
+      "Appendix 8B",
+      "Form M"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Non-resident individual tax rates — IRAS",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/non-residents",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(6) read with Second Schedule (non-resident rates)",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If the employee will cease SG employment, the deemed-exercise rule may trigger instead — see (SG, SG, deemed_exercise)."
+    ]
+  },
+  {
+    "rule_id": "sg.sg.sale.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "sale",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "Singapore does not impose a general capital gains tax. Gains on sale of shares acquired via ESOP are not taxed in Singapore.",
+    "withholding": "no",
+    "filing_requirement": "No filing in Singapore for share-disposal gains.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Capital gains tax — IRAS overview (no general CGT in Singapore)",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/capital-gains",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If the sale is treated as a trading gain (e.g., the employee is a habitual share trader), it may be taxed as revenue income. Default treatment for ESOP-derived shares is capital."
+    ]
+  },
+  {
+    "rule_id": "sg.sg.deemed_exercise.non_resident",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "deemed_exercise",
+    "tax_status": "non_resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Deemed exercise: when a non-citizen / non-PR employee ceases SG employment with unexercised/unvested options, IRAS imputes exercise as of one month before cessation (or the actual cessation date, whichever is earlier). Gain is taxed as employment income at the applicable rate.",
+    "withholding": "yes",
+    "withholding_note": "Employer must withhold all moneys due to the employee (final salary, bonus, etc.) from the date Form IR21 is filed until IRAS issues a Tax Clearance Directive.",
+    "filing_requirement": "Employer files Form IR21 (Notification of Cessation) at least 1 month before the employee's last day of employment.",
+    "documents_required": [
+      "Form IR21",
+      "Appendix 1 to IR21 (unexercised stock options)",
+      "Last-known FMV evidence"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Tax clearance for foreign and non-resident employees — Form IR21 guidance",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/employers/tax-clearance-for-foreign-non-resident-employees-form-ir21",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(6) — deemed exercise rule for share-based remuneration",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947?ProvIds=pr10-",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "IRAS",
+        "reference": "e-Tax Guide on Tax Treatment of ESOP and Other Forms of ESOW Plans (rev. 30 Jan 2026), para on cessation of employment",
+        "source_url": "https://www.iras.gov.sg/media/docs/default-source/e-tax/etaxguides_iit_esop_2026-01-30.pdf",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Singapore citizens and Permanent Residents are NOT subject to deemed exercise — they are taxed at actual exercise instead.",
+      "Tracking-option: an employer may apply for the Tracking Option (qualified ESOP) to defer the deemed-exercise charge until actual exercise — requires IRAS approval upfront.",
+      "Failure to file IR21 on time exposes the employer to a S$1,000 fine + obligation to pay the tax."
+    ]
+  },
+  {
+    "rule_id": "sg.in.grant.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "SG",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No SG tax. Singapore's tax claim attaches to options granted during Singapore employment; an employee resident in India and never employed in Singapore is outside the SG tax net.",
+    "withholding": "no",
+    "filing_requirement": "No SG filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Territorial scope — Singapore taxes employment income derived from services rendered in Singapore (Income Tax Act 1947 §10(1)(b))",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If the employee subsequently relocates to Singapore mid-vesting, apportionment may apply on exercise. Re-run the query for that scenario."
+    ]
+  },
+  {
+    "rule_id": "sg.in.vest.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "SG",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No SG tax. SG does not tax at vest in any scenario, and there is no SG nexus here in any case.",
+    "withholding": "no",
+    "filing_requirement": "No SG filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "e-Tax Guide on ESOP (rev. 30 Jan 2026) — no taxation at vest",
+        "source_url": "https://www.iras.gov.sg/media/docs/default-source/e-tax/etaxguides_iit_esop_2026-01-30.pdf",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee renders zero services in the parent's jurisdiction during the vesting and pre-event period. Any partial-period workdays in that jurisdiction can attach a source-tax claim under its territorial-nexus rules; re-run with apportionment if material."
+    ]
+  },
+  {
+    "rule_id": "sg.in.exercise.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No SG tax on the exercise gain. Singapore's tax base for stock options is employment exercised in Singapore; an India-resident employee who never worked in Singapore has no nexus.",
+    "withholding": "no",
+    "filing_requirement": "No SG filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Gains from the exercise of stock options — territorial nexus rule",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11",
+        "note": "IRAS taxes the gain only where the grant was made during Singapore employment. For an employee whose employment is performed in India for an Indian subsidiary, the grant is not Singapore-source."
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(1)(b) — employment income derived from services rendered in SG",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If the employee did work in Singapore between grant and exercise, partial-period apportionment may attach a SG tax claim — re-evaluate."
+    ]
+  },
+  {
+    "rule_id": "sg.in.sale.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "SG",
+    "event": "sale",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No SG capital gains tax in any case; no SG nexus to the India-resident employee.",
+    "withholding": "no",
+    "filing_requirement": "No SG filing.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Capital gains tax — IRAS overview",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/capital-gains",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee renders zero services in the parent's jurisdiction during the vesting and pre-event period. Any partial-period workdays in that jurisdiction can attach a source-tax claim under its territorial-nexus rules; re-run with apportionment if material."
+    ]
+  },
+  {
+    "rule_id": "in.sg.grant.any",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No SG tax at grant, regardless of parent jurisdiction. SG taxes only on exercise.",
+    "withholding": "no",
+    "filing_requirement": "No filing at grant. Employer records the grant for later IR8A reporting.",
+    "documents_required": [
+      "Grant agreement"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "e-Tax Guide on ESOP (rev. 30 Jan 2026) — options granted by overseas parent companies are treated equally",
+        "source_url": "https://www.iras.gov.sg/media/docs/default-source/e-tax/etaxguides_iit_esop_2026-01-30.pdf",
+        "retrieved_on": "2026-05-11",
+        "note": "IRAS treats options granted by an overseas parent equally to options granted by the SG employer."
+      }
+    ],
+    "caveats": [
+      "Assumes the employee renders zero services in the parent's jurisdiction during the vesting and pre-event period. Any partial-period workdays in that jurisdiction can attach a source-tax claim under its territorial-nexus rules; re-run with apportionment if material."
+    ]
+  },
+  {
+    "rule_id": "in.sg.vest.any",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No tax at vest in Singapore in any scenario.",
+    "withholding": "no",
+    "filing_requirement": "No filing.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "e-Tax Guide on ESOP (rev. 30 Jan 2026)",
+        "source_url": "https://www.iras.gov.sg/media/docs/default-source/e-tax/etaxguides_iit_esop_2026-01-30.pdf",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee renders zero services in the parent's jurisdiction during the vesting and pre-event period. Any partial-period workdays in that jurisdiction can attach a source-tax claim under its territorial-nexus rules; re-run with apportionment if material."
+    ]
+  },
+  {
+    "rule_id": "in.sg.exercise.resident",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Gain on exercise (open-market price at exercise minus exercise price) is taxed as employment income at SG resident progressive rates. IRAS treats overseas-parent grants the same as SG-employer grants when the option was granted during Singapore employment.",
+    "withholding": "no",
+    "withholding_note": "No SG withholding. Employer (SG entity or SG branch) reports on Form IR8A; employee files Form B.",
+    "filing_requirement": "Form IR8A + Appendix 8B by 1 March; Form B by 15 April.",
+    "documents_required": [
+      "Appendix 8B",
+      "Form IR8A",
+      "Open-market price evidence at exercise"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "ESOP/ESOW: parent company grants — IRAS guidance",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11",
+        "note": "IRAS treats overseas-parent grants identically to SG-employer grants."
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(6) — gains or profits from share-based remuneration",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If grant predated Singapore employment, the gain may be apportioned or treated as foreign-source — confirm with counsel.",
+      "Local SG entity must be designated as the responsible reporting employer if the parent has no SG presence."
+    ]
+  },
+  {
+    "rule_id": "in.sg.sale.sg_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "sale",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No SG capital gains tax on share-disposal gains, regardless of parent jurisdiction.",
+    "withholding": "no",
+    "filing_requirement": "No filing.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Capital gains tax — IRAS overview",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/capital-gains",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee renders zero services in the parent's jurisdiction during the vesting and pre-event period. Any partial-period workdays in that jurisdiction can attach a source-tax claim under its territorial-nexus rules; re-run with apportionment if material."
+    ]
+  },
+  {
+    "rule_id": "in.sg.deemed_exercise.non_resident",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "deemed_exercise",
+    "tax_status": "non_resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Deemed exercise applies regardless of parent jurisdiction. Non-citizen / non-PR employee leaving SG with unexercised options triggers an imputed exercise; gain taxed as employment income.",
+    "withholding": "yes",
+    "withholding_note": "Employer withholds final-pay until IRAS issues Tax Clearance Directive.",
+    "filing_requirement": "Form IR21 at least 1 month before last day of SG employment.",
+    "documents_required": [
+      "Form IR21",
+      "Appendix 1 to IR21",
+      "Last-known FMV evidence"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Tax clearance for foreign / non-resident employees — Form IR21",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/employers/tax-clearance-for-foreign-non-resident-employees-form-ir21",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income Tax Act 1947",
+        "reference": "Section 10(6) — deemed exercise on cessation of SG employment",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Applies only to non-citizen / non-PR employees.",
+      "Tracking Option (qualified ESOP) requires upfront IRAS approval but defers the charge to actual exercise."
+    ]
+  },
+  {
+    "rule_id": "uk.sg.exercise.resident.sg_view",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Singapore taxes the gain on exercise as employment income at progressive resident PIT rates (0–24%). IRAS overseas-parent rule applies: options granted by a UK parent are taxed identically to options granted by the SG employer, provided the grant relates to Singapore employment.",
+    "withholding": "no",
+    "withholding_note": "No PAYE in Singapore. Employer (SG entity / SG branch) reports on Form IR8A; employee files Form B.",
+    "filing_requirement": "Form IR8A + Appendix 8B by 1 March; Form B by 15 April.",
+    "documents_required": [
+      "Appendix 8B",
+      "Form IR8A",
+      "Open-market price evidence at exercise",
+      "Cross-charge invoice from UK parent"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "ESOP/ESOW guidance — overseas-parent grants treated equally to SG-employer grants when the grant relates to SG employment",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "Income Tax Act 1947 (Singapore)",
+        "reference": "Section 10(6) — share-based remuneration; Section 10(1)(b) — SG-source employment income",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "UK-Singapore Double Taxation Agreement (2012)",
+        "reference": "Article 14 — primary taxing right rests with country of services (SG for SG-resident).",
+        "source_url": "https://www.iras.gov.sg/taxes/international-tax/international-tax-agreements-concluded-by-singapore/list-of-dtas-limited-dtas-and-eoi-arrangements",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      }
+    ],
+    "caveats": [
+      "If grant pre-dated SG employment, apportionment may apply.",
+      "Local SG entity designated as reporting employer if UK parent has no SG presence."
+    ]
+  },
+  {
+    "rule_id": "sg.uk.exercise.resident.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Singapore tax on the exercise gain for a UK-resident employee with no SG services. IRAS territorial nexus rule attaches SG tax only where the option grant relates to Singapore employment.",
+    "withholding": "no",
+    "filing_requirement": "No Singapore filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "IRAS",
+        "reference": "Gains from the exercise of stock options — territorial nexus rule",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/employment-income/gains-from-the-exercise-of-stock-options",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "Income Tax Act 1947 (Singapore)",
+        "reference": "Section 10(1)(b) — employment income from services rendered in Singapore",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "UK-Singapore Double Taxation Agreement (2012)",
+        "reference": "Article 14 — primary taxing right with country of services (UK for UK-resident).",
+        "source_url": "https://www.iras.gov.sg/taxes/international-tax/international-tax-agreements-concluded-by-singapore/list-of-dtas-limited-dtas-and-eoi-arrangements",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      }
+    ],
+    "caveats": [
+      "Assumes zero SG workdays in the vesting / pre-exercise period.",
+      "If employee was previously SG-resident, apportionment may apply."
+    ]
+  },
+  {
+    "rule_id": "hk.sg.exercise.resident.sg_view",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Singapore income tax on the share option gain. Singapore taxes the gain on exercise at the employee's progressive resident rates (0%–24%). Even though the parent is a Hong Kong company, IRAS applies the 'overseas-parent' principle: the gain arises from the employment exercised in Singapore, so the income is Singapore-sourced and chargeable under s.10(1)(b) of the Singapore Income Tax Act.",
+    "withholding": "yes",
+    "withholding_note": "Singapore employer (or where applicable the parent's local subsidiary) reports the gain on IR8A / Form IR21. No PAYE-style monthly withholding for Singaporean residents, but employer-reporting via IR8A is mandatory.",
+    "filing_requirement": "Employer: Form IR8A by 1 March of the following year disclosing share option gains. Employee: Form B / B1 (annual tax return).",
+    "documents_required": [
+      "Notice of exercise",
+      "Market value evidence at exercise",
+      "Form IR8A",
+      "Form B / B1"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Singapore Income Tax Act 1947",
+        "reference": "Section 10(1)(b) — gains or profits from any employment including share option gains; Singapore-source income from employment exercised in Singapore is chargeable",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRAS e-Tax Guide",
+        "reference": "e-Tax Guide on the Taxation of Employee Stock Options — overseas-parent grants: gain taxable in SG where employment exercised in SG",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/employees/special-tax-schemes/equity-remuneration-incentive-scheme-(eris)",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Hong Kong–Singapore CDTA",
+        "reference": "Article 14 (Income from Employment) — residence-state taxation of employment income unless services performed in the source state",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dta_hk_singapore.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the SG employee renders services in Hong Kong for > 60 days in the vesting period, an HK time-apportionment charge may arise. Apply foreign tax credit under the HK-SG CDTA Article 22 on the Singapore side.",
+      "If the employee is non-Singapore-tax-resident on the exercise date, see the deemed-exercise (s.10(6)) rules — exit may have triggered a prior IR21 deemed-exercise event."
+    ]
+  },
+  {
+    "rule_id": "sg.hk.exercise.resident.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Singapore income tax. A Hong Kong-resident employee with no Singapore employment and no SG workdays during the vesting period has no Singapore-source income. The SG parent's identity does not by itself create a Singapore charge.",
+    "withholding": "no",
+    "filing_requirement": "No SG employer return for the HK-employed engineer. The SG parent may have IFRS 2 accounting entries but no SG tax filing arises.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Singapore Income Tax Act 1947",
+        "reference": "Section 10(1)(b) read with s.13(1) — Singapore tax on employment income only where employment is exercised in Singapore",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Hong Kong–Singapore CDTA",
+        "reference": "Article 14 — residence-state taxation of employment income absent services in source state",
+        "source_url": "https://www.ird.gov.hk/eng/pdf/dta_hk_singapore.pdf",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "Should the HK employee work in Singapore during the vesting period, time-apportionment under IRAS practice may bring a portion of the gain into SG tax — verify SG workday log."
+    ]
+  },
+  {
+    "rule_id": "ae.sg.exercise.resident.sg_view",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "employment_income",
+    "rate_description": "Singapore income tax on the share option gain. IRAS treats overseas-parent grants as Singapore-sourced where the employment is exercised in Singapore. Rate: employee's progressive resident rate 0%–24%.",
+    "withholding": "yes",
+    "withholding_note": "Singapore employer (or local subsidiary of the UAE parent) reports the gain on Form IR8A. No PAYE monthly withholding for SG residents.",
+    "filing_requirement": "Employer: Form IR8A by 1 March; Employee: Form B / B1.",
+    "documents_required": [
+      "Notice of exercise",
+      "Market value evidence",
+      "Form IR8A",
+      "Form B / B1"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Singapore Income Tax Act 1947",
+        "reference": "Section 10(1)(b) — gains from employment exercised in Singapore are Singapore-source income",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "IRAS",
+        "reference": "Equity Remuneration Incentive Scheme (ERIS) — gain on exercise of overseas-parent options taxable in SG where employment exercised in SG",
+        "source_url": "https://www.iras.gov.sg/taxes/individual-income-tax/employees/special-tax-schemes/equity-remuneration-incentive-scheme-(eris)",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Singapore–UAE DTA",
+        "reference": "Article 15 (Dependent Personal Services) — employment income taxable where services exercised",
+        "source_url": "https://www.iras.gov.sg/taxes/international-tax/list-of-dtas-limited-dtas-and-eoi-arrangements",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "UAE has no individual income tax — no foreign tax credit issue arises on the SG side because there is no UAE tax to credit.",
+      "If the SG employee was non-resident on the exercise date (or has ceased SG employment), consider the deemed-exercise rule under s.10(6) of the SG ITA."
+    ]
+  },
+  {
+    "rule_id": "sg.ae.exercise.resident.sg_view",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "SG",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Singapore income tax for a UAE-resident employee with no SG workdays during the vesting period. Singapore charges employment income only where the employment is exercised in Singapore (s.13(1) read with s.10(1)(b) of the SG ITA).",
+    "withholding": "no",
+    "filing_requirement": "No SG employer return for the AE-employed individual.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Singapore Income Tax Act 1947",
+        "reference": "Section 10(1)(b) read with s.13(1) — Singapore tax only on employment exercised in Singapore",
+        "source_url": "https://sso.agc.gov.sg/Act/ITA1947",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Singapore–UAE DTA",
+        "reference": "Article 15 — employment income taxable where services exercised",
+        "source_url": "https://www.iras.gov.sg/taxes/international-tax/list-of-dtas-limited-dtas-and-eoi-arrangements",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the employee was SG-resident during the vesting period and later moved to UAE before exercise, IRAS may impose a deemed-exercise charge under s.10(6) on the proportion of vesting-period workdays in Singapore — verify SG workday log."
+    ]
+  }
+]

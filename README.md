@@ -8,26 +8,71 @@ Most of an analyst's hours on a private-company valuation aren't spent on judgme
 
 **The posture is expert-led, not algorithm-only.** When the file is too messy to defensibly compute on, the tool refuses and writes the punch list. That refusal — and the punch list — is the deliverable.
 
-[Walkthrough video and live demo →](https://cap-table-reconciler-site.vercel.app)
-
 ---
 
 ## In 30 seconds
 
-- **Input:** one `.xlsx` cap table. Optionally text-PDF side letters.
-- **Process:** parse → checklist of 8 deterministic gap rules → in-session adjudication → structured waterfall.
-- **Output:** JSON, static `.xlsx`, **live-formula `.xlsx`** (edit a share count in Excel, breakpoints and chart redraw natively), audit-memo skeleton, snapshot-diff against an earlier version.
-- **Honest limit:** holder-level cap tables (one row per shareholder, common in CFO-built Indian Excel) degrade to a warning report rather than a clean ingest. Documented, not hidden — see [the stress test](#evidence-of-the-honest-limit) below.
+- **Input:** one `.xlsx` cap table per snapshot. Optionally text-PDF side letters.
+- **Process:** parse → 60-rule checklist (jurisdictional + structural) → in-session adjudication with citations → engagement-bound persistence → hash-chained audit log → byte-stable bundle.
+- **Output:** structured JSON, static `.xlsx`, **live-formula `.xlsx`** (edit a share count in Excel, breakpoints recompute natively), DCF sidecar + cross-workbook template, PDF audit memo with `[ANALYST]` placeholders, snapshot timeline + N-way diff, Big-4-portable `bundle.zip` with auditor-recompute recipe.
+- **Workflow:** browser HTMX UI (cookie auth + CSRF + Bearer revocation) drives the analyst flow; API surface for programmatic clients.
 
 ---
 
 ## What it does
 
-1. **Parse a messy workbook.** Locates the cap-table tab by name pattern, scans the first dozen rows to find headers despite title rows or blanks, skips embedded subtotal rows, normalizes most common date formats to ISO, coerces instrument-type aliases (`CCPS`, `RCPS`, `Ordinary`, etc.) to the canonical enum. Reports everything inferred and everything dropped.
-2. **Run the checklist.** Eight hand-authored rules: anti-dilution variant blank, full-ratchet without trigger documentation, unconverted SAFE past trigger, stale option pool, off-table warrant, side-letter scope unresolved, participating-with-cap missing the cap multiple, dual-class voting differential not recorded. Each finding cites the exact field path.
-3. **Adjudicate in-session.** Findings with a deterministic resolution (SAFE conversion share count, AD variant picker, warrant inclusion toggle, side-letter scope, pool date refresh) have inline forms. Submit, the cap table updates in memory, the waterfall re-runs.
-4. **Compute the waterfall.** Breakpoints (LP-cleared, conversion thresholds, participation-cap thresholds, pure-conversion thresholds), per-tranche marginal allocation matrix. Handles non-participating, participating-uncapped, participating-with-cap including the senior-above-capped case.
-5. **Export the bundle.** Structured JSON, a static `.xlsx` with cap-table / convertibles / side-letters / breakpoints / findings tabs, a live-formula `.xlsx` with IF + SUMPRODUCT logic against named input ranges, and a markdown audit-memo skeleton with explicit `[ANALYST]` placeholders for the judgment sections.
+1. **Parse a messy workbook.** Locates the cap-table tab by name pattern, scans for headers despite title rows, skips embedded subtotals, normalizes date formats, coerces instrument-type aliases (`CCPS`, `RCPS`, `Ordinary`) to the canonical enum. Reports everything inferred and everything dropped.
+2. **Run the rule pack.** 60 deterministic rules across 6 chronologically-pinned packs (`v2026.1.0` → `v2026.6.0`). Anti-dilution coverage, SAFE conversion checks, side-letter open-questions, FEMA/§409A/IRAS jurisdictional flags, pari-passu seniority, full-ratchet trigger documentation, etc. Each finding cites the rule id + the field path.
+3. **Adjudicate inline.** Browser form per finding. Decision + citation (required) lands as an immutable `Resolution` linked to the snapshot id. The hash chain records who resolved what with what citation.
+4. **Compute the waterfall.** Breakpoints, per-tranche allocation matrix. Handles non-participating, participating-uncapped, participating-with-cap including senior-above-capped.
+5. **Persist the engagement.** Status lifecycle (open → review → signed → archived) with role-gated transitions, optimistic concurrency, pack-bytes pinned at create-time, append-only hash-chained audit log per engagement.
+6. **Snapshot timeline + N-way diff.** Chronological browse of every snapshot; select 2+ → magnitude-tiered drift table (none / minor / material / major) per (class, field); export as xlsx workpaper or PDF.
+7. **Export the workpaper.** Static `.xlsx`, live-formula `.xlsx`, DCF sidecar + cross-workbook template with external-link refs, PDF audit memo with auto-embedded snapshot drift section, portable `bundle.zip` containing every artefact a Big-4 auditor would need to re-verify offline.
+
+---
+
+## Architecture map (where things live)
+
+```
+src/
+  parser.py              — Excel → CapTable (header inference, alias map, date coercion)
+  models.py              — Pydantic v2 schema (CapTable, ShareClass, LP, SAFE, …)
+  checklist.py           — 60-rule registry + @rule decorator
+  rules_v2026_{1..6}.py  — six chronologically-pinned rule packs
+  rule_pack.py           — pack loading, head_pack(today), startup collision guard
+  waterfall.py           — breakpoint + allocation engine
+  diff.py                — pairwise cap-table diff
+  snapshot_timeline.py   — N-way diff primitive (magnitude tiers)
+  diff_workpaper.py      — xlsx workpaper builder
+  formula_workbook.py    — live-formula xlsx exporter
+  dcf_sidecar.py         — DCF input sidecar (named ranges, defined-names)
+  dcf_template.py        — DCF template with external-link refs to sidecar
+  audit_memo.py          — markdown memo skeleton
+  pdf_memo.py            — PDF memo + diff workpaper PDF (WeasyPrint)
+  engagement.py          — EngagementStore (SQLite), hash chain, redaction
+  engagement_routes.py   — Flask blueprint (engagement REST surface + HTMX UI)
+  engagement_bundle.py   — Big-4-portable bundle.zip builder
+  cookie_auth.py         — HMAC-signed session cookies + CSRF double-submit
+  token_deny.py          — Bearer revocation deny list (SQLite, WAL)
+  identity.py            — IdentityProvider abstraction + StubSSOProvider
+  rate_limit.py          — per-user calendar-hour rate limiter
+  subsequent_events.py   — rollup of resolved findings across snapshots
+  vol_pack.py            — vol assumptions for OPM tail-vol flags
+
+templates/
+  engagement/            — HTMX UI (base, list, detail, snapshots, diff, login, error)
+  memo/                  — PDF memo (base.html, diff.html)
+  waterfall.html         — phase-0 demo waterfall page
+  _whatif_panel.html     — phase-0 demo whatif HTMX panel
+
+rule_packs/              — six packs v1..v6, plus v0.0.0-dev for fixtures
+fixtures/                — 5 curated + 1 stress-test fixture
+tests/                   — 760+ tests (every wave, every audit fix)
+SYSTEM_SPEC.md           — full spec, rounds 1-5
+OPERATIONS.md            — prod deploy checklist
+BUILD_WAVE_{1..8}.md     — per-wave build notes
+SYSTEM_AUDIT_*.md        — independent audit reports
+```
 
 ---
 
@@ -35,70 +80,97 @@ Most of an analyst's hours on a private-company valuation aren't spent on judgme
 
 - No OPM allocation, no DLOM, no fair-value opinion, no 409A.
 - No LLM clause extraction. Side letters stored verbatim; open Q-lines surfaced for adjudication.
-- No auto-conversion of SAFEs or convertible notes — too many opinions baked in (cap vs discount, pre vs post-money, MFN). The analyst converts these to share classes during the mapping step.
-- No auth, no multi-tenancy. Local-only at `http://localhost:5050`.
+- No auto-conversion of SAFEs or convertible notes — too many opinions baked in.
+- No real SSO. `StubSSOProvider` is the dev/demo IdP — refuses to mount in non-TESTING unless `ALLOW_STUB_SSO=1` is set explicitly.
+- No production database choice. SQLite abstracts cleanly behind `EngagementStore(db_path=...)` for a Postgres swap.
 
 ---
 
-## Evidence of the honest limit
-
-A sixth fixture (`sample_uploads/sundar_foods/`) is a stress test, not a curated demo. It's a fictional Indian D2C Series B-1 cap table built the way real Qapita customers send them — holder-level rows, mismatched tab names, prose in numeric columns, dates like `14th Feb '25`, and off-charter terms living only in side-letter PDFs.
-
-The engine **intentionally degrades** on it. Only the ESOP rows survive validation; everything else gets dropped at Pydantic's preferred-must-have-LP check. The result is a 72-warning parse report rather than a fabricated waterfall.
-
-**That report is the deliverable** — the audit-defensible record of what an analyst would need to email back to the CFO before any cleanup work can begin. The roadmap fix (holder-level rollup, broader tab-name whitelist, fuller class-type alias map) is real and known.
-
----
-
-## The five curated fixtures
-
-Every non-vanilla clause traces to a public source. See `fixtures/<name>/provenance.md`.
-
-| Fixture | Company | What it demonstrates |
-|---|---|---|
-| 01 — clean baseline | Solstice Labs (Singapore) | Three priced rounds, 1× non-participating, broad-based AD. Seven breakpoints. |
-| 02 — typical messy | Pelaut Logistics (SGP + IDN) | Structural mess plus five planted gaps. The Act-1 demo file. |
-| 03 — SEA edge case | Bandhan Ventures (India) | Indian CCPS, participating-with-3×-cap (eight breakpoints), full-ratchet AD on Seed, dual-class voting common. |
-| 04 — down-round ratchet | Surya Foods (India) | Down-round triggers Seed full-ratchet (1.0× → 1.667×). Pay-to-play forfeiture with selective waiver. |
-| 05 — Delaware double-cap | Delaware C-corp | Two participating-capped classes at different cap multiples. Tests the senior-above-capped path. |
-
----
-
-## Run it
+## Run it (dev)
 
 ```bash
-git clone https://github.com/subhankarshukla04/cap-table-reconciler.git
-cd cap-table-reconciler
+git clone <repo>
+cd qapita
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
+pip install -e .[dev]
 python app.py
 ```
 
-Open <http://localhost:5050>. Click any fixture from the left sidebar to walk the full flow without uploading anything.
+Open <http://localhost:5050>. The phase-0 demo flow (upload → waterfall → what-if) is available for screen-share; the engagement flow lives under `/engagement/?html=1`.
+
+For prod-shaped deploys, the phase-0 demo routes refuse to serve unless `ALLOW_PHASE_0_DEMO=1` is set. See `OPERATIONS.md §10` for the full env-var checklist (`SESSION_SECRET_KEY`, `QAPITA_ENGINE_COMMIT`, `ALLOW_STUB_SSO`, `ALLOW_PHASE_0_DEMO`).
 
 ---
 
-## Five-minute demo path
+## Run the tests
 
-1. Open `/`. Note the sidebar fixtures and the *zero valuation judgments* banner.
-2. Click **Pelaut Logistics**. Walk the Parse Warnings card and the raw-vs-cleaned panel.
-3. Scroll to **Findings & resolutions**. Pick one (e.g. AD-MISSING). Open it inline, choose *broad-based weighted-average*, cite *Charter §4.3(a)*, resolve.
-4. Open the **Waterfall** tab. Edit a Series B share count in the **What-if** panel. The chart redraws in ~400 ms.
-5. Scroll to **Export**. Download the live-formula `.xlsx`. Open in Excel — click any breakpoint cell, the formula bar shows the actual IF/SUMPRODUCT logic referencing named input ranges.
+```bash
+pytest                                    # full suite
+pytest tests/test_wave7_diff.py -v         # one wave's tests
+pytest -W error::ResourceWarning           # promote framework finalizer noise
+pytest -k "B-W7-1 or W6B"                  # tests by audit finding id
+```
+
+760+ tests, every audit-fix encoded as a regression. Suite runs in ~60s.
 
 ---
 
-## Engine notes
+## Operational CLI
 
-- `src/parser.py` — Excel → structured `CapTable`. Header-row inference, instrument-type alias map, alternative tab names, date-format coercion.
-- `src/checklist.py` — eight deterministic gap-detection rules. Nothing probabilistic. Every finding has `fields_referenced` pointing at the source cell.
-- `src/waterfall.py` — breakpoint computation across non-participating, participating-uncapped, participating-with-cap (including senior-above-capped).
-- `src/formula_workbook.py` — live-formula `.xlsx` exporter; the workbook's chart and breakpoint formulas remain valid for input edits and are verified against the Python truth.
-- `src/pdf_intake.py` — text-PDF side-letter ingestion via pdfplumber. Image-only PDFs return a warning, not a hallucination.
-- `src/diff.py` — fuzzy-matched class-name diff across two snapshots, for the audit memo's *subsequent events* section.
+```bash
+flask --app app prune-deny-list          # drop expired Bearer-revocation entries
+flask --app app prune-rate-limits        # drop rate-limit buckets > 7 days old
+flask --app app hard-delete-archived     # cascade-delete archived engagements past restore window
+```
 
-331 tests collected, every fixture regression-tested. Run with `pytest tests/`.
+Schedule these in cron / systemd-timer / k8s CronJob. None of them run automatically; absence is correctness-safe but disk-usage degrades.
+
+---
+
+## Health probes
+
+```
+GET /healthz   → {"status": "ok"}          (liveness)
+GET /readyz    → {status, engine_commit, rule_pack_head_version,
+                  deny_list_size, engagements_total, audit_log_total,
+                  last_engagement_created_at}                  (readiness + SRE)
+```
+
+---
+
+## Engagement flow at a glance
+
+```
+analyst                      partner / reviewer            big-4
+   │                                  │                      │
+   ▼                                  │                      │
+ /login (cookie + CSRF)               │                      │
+   │                                  │                      │
+ POST /engagement/                    │                      │
+   │ (create + bind rule pack)        │                      │
+   │                                  │                      │
+ POST /upload (+ change_note)         │                      │
+   │ (snapshot, 60 rules run)         │                      │
+   │                                  │                      │
+ POST /resolve (per finding)          │                      │
+   │ (decision + citation)            │                      │
+   │                                  │                      │
+ POST /transition (review)            │                      │
+   │ ────────────────────────────────►│                      │
+   │                                  │                      │
+   │                       POST /transition (signed)         │
+   │                       (blocker gate fires)              │
+   │                                  │                      │
+ GET /memo.pdf                        │                      │
+ GET /diff.xlsx, /diff.pdf            │                      │
+ GET /bundle.zip ─────────────────────────────────────────►  │
+                                                             │
+                                            offline recompute:
+                                            audit_log SHA-256
+                                            chain verification
+                                            + per-file SHA-256
+```
 
 ---
 

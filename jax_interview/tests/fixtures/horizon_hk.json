@@ -1,0 +1,14 @@
+{
+  "_scenario_name": "Horizon HK — Hong Kong holdco, India engineering, IN engineer exercises",
+  "_narrative": "Horizon Pay Ltd is a Hong Kong-incorporated payments group, parent of Horizon Tech India Pvt Ltd in Bengaluru. A senior engineer in India exercises 6,000 NSO-equivalents at HKD 0.30 strike, FMV HKD 3.00 on 30 April 2026. CFO's question: any Hong Kong tax obligation on the HK parent for an Indian employee? No — IRO s.8 nexus is absent; India perquisite tax applies via the Indian subsidiary.",
+  "parent_jurisdiction": "HK",
+  "employee_jurisdiction": "IN",
+  "event": "exercise",
+  "tax_status": "resident",
+  "grant_date": "2024-04-01",
+  "vesting_date": "2025-04-01",
+  "event_date": "2026-04-30",
+  "fmv_at_event": 3.00,
+  "exercise_price": 0.30,
+  "options_in_event": 6000
+}

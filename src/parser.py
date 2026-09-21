@@ -128,19 +128,63 @@ def _normalize(s: Any) -> str:
 
 
 def _detect_field_for_header(header: str) -> Optional[str]:
+    """Map a raw column header to a semantic field.
+
+    Two passes:
+      1. Exact match against any synonym, ordered by SYNONYM_TABLE precedence.
+      2. Scored substring/word-boundary match. Each (field, synonym) candidate
+         scores: full-word match = 3, longer-substring beats shorter, prefix
+         match = 2, plain substring = 1. The highest-scoring field wins, with
+         SYNONYM_TABLE order as a tie-break. Avoids the previous bug where
+         "share class type" mapped to `class_name` because "share class"
+         happens to be a prefix.
+    """
     norm = _normalize(header)
     if not norm:
         return None
+    # Pass 1: exact match
     for field_name, synonyms in SYNONYM_TABLE:
         for syn in synonyms:
             if norm == syn:
                 return field_name
-    # second pass: prefix/contains for tougher matches
-    for field_name, synonyms in SYNONYM_TABLE:
+    # Pass 1b: notes/comments as head word + prepositional phrase wins.
+    # English convention: "Comments on shares" is a notes column about shares,
+    # not a shares column. The head word at sentence-start carries the field.
+    first_word = norm.split(" ", 1)[0]
+    if first_word in NOTES_SYNONYMS:
+        rest = norm[len(first_word):].lstrip()
+        if not rest or rest.startswith(("on ", "about ", "re ", "regarding ", "for ")):
+            return "notes"
+    # Pass 2: scored substring match.
+    # Score tuple ordered (most → least important):
+    #   priority      — 3 full-word, 2 edge-anchored, 1 plain substring
+    #   end_position  — the further right a synonym ends in the header, the
+    #                   stronger its claim. In English noun phrases the head
+    #                   word sits at the end (e.g. "share class type" → type).
+    #   syn_length    — longer synonym beats shorter when both end at same pos
+    #   -table_pos    — earlier synonym in SYNONYM_TABLE breaks final ties
+    norm_padded = " " + norm + " "
+    best_field: Optional[str] = None
+    best_score = (-1, -1, 0, 0)
+    for table_pos, (field_name, synonyms) in enumerate(SYNONYM_TABLE):
         for syn in synonyms:
-            if norm.startswith(syn) or syn in norm:
-                return field_name
-    return None
+            syn_padded = " " + syn + " "
+            if syn_padded in norm_padded:
+                priority = 3
+                end_pos = norm_padded.rfind(syn_padded) + len(syn_padded) - 1
+            elif norm.startswith(syn + " ") or norm.endswith(" " + syn):
+                priority = 2
+                end_pos = norm.rfind(syn) + len(syn)
+            elif syn in norm:
+                priority = 1
+                end_pos = norm.rfind(syn) + len(syn)
+            else:
+                continue
+            score = (priority, end_pos, len(syn), -table_pos)
+            if score > best_score:
+                best_score = score
+                best_field = field_name
+    return best_field
 
 
 # -- Parse outputs -------------------------------------------------------------
@@ -365,89 +409,97 @@ def parse_excel(path: Path | str, manual_column_mapping: Optional[dict[str, int]
     column-mapping confirmation step), bypassing auto-detection.
     """
     path = Path(path)
+    # W6.5 (closes wave-5 m-6): always close the workbook handle so a
+    # parse-failure path doesn't leak file descriptors under heavy upload.
     wb = load_workbook(path, data_only=True)
-    report = ParseReport()
+    try:
+        report = ParseReport()
 
-    # Company tab (optional)
-    company = _read_company_tab(wb, report)
+        # Company tab (optional)
+        company = _read_company_tab(wb, report)
 
-    # Cap Table tab
-    sheet_name = _detect_cap_table_sheet(wb)
-    if sheet_name is None:
-        raise ValueError(
-            f"Could not find a Cap Table tab in {path.name}. "
-            f"Tabs present: {wb.sheetnames}. Expected one of: {CAP_TABLE_TAB_NAMES}"
-        )
-    report.cap_table_sheet = sheet_name
-    ws = wb[sheet_name]
-
-    rows = list(ws.iter_rows(values_only=True))
-    if not rows:
-        raise ValueError(f"Cap Table tab '{sheet_name}' is empty")
-
-    header_idx = _find_header_row(rows)
-    header_row = list(rows[header_idx])
-    if manual_column_mapping is not None:
-        col_map = manual_column_mapping
-        unmapped = []
-    else:
-        col_map, unmapped = _detect_columns(header_row)
-    report.column_mapping = {k: str(header_row[v]) for k, v in col_map.items()}
-    report.unmapped_headers = unmapped
-    if header_idx > 0:
-        report.warnings.append(
-            ParseWarning(
-                code="header_row_offset",
-                message=f"Column headers found on row {header_idx + 1} (skipped {header_idx} title/blank row(s))",
-                sheet=sheet_name,
-            )
-        )
-
-    # Required columns
-    for required in ("class_name", "shares"):
-        if required not in col_map:
+        # Cap Table tab
+        sheet_name = _detect_cap_table_sheet(wb)
+        if sheet_name is None:
             raise ValueError(
-                f"required column '{required}' not detected. "
-                f"Detected mapping: {report.column_mapping}. "
-                f"Headers in workbook: {[str(h) for h in header_row if h]}"
+                f"Could not find a Cap Table tab in {path.name}. "
+                f"Tabs present: {wb.sheetnames}. Expected one of: {CAP_TABLE_TAB_NAMES}"
+            )
+        report.cap_table_sheet = sheet_name
+        ws = wb[sheet_name]
+
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows:
+            raise ValueError(f"Cap Table tab '{sheet_name}' is empty")
+
+        header_idx = _find_header_row(rows)
+        header_row = list(rows[header_idx])
+        if manual_column_mapping is not None:
+            col_map = manual_column_mapping
+            unmapped = []
+        else:
+            col_map, unmapped = _detect_columns(header_row)
+        report.column_mapping = {k: str(header_row[v]) for k, v in col_map.items()}
+        report.unmapped_headers = unmapped
+        if header_idx > 0:
+            report.warnings.append(
+                ParseWarning(
+                    code="header_row_offset",
+                    message=f"Column headers found on row {header_idx + 1} (skipped {header_idx} title/blank row(s))",
+                    sheet=sheet_name,
+                )
             )
 
-    share_classes: list[ShareClass] = []
-    skipped_subtotal_count = 0
-    class_name_idx = col_map.get("class_name")
-    for ridx, row in enumerate(rows[header_idx + 1:], start=header_idx + 2):
-        if all(v is None or str(v).strip() == "" for v in row):
-            continue
-        if _is_subtotal_row(row, class_name_idx):
-            skipped_subtotal_count += 1
-            continue
-        sc = _row_to_share_class(row, col_map, sheet_name, ridx, report)
-        if sc is not None:
-            share_classes.append(sc)
-    if skipped_subtotal_count > 0:
-        report.warnings.append(
-            ParseWarning(
-                code="subtotal_rows_skipped",
-                message=f"Skipped {skipped_subtotal_count} subtotal/total row(s) embedded in the cap-table data",
-                sheet=sheet_name,
+        # Required columns
+        for required in ("class_name", "shares"):
+            if required not in col_map:
+                raise ValueError(
+                    f"required column '{required}' not detected. "
+                    f"Detected mapping: {report.column_mapping}. "
+                    f"Headers in workbook: {[str(h) for h in header_row if h]}"
+                )
+
+        share_classes: list[ShareClass] = []
+        skipped_subtotal_count = 0
+        class_name_idx = col_map.get("class_name")
+        for ridx, row in enumerate(rows[header_idx + 1:], start=header_idx + 2):
+            if all(v is None or str(v).strip() == "" for v in row):
+                continue
+            if _is_subtotal_row(row, class_name_idx):
+                skipped_subtotal_count += 1
+                continue
+            sc = _row_to_share_class(row, col_map, sheet_name, ridx, report)
+            if sc is not None:
+                share_classes.append(sc)
+        if skipped_subtotal_count > 0:
+            report.warnings.append(
+                ParseWarning(
+                    code="subtotal_rows_skipped",
+                    message=f"Skipped {skipped_subtotal_count} subtotal/total row(s) embedded in the cap-table data",
+                    sheet=sheet_name,
+                )
             )
+
+        # Convertibles tab (optional)
+        safes, warrants, notes = _read_convertibles_tab(wb, report)
+
+        # Side Letters tab (optional)
+        side_letters = _read_side_letters_tab(wb, report)
+
+        cap_table = CapTable(
+            company=company,
+            share_classes=share_classes,
+            side_letters=side_letters,
+            safes_outstanding=safes,
+            warrants_outstanding=warrants,
+            convertible_notes_outstanding=notes,
         )
-
-    # Convertibles tab (optional)
-    safes, warrants, notes = _read_convertibles_tab(wb, report)
-
-    # Side Letters tab (optional)
-    side_letters = _read_side_letters_tab(wb, report)
-
-    cap_table = CapTable(
-        company=company,
-        share_classes=share_classes,
-        side_letters=side_letters,
-        safes_outstanding=safes,
-        warrants_outstanding=warrants,
-        convertible_notes_outstanding=notes,
-    )
-    return cap_table, report
+        return cap_table, report
+    finally:
+        try:
+            wb.close()
+        except Exception:
+            pass
 
 
 def _read_company_tab(wb, report: ParseReport) -> Company:
@@ -464,11 +516,43 @@ def _read_company_tab(wb, report: ParseReport) -> Company:
         return Company(name="Unnamed Company")
 
     ws = wb[company_sheet]
-    fields = {}
+    fields: dict[str, Any] = {}
+    # BUG-013: alias table for company-field lookups. Real workbooks use
+    # human-readable labels ("Company Name", "Date of Valuation"), which the
+    # previous code's `_normalize().replace(" ", "_")` turned into keys that
+    # never matched the literal `.get("company", ...)` lookups below.
+    _COMPANY_ALIASES = {
+        "company": "company",
+        "company_name": "company",
+        "name": "company",
+        "issuer": "company",
+        "issuer_name": "company",
+        "jurisdiction": "jurisdiction",
+        "country": "jurisdiction",
+        "incorporation": "jurisdiction",
+        "country_of_incorporation": "jurisdiction",
+        "sector": "sector",
+        "industry": "sector",
+        "stage": "stage",
+        "round": "stage",
+        "valuation_date": "valuation_date",
+        "date_of_valuation": "valuation_date",
+        "as_of": "valuation_date",
+        "as_of_date": "valuation_date",
+        "currency": "currency",
+        "currency_code": "currency",
+        "ccy": "currency",
+        "currency_symbol": "currency_symbol",
+        "symbol": "currency_symbol",
+        "summary": "summary",
+        "description": "summary",
+        "notes": "summary",
+    }
     for row in ws.iter_rows(values_only=True):
         if not row or row[0] is None:
             continue
-        key = _normalize(row[0]).replace(" ", "_")
+        raw_key = _normalize(row[0]).replace(" ", "_")
+        key = _COMPANY_ALIASES.get(raw_key, raw_key)
         val = row[1] if len(row) > 1 else None
         if val is not None and str(val).strip():
             fields[key] = val
@@ -508,12 +592,37 @@ def _row_to_share_class(
         return None
     class_name = str(class_name).strip()
     raw_type = get("class_type")
-    sc_type = _coerce_class_type(raw_type) or ShareClassType.preferred
-    if raw_type and not _coerce_class_type(raw_type):
+    coerced = _coerce_class_type(raw_type)
+    if coerced is not None:
+        sc_type = coerced
+    elif raw_type is None or str(raw_type).strip() == "":
+        # Missing type column — keep prior default behaviour (assume preferred,
+        # since rows without a type column almost always describe preferred
+        # equity in the curated examples). Surface a warning.
+        sc_type = ShareClassType.preferred
+        report.warnings.append(
+            ParseWarning(
+                code="class_type_missing",
+                message=f"No type given for '{class_name}'; defaulted to preferred",
+                sheet=sheet,
+                row=row_num,
+            )
+        )
+    else:
+        # Unknown type token — DO NOT silently coerce to preferred (which then
+        # fails LP-required validation and drops the entire row). Default to
+        # common, which always validates, and surface a blocker-level warning
+        # so the analyst can re-tag. Preserves the row's shares in the cap
+        # table; defensibility wins over silent loss.
+        sc_type = ShareClassType.common
         report.warnings.append(
             ParseWarning(
                 code="class_type_unknown",
-                message=f"Unknown class type '{raw_type}' for '{class_name}'; defaulted to preferred",
+                message=(
+                    f"Unknown class type '{raw_type}' for '{class_name}'; "
+                    f"defaulted to common to preserve shares. Re-tag before "
+                    f"finalizing the workpaper."
+                ),
                 sheet=sheet,
                 row=row_num,
             )
@@ -634,6 +743,16 @@ def _read_convertibles_tab(wb, report: ParseReport):
         id_val = str(row[idx.get("instrument id", idx.get("id", 0))] or f"INSTR-{ridx}").strip()
 
         if "safe" in type_raw:
+            # BUG-011: read the conversion-trigger threshold if a column exists.
+            # Accept common header variants. Threshold is the round-size that
+            # converts the SAFE; the checklist's SAFE-UNCONVERTED rule needs it.
+            trigger_threshold = None
+            for k in ("trigger threshold (usd)", "trigger threshold",
+                      "conversion trigger", "qualified financing",
+                      "qualified financing (usd)"):
+                if k in idx:
+                    trigger_threshold = _to_float(row[idx[k]])
+                    break
             safes.append(
                 SAFE(
                     id=id_val,
@@ -641,6 +760,7 @@ def _read_convertibles_tab(wb, report: ParseReport):
                     valuation_cap=_to_float(row[idx.get("valuation cap (usd)", idx.get("valuation cap", 4))]),
                     discount_rate=_to_float(row[idx.get("discount %", idx.get("discount", 5))]),
                     issue_date=_parse_date(row[idx.get("issue date", 6)]),
+                    conversion_trigger_threshold=trigger_threshold,
                     notes=str(row[idx.get("trigger / notes", idx.get("notes", 7))] or "").strip() or None,
                 )
             )
@@ -648,12 +768,32 @@ def _read_convertibles_tab(wb, report: ParseReport):
             note_text = str(row[idx.get("trigger / notes", idx.get("notes", 7))] or "")
             shares_match = re.search(r"([\d,]+)\s*(?:common|preferred|shares)", note_text, re.I)
             strike_match = re.search(r"\$([\d.]+)\s*(?:/|per)\s*share", note_text, re.I)
+            # BUG-008: read share_class column if present; else default to Common
+            # with a warning. Hardcoding to Common silently mis-routes strategic
+            # warrants struck against preferred classes.
+            warrant_class = "Common"
+            for k in ("share class", "warrant class", "class", "underlying class"):
+                if k in idx:
+                    raw_class = row[idx[k]]
+                    if raw_class is not None and str(raw_class).strip():
+                        warrant_class = str(raw_class).strip()
+                    break
+            else:
+                if any("warrant" in (str(h) if h else "").lower() for h in headers):
+                    report.warnings.append(
+                        ParseWarning(
+                            code="warrant_share_class_assumed",
+                            message=f"Warrant {id_val}: no share-class column; assumed Common.",
+                            sheet=sheet_name,
+                            row=ridx,
+                        )
+                    )
             warrants.append(
                 Warrant(
                     id=id_val,
                     holder=str(row[idx.get("holder / counterparty", idx.get("holder", 2))] or "Unknown holder").strip(),
                     shares=int(shares_match.group(1).replace(",", "")) if shares_match else 0,
-                    share_class="Common",
+                    share_class=warrant_class,
                     strike_price=float(strike_match.group(1)) if strike_match else 0.0,
                     issue_date=_parse_date(row[idx.get("issue date", 6)]),
                     notes=note_text or None,
@@ -727,8 +867,19 @@ def load_from_canonical_json(path: Path | str) -> CapTable:
             cap_amt_in = lp_raw.get("cap_amount_usd") or lp_raw.get(cap_amt_key)
             lp_amount = lp_raw.get("amount_usd") or lp_raw.get(lp_key) or 0.0
             # Normalize: prefer cap_multiple. If only cap_amount given, convert.
-            # If both given and consistent, drop cap_amount.
+            # If both given, they MUST be consistent (cap_multiple * lp_amount
+            # == cap_amount). BUG-009: previous behaviour silently dropped the
+            # cap_amount without checking, hiding fixture-authoring mistakes.
             if cap_mult_in is not None and cap_amt_in is not None:
+                if lp_amount > 0:
+                    expected_amt = cap_mult_in * lp_amount
+                    if abs(expected_amt - cap_amt_in) / max(abs(expected_amt), 1.0) > 1e-6:
+                        raise ValueError(
+                            f"Inconsistent cap on class '{sc.get('name')}' in {path.name}: "
+                            f"cap_multiple={cap_mult_in} on LP amount={lp_amount} implies "
+                            f"cap_amount={expected_amt:,.2f}, but cap_amount={cap_amt_in:,.2f} "
+                            f"was supplied. Provide exactly one, or make them consistent."
+                        )
                 cap_amt_in = None
             elif cap_mult_in is None and cap_amt_in is not None and lp_amount > 0:
                 cap_mult_in = cap_amt_in / lp_amount

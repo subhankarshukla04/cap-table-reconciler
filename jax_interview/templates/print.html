@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ESOP Atlas — Verdict (print)</title>
+  <link rel="stylesheet" href="/static/css/atlas.css">
+  <style>
+    @page { size: A4; margin: 18mm; }
+    body { background: white; font-size: 11pt; }
+    .topbar, .topnav, .footer { display: none; }
+    .container { max-width: 100%; margin: 0; padding: 0; }
+    .panel { border: none; padding: 0; box-shadow: none; }
+    .verdict-summary { background: #f3f6fa; }
+    .rule { page-break-inside: avoid; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1 style="color: var(--brand); border-bottom: 2px solid var(--brand); padding-bottom: 6px;">
+      ESOP Atlas — Compliance Verdict
+    </h1>
+    <p style="color: var(--ink-soft); font-size: 11pt;">
+      {{ verdict.query.parent_jurisdiction.value }} parent → {{ verdict.query.employee_jurisdiction.value }} employee · {{ verdict.query.event.value.replace('_',' ') }} · {{ verdict.query.tax_status.value.replace('_',' ') }}
+    </p>
+
+    <div class="verdict-summary">{{ verdict.summary }}</div>
+
+    {% macro rule_block(rule, is_primary) %}
+    <section class="rule">
+      <h2>{% if is_primary %}Primary rule ({{ rule.taxing_jurisdiction.value }} tax law){% else %}Secondary — {{ rule.taxing_jurisdiction.value }} perspective{% endif %}</h2>
+      <table class="rule-table">
+        <tr><th>Tax treatment</th><td>{{ rule.tax_treatment.value.replace('_',' ') }}</td></tr>
+        <tr><th>Rate</th><td>{{ rule.rate_description }}</td></tr>
+        <tr><th>Withholding</th><td>{{ rule.withholding }}{% if rule.withholding_note %} — {{ rule.withholding_note }}{% endif %}</td></tr>
+        {% if rule.filing_requirement %}<tr><th>Filing</th><td>{{ rule.filing_requirement }}</td></tr>{% endif %}
+        {% if rule.documents_required %}<tr><th>Documents</th><td>{{ rule.documents_required | join('; ') }}</td></tr>{% endif %}
+        <tr><th>Confidence</th><td>{{ rule.confidence.value.replace('_',' ') }}</td></tr>
+      </table>
+      <h4>Citations</h4>
+      <ul>
+        {% for c in rule.citations %}
+        <li><strong>{{ c.authority }}</strong> — {{ c.reference }}{% if c.retrieved_on %} ({{ c.retrieved_on }}){% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% if rule.caveats %}
+      <h4>Caveats</h4>
+      <ul>{% for c in rule.caveats %}<li>{{ c }}</li>{% endfor %}</ul>
+      {% endif %}
+    </section>
+    {% endmacro %}
+
+    {{ rule_block(verdict.primary_rule, True) }}
+    {% for r in verdict.secondary_rules %}
+      {{ rule_block(r, False) }}
+    {% endfor %}
+
+    {% if verdict.computed_amount_taxable is not none %}
+    <section class="computed">
+      <h3>Computed amount taxable</h3>
+      <p class="big-number">{{ "{:,.2f}".format(verdict.computed_amount_taxable) }}</p>
+    </section>
+    {% endif %}
+
+    <p style="margin-top: 30px; color: var(--ink-soft); font-size: 9pt; border-top: 1px solid var(--line); padding-top: 8px;">
+      ESOP Atlas — audit-grade deterministic engine. Compliance verdict, not tax advice. Refer to counsel before filing.
+    </p>
+  </main>
+</body>
+</html>

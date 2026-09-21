@@ -1,0 +1,87 @@
+{% extends "base.html.j2" %}
+{% block title %}Filings · DRHP Reader · Qapita{% endblock %}
+{% block content %}
+
+<section class="landing-hero">
+  <div class="hero-copy">
+    <h1>Pre-deal cap-table extraction from public DRHP filings.</h1>
+    <p>
+      Upload a DRHP, RHP, or S-1. The parser pulls the cap-table, lock-in periods, ROFR clause, ESOP pool, and foreign-holder mix, then runs an indicative tender preview using Qapita's mechanics + compliance engines. Public information only. Zero pricing judgment.
+    </p>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="v">~30s</span>
+      <span class="k">vs ~4 hrs manual</span>
+    </div>
+    <div class="hero-stat">
+      <span class="v">75</span>
+      <span class="k">tests passing</span>
+    </div>
+    <div class="hero-stat">
+      <span class="v">0</span>
+      <span class="k">pricing calls</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-eyebrow">
+  <span class="num">§1</span>
+  <h2>Upload a Filing</h2>
+  <span class="meta">PDF · max 50 MB · DRHP / RHP / S-1</span>
+</div>
+
+<form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
+  <input type="file" name="pdf" accept="application/pdf" required>
+  <button type="submit" class="btn btn-primary">Parse filing →</button>
+</form>
+
+<div class="section-eyebrow">
+  <span class="num">§2</span>
+  <h2>Pre-Loaded Demo Filings</h2>
+  <span class="meta">Synthetic from public-domain facts · for prototype demo</span>
+</div>
+
+<div class="filing-grid">
+  {% for f in filings %}
+  <a href="{{ url_for('filing', filing_id=f.id) }}" class="filing-tile">
+    <div class="tile-head">
+      <h3>{{ f.name }}</h3>
+      <span class="badge demo">DEMO</span>
+    </div>
+    <p class="tile-blurb">{{ f.blurb }}</p>
+    <div class="tile-meta">
+      <span class="meta-item"><span class="meta-label">Filed</span><span class="meta-value">{{ f.filed }}</span></span>
+      <span class="meta-item"><span class="meta-label">Amendment</span><span class="meta-value">{{ f.amend }}</span></span>
+      <span class="meta-item"><span class="meta-label">Issue size</span><span class="meta-value">₹{{ f.issue_cr }} cr</span></span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% if extras %}
+<div class="section-eyebrow">
+  <span class="num">§3</span>
+  <h2>Your Uploads</h2>
+  <span class="meta">{{ extras|length }} parsed</span>
+</div>
+
+<div class="filing-grid">
+  {% for f in extras %}
+  <a href="{{ url_for('filing', filing_id=f.id) }}" class="filing-tile">
+    <div class="tile-head">
+      <h3>{{ f.name }}</h3>
+      <span class="badge">UPLOAD</span>
+    </div>
+    <p class="tile-blurb">{{ f.blurb }}</p>
+    <div class="tile-meta">
+      <span class="meta-item"><span class="meta-label">Filed</span><span class="meta-value">{{ f.filed }}</span></span>
+      <span class="meta-item"><span class="meta-label">Type</span><span class="meta-value">{{ f.amend }}</span></span>
+      <span class="meta-item"><span class="meta-label">Issue</span><span class="meta-value">₹{{ f.issue_cr }} cr</span></span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

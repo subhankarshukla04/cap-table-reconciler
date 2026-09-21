@@ -1,0 +1,14 @@
+{
+  "_scenario_name": "Atlas Corp — US Delaware-C parent, India engineering team",
+  "_narrative": "Atlas Corp is Delaware-incorporated, Series B. 60 % of engineering is based in Bengaluru via the Indian subsidiary Atlas Tech India Pvt Ltd. A senior engineer was granted 25,000 NSOs at $0.50 strike during her Indian employment. FMV at exercise is $4.00 — she exercises 8,000 options on 30 April 2026. The Schwab-pipeline case: Atlas's CFO needs to know what the Indian engineer owes and what the parent files, before authorising the exercise.",
+  "parent_jurisdiction": "US",
+  "employee_jurisdiction": "IN",
+  "event": "exercise",
+  "tax_status": "resident",
+  "grant_date": "2023-09-01",
+  "vesting_date": "2024-09-01",
+  "event_date": "2026-04-30",
+  "fmv_at_event": 4.00,
+  "exercise_price": 0.50,
+  "options_in_event": 8000
+}

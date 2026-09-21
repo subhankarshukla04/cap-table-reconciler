@@ -1,0 +1,19 @@
+{% extends "engagement/base.html" %}
+{% block title %}{{ error_code | e }}{% endblock %}
+{% block content %}
+<h1>Something went wrong</h1>
+<div class="blocker" style="padding:10pt 14pt; margin-bottom:12pt;">
+  <strong>{{ error_message | e }}</strong>
+  <div class="small" style="margin-top:4pt; opacity:0.85;">
+    Error code: <code>{{ error_code | e }}</code>
+  </div>
+</div>
+{% if error_code in ("csrf-missing-cookie", "csrf-mismatch") %}
+  <p>Your session lost its CSRF token (this happens after a deploy or a
+  long-idle browser tab). Refresh this page once to get a fresh token,
+  then re-submit the form.</p>
+  <p><a href="/engagement/?html=1" class="btn">Refresh engagements</a></p>
+{% else %}
+  <p><a href="/engagement/?html=1" class="btn">Back to engagements</a></p>
+{% endif %}
+{% endblock %}

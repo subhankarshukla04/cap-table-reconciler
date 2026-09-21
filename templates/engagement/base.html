@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Engagement{% endblock %} — Cap Table Reconciler</title>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           max-width: 1100px; margin: 24px auto; padding: 0 20px;
+           color: #222; font-size: 14px; line-height: 1.5; }
+    h1 { font-size: 22pt; margin: 0 0 0.4em; }
+    h2 { font-size: 14pt; margin: 1.4em 0 0.4em; border-bottom: 1pt solid #ccc; padding-bottom: 4pt; }
+    h3 { font-size: 11pt; margin: 1em 0 0.3em; }
+    .nav { background: #f4f4f4; padding: 8pt 12pt; border-radius: 4pt; margin-bottom: 18pt; }
+    .nav a { margin-right: 18pt; color: #1f4d8a; text-decoration: none; font-weight: 500; }
+    .nav a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin: 6pt 0; }
+    th, td { border-bottom: 1pt solid #ddd; padding: 5pt 8pt; text-align: left; vertical-align: top; }
+    th { background: #f4f4f4; font-weight: 600; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .blocker { background: #fde2e2; color: #8a1f1f; padding: 2pt 6pt; border-radius: 3pt; font-weight: 600; font-size: 11px; }
+    .warning { background: #fff0c8; color: #7a5b00; padding: 2pt 6pt; border-radius: 3pt; font-size: 11px; }
+    .info    { background: #e6f0fb; color: #1f4d8a; padding: 2pt 6pt; border-radius: 3pt; font-size: 11px; }
+    .pill   { display: inline-block; padding: 2pt 8pt; background: #eee; border-radius: 3pt; font-size: 11px; }
+    .pill.status-open    { background: #e6f0fb; color: #1f4d8a; }
+    .pill.status-review  { background: #fff0c8; color: #7a5b00; }
+    .pill.status-signed  { background: #d6efd9; color: #2d6a30; }
+    .pill.status-archived{ background: #ddd;     color: #555; }
+    .pill.role-analyst   { background: #e6f0fb; color: #1f4d8a; }
+    .pill.role-reviewer  { background: #fff0c8; color: #7a5b00; }
+    .pill.role-partner   { background: #d6efd9; color: #2d6a30; }
+    button, .btn { background: #1f4d8a; color: #fff; padding: 6pt 14pt; border: none;
+                   border-radius: 3pt; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
+    button:hover, .btn:hover { background: #163a6b; }
+    button.secondary, .btn.secondary { background: #ddd; color: #222; }
+    button.danger, .btn.danger { background: #8a1f1f; }
+    .form-row { margin: 8pt 0; }
+    .form-row label { display: block; font-weight: 500; margin-bottom: 3pt; }
+    input[type="text"], input[type="date"], select, textarea {
+      padding: 5pt 8pt; border: 1pt solid #ccc; border-radius: 3pt; font-size: 13px;
+      font-family: inherit; box-sizing: border-box;
+    }
+    input[type="text"], input[type="date"], textarea, select { width: 100%; max-width: 480px; }
+    .error { color: #8a1f1f; background: #fde2e2; padding: 8pt 12pt; border-radius: 4pt;
+             margin: 12pt 0; }
+    .success { color: #2d6a30; background: #d6efd9; padding: 8pt 12pt; border-radius: 4pt;
+               margin: 12pt 0; }
+    .small { font-size: 11px; color: #777; }
+    code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px;
+           background: #f4f4f4; padding: 1pt 4pt; border-radius: 2pt; }
+    .filter-bar { background: #f9f9f9; padding: 10pt 14pt; border-radius: 4pt;
+                  margin-bottom: 14pt; }
+    .filter-bar .form-row { display: inline-block; margin-right: 14pt; vertical-align: top; }
+    .filter-bar input { max-width: 180px; }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <strong>Cap Table Reconciler</strong>
+  &nbsp;·&nbsp;
+  <a href="/engagement/">Engagements</a>
+  <a href="/">Demo fixtures</a>
+  <span style="float:right" class="small">
+    {% if current_user %}
+      <span class="pill role-{{ current_user.role.value }}">{{ current_user.role.value }}</span>
+      {{ current_user.display_name | e }}
+    {% endif %}
+  </span>
+</div>
+
+{% if error %}<div class="error">{{ error | e }}</div>{% endif %}
+{% if success %}<div class="success">{{ success | e }}</div>{% endif %}
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

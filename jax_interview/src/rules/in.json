@@ -1,0 +1,633 @@
+[
+  {
+    "rule_id": "in.in.grant.any",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No tax at grant. India taxes the ESOP perquisite at allotment of shares (i.e., exercise), not at grant.",
+    "withholding": "no",
+    "filing_requirement": "No filing at grant. Employer records the grant for later Form 12BA / Form 16 reporting.",
+    "documents_required": [
+      "Grant letter",
+      "Vesting schedule"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) — perquisite arises on allotment / transfer of shares to the employee",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11",
+        "note": "The perquisite is triggered when the share is allotted to the employee, which (in ESOP structures) is at exercise — not at grant or vest."
+      }
+    ],
+    "caveats": []
+  },
+  {
+    "rule_id": "in.in.vest.any",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No tax at vest. Vesting alone does not allot a share; the option is still unexercised.",
+    "withholding": "no",
+    "filing_requirement": "No filing.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) read with Rule 3(8) — taxable event is allotment, not vesting",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": []
+  },
+  {
+    "rule_id": "in.in.exercise.resident",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "perquisite",
+    "rate_description": "Perquisite value = (FMV on date of exercise − exercise price) × number of options exercised. Taxed as 'Salaries' at the employee's applicable slab rate (currently up to 30% plus surcharge and 4% cess).",
+    "withholding": "yes",
+    "withholding_note": "Employer must deduct TDS under Section 192 (Income-tax Act 1961) / Section 392(1) (Income-tax Act 2025) at the average rate of income-tax for the year on the perquisite value.",
+    "filing_requirement": "Employer Form 12BA (annexure to Form 16, by 15 June following FY) and Form 16 (annual). Employee reports in ITR-2 / ITR-3.",
+    "documents_required": [
+      "Form 12BA",
+      "Form 16",
+      "Merchant banker valuation report (unlisted) or NSE/BSE price evidence (listed)",
+      "Notice of exercise"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) — perquisite from allotment of specified security or sweat equity share",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Rules 1962",
+        "reference": "Rule 3(8) — FMV computation. Listed: average of opening and closing market prices on exercise date. Unlisted: SEBI Category-I merchant banker valuation, valid for up to 180 days from valuation date.",
+        "source_url": "https://incometaxindia.gov.in/Pages/rules/income-tax-rules-1962.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 192 — TDS on salary at average rate",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 2025",
+        "reference": "Section 17(5)(h) — successor to ITA 1961 §17(2)(vi) for FMV-based perquisite valuation",
+        "retrieved_on": "2026-05-11",
+        "note": "ITA 2025 renumbers but does not substantively change the ESOP perquisite rule."
+      }
+    ],
+    "caveats": [
+      "Employees of DPIIT-recognized eligible startups may defer TDS under §192(1C) (ITA 1961) — TDS becomes payable at the earliest of: (a) 48 months after end of relevant AY, (b) date of sale, (c) date of cessation of employment.",
+      "If FMV is not determined per Rule 3(8) (e.g., stale merchant banker valuation), the perquisite computation is open to challenge by the Assessing Officer.",
+      "Surcharge: 10% if income > ₹50L, 15% > ₹1Cr, 25% > ₹2Cr, 37% > ₹5Cr (capped at 25% under the new regime). Health & education cess: 4%."
+    ]
+  },
+  {
+    "rule_id": "in.in.sale.resident",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "sale",
+    "tax_status": "resident",
+    "tax_treatment": "capital_gain",
+    "rate_description": "Capital gain = sale consideration − FMV on exercise date (cost basis already taxed as perquisite). Listed shares: STCG (held ≤12 months) at 20% under §111A; LTCG (>12 months) on gain >₹1.25L at 12.5% under §112A (post-Budget 2024 rates). Unlisted shares: STCG (≤24 months) at slab; LTCG (>24 months) at 12.5% without indexation.",
+    "withholding": "no",
+    "withholding_note": "No TDS on resident-to-resident share sales as a default; TCS may apply only in specific listed-exchange contexts.",
+    "filing_requirement": "Employee reports gains in ITR-2 (Schedule CG). Pays advance tax in quarterly instalments if total annual tax > ₹10,000.",
+    "documents_required": [
+      "Demat statement / share certificate",
+      "Sale contract note",
+      "Form 16 (showing perquisite already taxed)",
+      "FMV-on-exercise evidence"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 111A — STCG on listed equity (rate raised from 15% to 20% w.e.f. 23 July 2024)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 112A — LTCG on listed equity exceeding ₹1.25 lakh (rate revised to 12.5% w.e.f. 23 July 2024)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 112 — LTCG on unlisted shares at 12.5% (Finance (No. 2) Act 2024 removed indexation benefit)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 48 — cost of acquisition for ESOP shares = FMV used for perquisite taxation",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Cost basis for the share = the FMV that was used to compute the perquisite at exercise — not the original exercise price. Double-counting is avoided this way.",
+      "Holding-period clock starts from the allotment date (exercise), not the grant date.",
+      "Pre-23 July 2024 sales used the old rates (STCG 15%, LTCG 10% on listed; 20% with indexation on unlisted). Verify sale date against rate-change cut-off."
+    ]
+  },
+  {
+    "rule_id": "sg.in.grant.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "grant",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax at grant. The parent's jurisdiction does not alter the Indian rule — perquisite arises at allotment (exercise), not at grant.",
+    "withholding": "no",
+    "filing_requirement": "Indian employer (subsidiary) records the grant for later Form 12BA / Form 16 reporting.",
+    "documents_required": [
+      "Grant letter from SG parent",
+      "Indian employment contract"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) — perquisite arises on allotment of shares, regardless of which group entity grants the option",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "The Indian subsidiary is the 'employer' for TDS purposes even when the option is granted by the overseas parent — cross-charge under transfer pricing arrangements is standard."
+    ]
+  },
+  {
+    "rule_id": "sg.in.vest.any",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "vest",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax at vest. Vesting is not an allotment.",
+    "withholding": "no",
+    "filing_requirement": "No filing.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) read with Rule 3(8)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Assumes the employee renders zero services in the parent's jurisdiction during the vesting and pre-event period. Any partial-period workdays in that jurisdiction can attach a source-tax claim under its territorial-nexus rules; re-run with apportionment if material."
+    ]
+  },
+  {
+    "rule_id": "sg.in.exercise.resident",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "perquisite",
+    "rate_description": "Indian perquisite tax applies in full. Perquisite value = (FMV on exercise date − exercise price) × options exercised. Slab-rate tax (up to 30% + surcharge + 4% cess). TDS by the Indian subsidiary as the employer-of-record.",
+    "withholding": "yes",
+    "withholding_note": "Indian subsidiary, not the SG parent, deducts TDS under §192. The subsidiary typically funds this via cash recovery from the employee or via parent cross-charge.",
+    "filing_requirement": "Indian subsidiary issues Form 12BA + Form 16. Employee files ITR-2/ITR-3. SG parent has no Indian filing obligation directly.",
+    "documents_required": [
+      "Form 12BA",
+      "Form 16",
+      "SEBI Cat-I merchant banker valuation (for unlisted SG parent shares)",
+      "Cross-charge invoice from SG parent (transfer-pricing trail)"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) — perquisite from specified-security allotment by any employer (including foreign parent)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Rules 1962",
+        "reference": "Rule 3(8) — FMV: SEBI Cat-I merchant banker valuation for unlisted shares (SG parent's unlisted equity falls here)",
+        "source_url": "https://incometaxindia.gov.in/Pages/rules/income-tax-rules-1962.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 192 — TDS by Indian employer (subsidiary)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "FEMA: forex remittance for exercise-price payment routed via LRS (US$ 250k annual cap per RBI). If exercise is cashless (parent issues shares net of price), LRS is not engaged.",
+      "Transfer pricing: SG parent must invoice Indian subsidiary for the perquisite cost (cross-charge) at arm's length, supported by valuation evidence.",
+      "DPIIT-recognized eligible startup deferral (§192(1C)) applies only if the *Indian subsidiary* itself is the DPIIT-recognized startup — not the SG parent."
+    ]
+  },
+  {
+    "rule_id": "sg.in.sale.resident",
+    "parent_jurisdiction": "SG",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "sale",
+    "tax_status": "resident",
+    "tax_treatment": "capital_gain",
+    "rate_description": "Indian capital gains apply on sale of the SG parent's shares by the India-resident employee. Holding period > 24 months: LTCG at 12.5% (without indexation post-2024). ≤24 months: STCG at slab rate.",
+    "withholding": "no",
+    "filing_requirement": "Employee reports in ITR-2 Schedule CG. Pays advance tax quarterly.",
+    "documents_required": [
+      "Share sale contract",
+      "Form 16 (showing perquisite cost basis)",
+      "FMV-on-exercise evidence",
+      "Foreign asset disclosure in ITR Schedule FA"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 112 — LTCG on unlisted shares at 12.5% (Finance (No. 2) Act 2024)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 48 — cost basis = FMV used for perquisite (no double tax)",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Schedule FA — disclosure of foreign assets and income, mandatory for India-resident holders of SG parent shares",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Singapore-India DTAA: Article 13 governs capital gains. For unlisted-share sales, the source-country rule typically allows India to tax India-resident sellers — confirm with the latest protocol.",
+      "Schedule FA non-disclosure carries severe penalties under the Black Money Act 2015 — flag this explicitly for the employee."
+    ]
+  },
+  {
+    "rule_id": "in.sg.exercise.any",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax on exercise gain for an SG-resident, non-Indian-source employee. Salary income is sourced where services are rendered; services rendered in Singapore are not Indian source.",
+    "withholding": "no",
+    "filing_requirement": "No Indian filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 5 read with Section 9(1)(ii) — non-resident income is taxable only if earned for services rendered in India",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-Singapore DTAA",
+        "reference": "Article 15 — Dependent Personal Services. Salary is taxable only in the country of employment exercise (Singapore in this case).",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "If the employee was India-resident at any point between grant and exercise, partial-period apportionment can attach Indian tax — re-run with that scenario.",
+      "OCI status, prior India tax residency, or any India workday count during the vesting window may shift the analysis. Confirm employee's residency profile."
+    ]
+  },
+  {
+    "rule_id": "in.sg.sale.any",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "SG",
+    "taxing_jurisdiction": "IN",
+    "event": "sale",
+    "tax_status": null,
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax on the sale gain for a non-resident, non-Indian-source employee. India would only tax the gain if the shares qualify as Indian-source assets — which IN-parent unlisted shares typically do.",
+    "withholding": "no",
+    "withholding_note": "However, see caveat: §195 TDS by the BUYER may apply if the IN parent's shares are 'situated in India' (typically yes for unlisted Indian-company shares).",
+    "filing_requirement": "Non-resident files ITR-2 to claim DTAA relief if Indian tax is withheld at source.",
+    "documents_required": [
+      "Tax Residency Certificate (Singapore)",
+      "Form 10F",
+      "DTAA relief claim"
+    ],
+    "confidence": "conditional",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 9(1)(i) — capital gain on transfer of an asset situated in India is Indian-source income, taxable on non-residents",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "India-Singapore DTAA",
+        "reference": "Article 13(4) — capital gains on shares of an Indian company by an SG-resident are taxable in India (sourced where the shares are situated).",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11"
+      },
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 195 — TDS on payments to non-residents by the buyer",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11"
+      }
+    ],
+    "caveats": [
+      "Confidence is 'conditional' because the result depends on whether the IN-parent's shares are characterized as 'Indian-source' assets — for an unlisted Indian company this is typically yes, triggering Indian capital gains tax at 12.5% LTCG / slab STCG even on non-resident sellers.",
+      "DTAA Article 13(4) was amended in 2017 — capital gains on Indian-company shares acquired by SG residents AFTER 1 April 2017 lost the SG-exemption benefit. Confirm acquisition date.",
+      "Pure compliance-engine output; transfer-pricing and treaty positions require counsel."
+    ]
+  },
+  {
+    "rule_id": "uk.in.exercise.resident.in_view",
+    "parent_jurisdiction": "UK",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "perquisite",
+    "rate_description": "Indian perquisite tax applies in full when an India-resident employee exercises options granted by a UK parent. Perquisite value = (FMV at exercise − exercise price) × options exercised. Slab-rate tax up to 30% + surcharge + 4% cess. The Indian subsidiary is the employer-of-record and TDS withholder under §192 / ITA 2025 §392(1).",
+    "withholding": "yes",
+    "withholding_note": "Indian subsidiary withholds; cross-charge from UK parent via inter-company invoice at arm's length.",
+    "filing_requirement": "Form 12BA + Form 16 by Indian subsidiary; employee files ITR-2/ITR-3.",
+    "documents_required": [
+      "Form 12BA",
+      "Form 16",
+      "SEBI Cat-I merchant banker valuation (UK unlisted shares)",
+      "Cross-charge invoice from UK parent",
+      "Form 15CA/CB if remittance"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 17(2)(vi) — perquisite from specified-security allotment, applies regardless of foreign parent's jurisdiction",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "Income-tax Rules 1962",
+        "reference": "Rule 3(8) — FMV via SEBI Cat-I merchant banker for unlisted UK parent shares",
+        "source_url": "https://incometaxindia.gov.in/Pages/rules/income-tax-rules-1962.aspx",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "India-UK Double Tax Convention (1993)",
+        "reference": "Article 16 — Dependent Personal Services. Primary taxing right India for IN-resident performing services in IN.",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      }
+    ],
+    "caveats": [
+      "FEMA / LRS applies to exercise-price remittance to UK parent — US$250K annual LRS cap. Cashless exercise avoids LRS.",
+      "Transfer pricing: UK parent must invoice Indian subsidiary at arm's length.",
+      "DPIIT-startup §192(1C) deferral applies only if the *Indian subsidiary* is the DPIIT-recognized startup, not the UK parent."
+    ]
+  },
+  {
+    "rule_id": "in.uk.exercise.resident.in_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "UK",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No Indian tax on the exercise gain for a UK-resident, non-Indian-source employee. Salary income is sourced to where services are performed (UK in this case). India-UK DTAA Article 16 confirms primary taxing right rests with the UK.",
+    "withholding": "no",
+    "filing_requirement": "No Indian filing required.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act 1961",
+        "reference": "Section 5 read with Section 9(1)(ii) — non-resident income taxable in India only if earned for services in India",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      },
+      {
+        "authority": "India-UK Double Tax Convention (1993)",
+        "reference": "Article 16 — Dependent Personal Services: primary taxing right rests with country of services (UK).",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-11",
+        "note": null
+      }
+    ],
+    "caveats": [
+      "Assumes zero services rendered in India during vesting and pre-exercise period.",
+      "OCI status, prior India residency, or India-workday counts can shift the analysis. Verify employee profile."
+    ]
+  },
+  {
+    "rule_id": "hk.in.exercise.resident.in_view",
+    "parent_jurisdiction": "HK",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "perquisite",
+    "rate_description": "India perquisite tax on the share option gain. For an Indian-resident engineer employed by the Indian subsidiary of a Hong Kong parent, the gain = (FMV at exercise − exercise price) × shares is a 'perquisite' under §17(2)(vi) of the Income-tax Act 1961, taxed at the employee's slab rate (up to 30% + cess). The Indian employer must withhold TDS under §192 on this notional benefit.",
+    "withholding": "yes",
+    "withholding_note": "Indian subsidiary deducts TDS under §192 on the perquisite value at the time of exercise; the employer issues Form 12BA and Form 16 reflecting the perquisite.",
+    "filing_requirement": "Indian employer: Form 12BA (annual statement of perquisites) + Form 16 (annual TDS certificate) + Form 24Q (quarterly TDS return). Employee: ITR-2 / ITR-3 with Schedule FA disclosure of the foreign HK-parent shares.",
+    "documents_required": [
+      "Notice of exercise",
+      "FMV valuation report (Rule 3(8) — Category I Merchant Banker for unlisted)",
+      "Form 12BA",
+      "Form 16",
+      "ITR with Schedule FA (foreign shares)"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 17(2)(vi) — value of any specified security or sweat equity shares allotted or transferred to an employee is a perquisite",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Income-tax Rules, 1962",
+        "reference": "Rule 3(8) — FMV determination for unlisted securities by Category I Merchant Banker on the exercise date",
+        "source_url": "https://incometaxindia.gov.in/Pages/rules/income-tax-rules-1962.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 192 — TDS on salary including perquisite value of ESOP exercise",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "India–Hong Kong CDTA",
+        "reference": "India–Hong Kong Double Taxation Avoidance Agreement, Article 14 — Income from Employment; Article 23 — Methods for Elimination of Double Taxation (credit method)",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If any portion of the vesting period involved services in HK (HK workdays > 60 in a year of assessment), a secondary HK Salaries Tax charge may arise — claim foreign tax credit on the IN return under India–HK CDTA Article 23.",
+      "Eligible-startup deferral under §192(1C): if the Indian employer is a DPIIT-recognized eligible startup, TDS on the perquisite can be deferred to the earliest of: 48 months from end of relevant assessment year, employee ceasing employment, or sale of shares. This rule assumes the standard case (no deferral)."
+    ]
+  },
+  {
+    "rule_id": "in.hk.exercise.resident.in_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "HK",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No India income tax on the exercise gain. A Hong Kong-resident employee with no Indian employment and no Indian-source services has no Indian tax nexus. §5(2) of the ITA 1961 limits non-resident taxation to income received in India, accruing in India, or deemed to accrue in India under §9. Services rendered wholly outside India do not give rise to deemed-accrual under §9(1)(ii).",
+    "withholding": "no",
+    "filing_requirement": "No Indian filing for the HK-resident employee. The Indian parent has internal accounting (Ind AS 102) but no TDS obligation under §192 because no salary is paid by an Indian employer.",
+    "documents_required": [],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 5(2) — scope of total income of a non-resident: only income received in India, accruing in India, or deemed to accrue in India",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 9(1)(ii) — salary income is deemed to accrue in India only if earned in India; services rendered outside India are not in scope",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "India–Hong Kong CDTA",
+        "reference": "Article 14 (Income from Employment) — employment income is taxable only in the residence state unless services are exercised in the source state",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If the HK-resident employee renders services in India during the vesting period, that proportion of the gain becomes Indian-sourced and chargeable to Indian tax under §9(1)(ii). Confirm Indian workday log.",
+      "On subsequent sale of the IN-parent shares, capital gains tax may arise in India under §9(1)(i) (shares of an Indian company are deemed to be situated in India)."
+    ]
+  },
+  {
+    "rule_id": "ae.in.exercise.resident.in_view",
+    "parent_jurisdiction": "AE",
+    "employee_jurisdiction": "IN",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "perquisite",
+    "rate_description": "India perquisite tax on the share option gain. For an Indian-resident employee of an Indian subsidiary of a UAE parent, the gain = (FMV at exercise − exercise price) × shares is a perquisite under §17(2)(vi) of the Income-tax Act 1961, taxed at the employee's slab rate (up to 30% + cess). TDS under §192 by the Indian employer.",
+    "withholding": "yes",
+    "withholding_note": "Indian subsidiary deducts TDS under §192 on the perquisite value at exercise.",
+    "filing_requirement": "Indian employer: Form 12BA + Form 16 + Form 24Q. Employee: ITR-2 / ITR-3 with Schedule FA disclosure of foreign UAE-parent shares.",
+    "documents_required": [
+      "Notice of exercise",
+      "FMV valuation report (Rule 3(8))",
+      "Form 12BA",
+      "Form 16",
+      "ITR with Schedule FA"
+    ],
+    "confidence": "firm",
+    "citations": [
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 17(2)(vi) — value of specified security / sweat equity shares allotted is a perquisite",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Income-tax Rules, 1962",
+        "reference": "Rule 3(8) — FMV determination for unlisted securities by Category I Merchant Banker",
+        "source_url": "https://incometaxindia.gov.in/Pages/rules/income-tax-rules-1962.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 192 — TDS on salary including perquisite value of ESOP exercise",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "India–UAE DTAA",
+        "reference": "Article 15 (Dependent Personal Services) — employment income taxable in state where services exercised (India); Article 25 — Methods for elimination of double taxation",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "UAE has no personal income tax — no foreign tax credit issue arises on the IN side because there is no UAE tax to credit against.",
+      "Eligible-startup deferral under §192(1C): if the Indian employer is DPIIT-recognized, TDS deferral applies. This rule assumes the standard case."
+    ]
+  },
+  {
+    "rule_id": "in.ae.exercise.resident.in_view",
+    "parent_jurisdiction": "IN",
+    "employee_jurisdiction": "AE",
+    "taxing_jurisdiction": "IN",
+    "event": "exercise",
+    "tax_status": "resident",
+    "tax_treatment": "no_tax",
+    "rate_description": "No India income tax for a UAE-resident employee with no Indian-source services during the vesting period. §5(2) limits non-resident taxation to income received / accruing / deemed-accruing in India. Services rendered wholly in the UAE are not deemed to accrue in India under §9(1)(ii). The Indian parent has IFRS / Ind AS 102 stock-based compensation accounting, but no TDS obligation under §192 because no Indian salary is paid.",
+    "withholding": "no",
+    "filing_requirement": "No Indian filing for the UAE-resident employee. The Indian parent has internal accounting but no TDS/payroll obligation.",
+    "documents_required": [],
+    "confidence": "conditional",
+    "citations": [
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 5(2) — scope of total income of a non-resident: income received, accruing, or deemed to accrue in India only",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "Income-tax Act, 1961",
+        "reference": "Section 9(1)(ii) — salary income is deemed to accrue in India only if earned in India; services rendered outside India are out of scope",
+        "source_url": "https://incometaxindia.gov.in/Pages/acts/income-tax-act.aspx",
+        "retrieved_on": "2026-05-12"
+      },
+      {
+        "authority": "India–UAE DTAA",
+        "reference": "Article 15 (Dependent Personal Services) — employment income taxable in state where services exercised",
+        "source_url": "https://incometaxindia.gov.in/Pages/international-taxation/dtaa.aspx",
+        "retrieved_on": "2026-05-12"
+      }
+    ],
+    "caveats": [
+      "If any portion of the vesting period involved services in India, that proportion of the gain is Indian-sourced and chargeable in India under §9(1)(ii). Verify Indian workday log — most Indian founders moving to UAE retain some India workdays in the early relocation period.",
+      "Confidence is CONDITIONAL because Indian-residency reclassification under §6 (183-day test or 60-day test for Indian citizens) is fact-specific. If the employee remains Indian-tax-resident in the year of exercise, the gain is taxed in India on worldwide-income basis under §5(1).",
+      "On subsequent sale of Indian-parent shares, capital gains arise in India under §9(1)(i) (Indian-company shares deemed situated in India), irrespective of the seller's residence."
+    ]
+  }
+]

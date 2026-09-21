@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -94,7 +95,7 @@ class SessionStore:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._cache: dict[str, dict] = {}
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.executescript(_SCHEMA)
             _ensure_columns(conn)
 
@@ -135,7 +136,7 @@ class SessionStore:
         resolutions_json = json.dumps(sess.get("resolutions", []))
         created_at = sess.get("created_at") or datetime.now(timezone.utc).isoformat()
         sess["created_at"] = created_at
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.execute(
                 """
                 INSERT INTO sessions
@@ -167,7 +168,7 @@ class SessionStore:
     def __contains__(self, token: str) -> bool:
         if token in self._cache:
             return True
-        with self._connect() as conn:
+        with closing(self._connect()) as conn:
             row = conn.execute(
                 "SELECT 1 FROM sessions WHERE token = ?", (token,)
             ).fetchone()
@@ -176,7 +177,7 @@ class SessionStore:
     def __getitem__(self, token: str) -> dict:
         if token in self._cache:
             return self._cache[token]
-        with self._connect() as conn:
+        with closing(self._connect()) as conn:
             row = conn.execute(
                 "SELECT * FROM sessions WHERE token = ?", (token,)
             ).fetchone()
@@ -209,17 +210,17 @@ class SessionStore:
 
     def clear(self) -> None:
         self._cache.clear()
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.execute("DELETE FROM sessions")
 
     def __len__(self) -> int:
-        with self._connect() as conn:
+        with closing(self._connect()) as conn:
             row = conn.execute("SELECT COUNT(*) AS n FROM sessions").fetchone()
         return int(row["n"])
 
     def list_sessions(self) -> list[dict]:
         """Return a lightweight summary of every persisted session, newest first."""
-        with self._connect() as conn:
+        with closing(self._connect()) as conn:
             rows = conn.execute(
                 """
                 SELECT token, created_at, fixture_id, cap_table_json, resolutions_json
@@ -256,7 +257,7 @@ class SessionStore:
         """Remove a session from cache + DB. Returns True if it existed."""
         existed = token in self._cache
         self._cache.pop(token, None)
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             cur = conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
             existed = existed or (cur.rowcount > 0)
         return bool(existed)

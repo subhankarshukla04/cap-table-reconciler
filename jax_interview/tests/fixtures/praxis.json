@@ -1,0 +1,14 @@
+{
+  "_scenario_name": "Praxis Labs — SG parent, India engineer exercises options",
+  "_narrative": "Praxis Labs Pte Ltd is Singapore-incorporated, 35-person team. Their senior engineer based in Bengaluru, employed by Praxis India Pvt Ltd subsidiary, has 10,000 vested options at $0.10 strike. FMV at exercise is $0.50. She exercises 4,000 options on 30 April 2026. The headline cross-border case.",
+  "parent_jurisdiction": "SG",
+  "employee_jurisdiction": "IN",
+  "event": "exercise",
+  "tax_status": "resident",
+  "grant_date": "2024-01-15",
+  "vesting_date": "2025-01-15",
+  "event_date": "2026-04-30",
+  "fmv_at_event": 0.50,
+  "exercise_price": 0.10,
+  "options_in_event": 4000
+}

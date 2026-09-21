@@ -12,8 +12,16 @@ FIXTURES = Path(__file__).parent.parent / "fixtures"
 
 
 def test_fixture_01_clean_has_no_blockers_or_warnings():
+    """The fixture was curated against the wave-1 baseline pack (8 rules).
+    Later packs add heuristic warnings (NVCA-PP-MISSING, ESOP-EARLY-EXERCISE-
+    UNADDRESSED, etc.) that this fixture intentionally doesn't satisfy.
+    Pin to the v1 pack to honour the original curation intent. The wave-5
+    test_rules_v2026_5 + wave-4 tests cover the newer-pack behaviour
+    against fixtures tailored for those rules."""
+    from src.rule_pack import load_pack_from_file
     cap_table = load_from_canonical_json(FIXTURES / "fixture_01_clean" / "cap_table_input.json")
-    findings = run_checklist(cap_table)
+    v1_pack = load_pack_from_file(Path("rule_packs/v2026.1.0.json"))
+    findings = run_checklist(cap_table, pack=v1_pack)
     blockers = [f for f in findings if f.severity == "blocker"]
     warnings = [f for f in findings if f.severity == "warning"]
     assert blockers == [], f"clean fixture should not produce blockers: {[f.code for f in blockers]}"

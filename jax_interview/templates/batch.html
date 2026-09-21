@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}ESOP Atlas — Batch CSV{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Batch verdicts — one CSV in, one Excel out</h1>
+  <p class="lede">
+    Upload a CSV of employees. The engine resolves each row against the same
+    {{ corpus_size }}-rule corpus and returns a single audit-grade workbook with
+    a Summary sheet (primary verdict + secondary perspectives + computed
+    taxable + weakest confidence), a Citations sheet (every primary-source
+    reference for every row), and an Inputs sheet (echoed inputs for the
+    audit trail).
+  </p>
+
+  {% if error %}
+    <div class="panel error-panel">
+      <strong>CSV error:</strong> {{ error }}
+    </div>
+  {% endif %}
+
+  <form action="/batch/run" method="post" enctype="multipart/form-data" class="query-form">
+    <div class="form-grid">
+      <label class="full-width">CSV file
+        <input type="file" name="csv" accept=".csv,text/csv" required>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Run batch → download Excel</button>
+      <a href="/batch/sample" class="btn-secondary">Download sample CSV template</a>
+    </div>
+  </form>
+
+  <section class="panel-inner">
+    <h3>CSV columns</h3>
+    <p>Header row required. Column order matters; missing values allowed for any optional date / numeric field.</p>
+    <table class="rule-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>employee_name</code></td><td>string</td><td>Optional. Used for output labelling only.</td></tr>
+        <tr><td><code>parent_jurisdiction</code></td><td>enum</td><td>SG / IN / ID / US / UK / HK / AE</td></tr>
+        <tr><td><code>employee_jurisdiction</code></td><td>enum</td><td>SG / IN / ID / US / UK / HK / AE</td></tr>
+        <tr><td><code>event</code></td><td>enum</td><td>grant / vest / exercise / sale / deemed_exercise</td></tr>
+        <tr><td><code>tax_status</code></td><td>enum</td><td>resident / non_resident (default: resident)</td></tr>
+        <tr><td><code>grant_date</code></td><td>YYYY-MM-DD</td><td>Optional</td></tr>
+        <tr><td><code>vesting_date</code></td><td>YYYY-MM-DD</td><td>Optional</td></tr>
+        <tr><td><code>event_date</code></td><td>YYYY-MM-DD</td><td>Optional</td></tr>
+        <tr><td><code>fmv_at_event</code></td><td>number ≥ 0</td><td>For exercise: FMV at event date</td></tr>
+        <tr><td><code>exercise_price</code></td><td>number ≥ 0</td><td>Strike price</td></tr>
+        <tr><td><code>options_in_event</code></td><td>integer ≥ 0</td><td>Shares exercised / sold</td></tr>
+      </tbody>
+    </table>
+  </section>
+</section>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}ESOP Atlas{% endblock %}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/static/css/atlas.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">ESOP Atlas</span>
+      <span class="brand-sub">Cross-Border Compliance · SG ↔ IN · v0.1</span>
+    </div>
+    <nav class="topnav">
+      <a href="/">Query</a>
+      <a href="/batch">Batch</a>
+      <a href="/sources">Sources</a>
+      <a href="/verdict/praxis">SG↔IN</a>
+      <a href="/verdict/pelaut">IN↔SG</a>
+      <a href="/verdict/solstice">SG-deemed</a>
+      <a href="/verdict/atlas_corp">US↔IN</a>
+      <a href="/verdict/avalon_uk">UK↔IN</a>
+      <a href="/verdict/horizon_hk">HK↔IN</a>
+      <a href="/verdict/zenith_ae">AE↔IN</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    <span>Audit-grade · deterministic · no LLM in calc · {{ corpus_size or 0 }} rules loaded</span>
+  </footer>
+</body>
+</html>

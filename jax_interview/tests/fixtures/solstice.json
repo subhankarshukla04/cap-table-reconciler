@@ -1,0 +1,14 @@
+{
+  "_scenario_name": "Solstice Holdings — Singapore deemed-exercise on cessation",
+  "_narrative": "Solstice Holdings Pte Ltd is Singapore-incorporated. An Indian-national employee on EP, non-citizen / non-PR, resigns after 18 months with 8,000 vested-but-unexercised options at $0.20 strike. Last-known FMV is $1.20. His last day is 15 April 2026. IRAS Form IR21 was filed 1 month prior — the deemed-exercise rule triggers and the SG employer must withhold final-pay until Tax Clearance Directive issues. The screen that makes Jax sit up.",
+  "parent_jurisdiction": "SG",
+  "employee_jurisdiction": "SG",
+  "event": "deemed_exercise",
+  "tax_status": "non_resident",
+  "grant_date": "2024-09-01",
+  "vesting_date": "2025-09-01",
+  "event_date": "2026-03-15",
+  "fmv_at_event": 1.20,
+  "exercise_price": 0.20,
+  "options_in_event": 8000
+}

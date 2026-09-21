@@ -1,0 +1,108 @@
+{% extends "base.html" if not request.headers.get('HX-Request') else "_naked.html" %}
+{% block title %}Verdict — ESOP Atlas{% endblock %}
+{% block content %}
+<article class="verdict {{ verdict.weakest_confidence.value }}">
+  <header class="verdict-head">
+    <div class="verdict-pair">
+      <span class="verdict-label">Parent</span>
+      <strong>{{ verdict.query.parent_jurisdiction.value }}</strong>
+      <span class="arrow">→</span>
+      <span class="verdict-label">Employee</span>
+      <strong>{{ verdict.query.employee_jurisdiction.value }}</strong>
+      <span class="event-chip">{{ verdict.query.event.value.replace('_',' ') }}</span>
+      <span class="status-chip">{{ verdict.query.tax_status.value.replace('_',' ') }}</span>
+    </div>
+    <div class="confidence-badge confidence-{{ verdict.weakest_confidence.value }}">
+      {{ verdict.weakest_confidence.value.replace('_',' ') }}
+    </div>
+  </header>
+
+  <p class="verdict-summary">{{ verdict.summary }}</p>
+
+  {% macro rule_block(rule, is_primary) %}
+  <section class="rule {% if is_primary %}rule-primary{% else %}rule-secondary{% endif %}">
+    <h3>
+      {% if is_primary %}Primary rule{% else %}Cross-border note · {{ rule.parent_jurisdiction.value }}{% endif %}
+      <code class="rule-id">{{ rule.rule_id }}</code>
+    </h3>
+    <table class="rule-table">
+      <tr><th>Tax treatment</th><td>{{ rule.tax_treatment.value.replace('_',' ') }}</td></tr>
+      <tr><th>Rate</th><td>{{ rule.rate_description }}</td></tr>
+      <tr><th>Withholding</th><td>{{ rule.withholding }}{% if rule.withholding_note %} — {{ rule.withholding_note }}{% endif %}</td></tr>
+      {% if rule.filing_requirement %}<tr><th>Filing</th><td>{{ rule.filing_requirement }}</td></tr>{% endif %}
+      {% if rule.documents_required %}
+      <tr><th>Documents</th><td>
+        <ul class="doc-list">
+          {% for d in rule.documents_required %}<li>{{ d }}</li>{% endfor %}
+        </ul>
+      </td></tr>
+      {% endif %}
+      <tr><th>Confidence</th><td><span class="confidence-{{ rule.confidence.value }}">{{ rule.confidence.value.replace('_',' ') }}</span></td></tr>
+    </table>
+
+    <div class="citations">
+      <h4>Citations</h4>
+      <ul>
+        {% for c in rule.citations %}
+        <li>
+          <strong>{{ c.authority }}</strong> — {{ c.reference }}
+          {% if c.source_url %}<a href="{{ c.source_url }}" target="_blank" rel="noopener">source</a>{% endif %}
+          {% if c.retrieved_on %}<span class="dt">verified {{ c.retrieved_on }}</span>{% endif %}
+          {% if c.note %}<div class="cite-note">{{ c.note }}</div>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% if rule.caveats %}
+    <div class="caveats">
+      <h4>Caveats</h4>
+      <ul>{% for c in rule.caveats %}<li>{{ c }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+  </section>
+  {% endmacro %}
+
+  {{ rule_block(verdict.primary_rule, True) }}
+  {% for r in verdict.secondary_rules %}
+    {{ rule_block(r, False) }}
+  {% endfor %}
+
+  {% if verdict.computed_amount_taxable is not none %}
+  <section class="computed">
+    <h3>Computed amount taxable</h3>
+    <p class="big-number">{{ "{:,.2f}".format(verdict.computed_amount_taxable) }}</p>
+    <p class="muted">= (FMV at event − exercise price) × options in event</p>
+  </section>
+  {% endif %}
+
+  <div class="export-bar">
+    <form method="post" action="/export/xlsx" style="display:inline">
+      <input type="hidden" name="parent_jurisdiction" value="{{ verdict.query.parent_jurisdiction.value }}">
+      <input type="hidden" name="employee_jurisdiction" value="{{ verdict.query.employee_jurisdiction.value }}">
+      <input type="hidden" name="event" value="{{ verdict.query.event.value }}">
+      <input type="hidden" name="tax_status" value="{{ verdict.query.tax_status.value }}">
+      {% if verdict.query.grant_date %}<input type="hidden" name="grant_date" value="{{ verdict.query.grant_date }}">{% endif %}
+      {% if verdict.query.vesting_date %}<input type="hidden" name="vesting_date" value="{{ verdict.query.vesting_date }}">{% endif %}
+      {% if verdict.query.event_date %}<input type="hidden" name="event_date" value="{{ verdict.query.event_date }}">{% endif %}
+      {% if verdict.query.fmv_at_event is not none %}<input type="hidden" name="fmv_at_event" value="{{ verdict.query.fmv_at_event }}">{% endif %}
+      {% if verdict.query.exercise_price is not none %}<input type="hidden" name="exercise_price" value="{{ verdict.query.exercise_price }}">{% endif %}
+      {% if verdict.query.options_in_event is not none %}<input type="hidden" name="options_in_event" value="{{ verdict.query.options_in_event }}">{% endif %}
+      <button type="submit" class="btn-secondary">Export Excel</button>
+    </form>
+    <form method="post" action="/pdf" style="display:inline">
+      <input type="hidden" name="parent_jurisdiction" value="{{ verdict.query.parent_jurisdiction.value }}">
+      <input type="hidden" name="employee_jurisdiction" value="{{ verdict.query.employee_jurisdiction.value }}">
+      <input type="hidden" name="event" value="{{ verdict.query.event.value }}">
+      <input type="hidden" name="tax_status" value="{{ verdict.query.tax_status.value }}">
+      {% if verdict.query.grant_date %}<input type="hidden" name="grant_date" value="{{ verdict.query.grant_date }}">{% endif %}
+      {% if verdict.query.vesting_date %}<input type="hidden" name="vesting_date" value="{{ verdict.query.vesting_date }}">{% endif %}
+      {% if verdict.query.event_date %}<input type="hidden" name="event_date" value="{{ verdict.query.event_date }}">{% endif %}
+      {% if verdict.query.fmv_at_event is not none %}<input type="hidden" name="fmv_at_event" value="{{ verdict.query.fmv_at_event }}">{% endif %}
+      {% if verdict.query.exercise_price is not none %}<input type="hidden" name="exercise_price" value="{{ verdict.query.exercise_price }}">{% endif %}
+      {% if verdict.query.options_in_event is not none %}<input type="hidden" name="options_in_event" value="{{ verdict.query.options_in_event }}">{% endif %}
+      <button type="submit" class="btn-secondary">Export PDF (advisory memo)</button>
+    </form>
+  </div>
+</article>
+{% endblock %}

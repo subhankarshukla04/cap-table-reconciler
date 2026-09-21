@@ -1,0 +1,126 @@
+{% extends "engagement/base.html" %}
+{% block title %}Diff — {{ engagement.client_id }}{% endblock %}
+{% block content %}
+<div class="nav">
+  <a href="/engagement/?html=1">← All engagements</a>
+  <a href="/engagement/{{ engagement.id }}?html=1">Detail</a>
+  <a href="/engagement/{{ engagement.id }}/snapshots?html=1">Snapshots</a>
+</div>
+
+<h1>Snapshot diff</h1>
+<p class="small">
+  {{ engagement.client_id | e }} · {{ diff.snapshots|length }} snapshots side-by-side
+  · <strong>{{ diff.classes_changed }}</strong> class{% if diff.classes_changed != 1 %}es{% endif %} changed
+  {% if diff.classes_added %} · +{{ diff.classes_added }} added{% endif %}
+  {% if diff.classes_removed %} · -{{ diff.classes_removed }} removed{% endif %}
+</p>
+
+{% set legend_styles = {
+  'none': 'background:#f4f4f4; color:#555;',
+  'minor': 'background:#e6f0fb; color:#1f4d8a;',
+  'material': 'background:#fff0c8; color:#7a5b00;',
+  'major': 'background:#fde2e2; color:#8a1f1f;',
+} %}
+<p>
+  <span class="small">Magnitude:</span>
+  {% for t in ['none', 'minor', 'material', 'major'] %}
+    <span class="pill" style="{{ legend_styles[t] }} margin-right:6pt;">{{ t }}</span>
+  {% endfor %}
+  <a class="btn secondary" style="float:right; margin-left:8pt;"
+     href="/engagement/{{ engagement.id }}/diff.xlsx?{% for s in diff.snapshots %}snap={{ s.id }}{% if not loop.last %}&{% endif %}{% endfor %}">
+    Export as workpaper (xlsx)
+  </a>
+</p>
+
+<h2>Snapshot headers</h2>
+<table class="data" style="font-size:12px;">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Snapshot</th>
+      <th>Created</th>
+      <th>By</th>
+      <th>Change note</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in diff.snapshots %}
+    <tr>
+      <td><strong>S{{ loop.index }}</strong></td>
+      <td><code>{{ s.id[:8] }}</code></td>
+      <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>{{ s.created_by | e }}</td>
+      <td>
+        {% if s.change_note %}{{ s.change_note | e }}{% else %}<span class="muted">—</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Per-class drift</h2>
+{% if not diff.class_rows %}
+  <p class="muted">No share classes to compare (all snapshots redacted?).</p>
+{% else %}
+<table class="data" style="font-size:12px;">
+  <thead>
+    <tr>
+      <th>Class</th>
+      <th>Magnitude</th>
+      <th>Field</th>
+      {% for s in diff.snapshots %}
+        <th>S{{ loop.index }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in diff.class_rows %}
+      {% set tier = row.overall_tier %}
+      {% set row_style = legend_styles[tier] %}
+      <tr>
+        <td rowspan="6"><strong>{{ row.class_name | e }}</strong></td>
+        <td rowspan="6"><span class="pill" style="{{ row_style }}">{{ tier }}</span></td>
+        <td>shares_outstanding</td>
+        {% for v in row.views %}
+          <td class="num" style="{% if v.shares_outstanding is none %}color:#999;{% endif %}">
+            {% if v.shares_outstanding is not none %}{{ "{:,}".format(v.shares_outstanding) }}{% else %}—{% endif %}
+          </td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>issue_price</td>
+        {% for v in row.views %}
+          <td class="num">
+            {% if v.issue_price is not none %}{{ "%.4f"|format(v.issue_price) }}{% else %}—{% endif %}
+          </td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>seniority_rank</td>
+        {% for v in row.views %}
+          <td class="num">{{ v.seniority_rank if v.seniority_rank is not none else '—' }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>liquidation_preference</td>
+        {% for v in row.views %}
+          <td>{{ v.lp_variant_label if v.lp_variant_label else '—' }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>conversion_ratio</td>
+        {% for v in row.views %}
+          <td class="num">{{ v.conversion_ratio if v.conversion_ratio is not none else '—' }}</td>
+        {% endfor %}
+      </tr>
+      <tr style="border-bottom: 2pt solid #999;">
+        <td>anti_dilution</td>
+        {% for v in row.views %}
+          <td>{{ v.anti_dilution_variant if v.anti_dilution_variant else '—' }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

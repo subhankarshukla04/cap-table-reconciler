@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cap Table Reconciler — How it works, what it does, what it cost to build</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --ink-soft: #555;
+      --paper: #fbfaf7;
+      --rule: #d8d4c8;
+      --accent: #1f4d8a;
+      --accent-soft: #e6f0fb;
+      --warn: #7a5b00;
+      --warn-soft: #fff0c8;
+      --block: #8a1f1f;
+      --block-soft: #fde2e2;
+      --ok: #2d6a30;
+      --ok-soft: #d6efd9;
+      --code: #f4f1ea;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      font-size: 16px;
+    }
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 48px 28px 96px;
+    }
+    h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+    h1 { font-size: 32pt; margin: 0 0 8pt; color: var(--ink); }
+    h2 { font-size: 18pt; margin: 56pt 0 14pt; padding-bottom: 6pt; border-bottom: 1pt solid var(--rule); }
+    h3 { font-size: 13pt; margin: 28pt 0 8pt; color: var(--ink); }
+    h4 { font-size: 11pt; margin: 18pt 0 4pt; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+    p, ul, ol { margin: 0 0 12pt; }
+    ul, ol { padding-left: 22pt; }
+    li { margin-bottom: 4pt; }
+    code, pre {
+      font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 11pt;
+    }
+    code {
+      background: var(--code);
+      padding: 1pt 5pt;
+      border-radius: 2pt;
+    }
+    pre {
+      background: var(--code);
+      padding: 12pt 14pt;
+      border-radius: 4pt;
+      overflow-x: auto;
+      border-left: 3pt solid var(--accent);
+      font-size: 10.5pt;
+      line-height: 1.55;
+    }
+    pre code { background: none; padding: 0; }
+    a { color: var(--accent); text-decoration: none; border-bottom: 1pt solid var(--accent-soft); }
+    a:hover { border-bottom-color: var(--accent); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12pt 0 18pt;
+      font-size: 11pt;
+    }
+    th, td {
+      padding: 8pt 10pt;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1pt solid var(--rule);
+    }
+    th {
+      background: transparent;
+      font-weight: 600;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      font-size: 9pt;
+      letter-spacing: 0.05em;
+    }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .tagline {
+      font-size: 13pt;
+      color: var(--ink-soft);
+      margin: 0 0 36pt;
+      max-width: 640px;
+    }
+    .meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6pt 14pt;
+      margin: 6pt 0 24pt;
+      font-size: 10pt;
+      color: var(--ink-soft);
+    }
+    .meta-strip span { display: inline-block; }
+    .meta-strip strong { color: var(--ink); }
+    .lede {
+      background: var(--accent-soft);
+      border-left: 4pt solid var(--accent);
+      padding: 16pt 20pt;
+      margin: 0 0 32pt;
+      border-radius: 0 4pt 4pt 0;
+      font-size: 13pt;
+      line-height: 1.55;
+    }
+    .lede strong { color: var(--accent); }
+    .pill {
+      display: inline-block;
+      padding: 2pt 9pt;
+      border-radius: 12pt;
+      font-size: 10pt;
+      font-weight: 500;
+      vertical-align: 1pt;
+    }
+    .pill.accent { background: var(--accent-soft); color: var(--accent); }
+    .pill.ok { background: var(--ok-soft); color: var(--ok); }
+    .pill.warn { background: var(--warn-soft); color: var(--warn); }
+    .pill.block { background: var(--block-soft); color: var(--block); }
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160pt, 1fr));
+      gap: 12pt;
+      margin: 18pt 0 32pt;
+    }
+    .stat {
+      padding: 14pt 16pt;
+      background: #fff;
+      border: 1pt solid var(--rule);
+      border-radius: 4pt;
+    }
+    .stat .n {
+      font-size: 22pt;
+      font-weight: 600;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 4pt;
+    }
+    .stat .label {
+      font-size: 10pt;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .flow {
+      background: #fff;
+      border: 1pt solid var(--rule);
+      border-radius: 4pt;
+      padding: 18pt 22pt;
+      margin: 14pt 0 24pt;
+      font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 10pt;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    details {
+      margin: 8pt 0;
+      border: 1pt solid var(--rule);
+      border-radius: 4pt;
+      padding: 0;
+      background: #fff;
+    }
+    details > summary {
+      cursor: pointer;
+      padding: 10pt 14pt;
+      font-weight: 500;
+      font-size: 12pt;
+      list-style: none;
+    }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::before {
+      content: "+ ";
+      color: var(--accent);
+      font-weight: 600;
+    }
+    details[open] > summary::before { content: "− "; }
+    details > div { padding: 0 14pt 14pt; }
+    .footnote {
+      font-size: 10pt;
+      color: var(--ink-soft);
+      margin-top: 4pt;
+    }
+    .callout {
+      border-left: 3pt solid var(--ink-soft);
+      padding: 4pt 0 4pt 14pt;
+      margin: 14pt 0;
+      color: var(--ink-soft);
+      font-size: 11pt;
+    }
+    hr {
+      border: none;
+      border-top: 1pt solid var(--rule);
+      margin: 36pt 0;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20pt;
+      margin: 14pt 0;
+    }
+    @media (max-width: 720px) {
+      h1 { font-size: 26pt; }
+      h2 { font-size: 16pt; }
+      .two-col { grid-template-columns: 1fr; }
+      .flow { font-size: 9pt; }
+    }
+    @media print {
+      body { background: white; }
+      .wrap { max-width: none; padding: 0; }
+      details > div { padding: 0 14pt 14pt; }
+      details { break-inside: avoid; }
+      pre, .flow { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Cap Table Reconciler</h1>
+<p class="tagline">
+  The part of the cap-table workpaper that sits <em>before</em> the model.
+  An expert-led tool for the international-valuations workflow: parse the
+  messy file, point at every gap, persist the engagement, and hand the
+  partner a Big 4 portable bundle. No fair-value opinion. No LLM in the
+  calculation pipeline.
+</p>
+
+<div class="meta-strip">
+  <span><strong>9 build waves</strong> · <strong>9 independent audits</strong></span>
+  <span><strong>842</strong> regression tests</span>
+  <span><strong>60</strong> deterministic rules across <strong>6</strong> pinned packs</span>
+  <span><strong>~20k</strong> lines of Python and Jinja</span>
+</div>
+
+<div class="lede">
+  Most analyst hours on a private-company valuation aren't spent on
+  judgment. They're spent reconciling what the client sent. A stale
+  option pool. A SAFE that should have converted at the last round.
+  A side letter with terms nobody transcribed. An anti-dilution column
+  that says <em>"see charter."</em> <strong>This tool ingests that file,
+  points at every gap, and produces structured output an analyst can
+  hand to an OPM, Backsolve, or DCF.</strong>
+</div>
+
+<h2>1. What it actually does</h2>
+
+<p>
+  Walks one cap table from a raw <code>.xlsx</code> upload to a Big 4
+  portable <code>bundle.zip</code>. Every step in between is
+  audit-defensible, byte-stable where the spec requires it, and
+  hash-chained so an offline reviewer six months later can re-prove
+  every decision.
+</p>
+
+<div class="flow">analyst (cookie + CSRF)              partner / reviewer            big-4 reviewer
+   |                                  |                              |
+ POST /login                          |                              |
+   |                                  |                              |
+ POST /engagement/                    |                              |
+   |  (create + bind v2026.6.0 pack)  |                              |
+   |                                  |                              |
+ POST /upload (+ change_note)         |                              |
+   |  (snapshot saved; 60 rules run)  |                              |
+   |                                  |                              |
+ POST /resolve  per finding           |                              |
+   |  (decision + citation required)  |                              |
+   |                                  |                              |
+ POST /transition  open -> review     |                              |
+   |  -------------------------------&gt;|                              |
+   |                                  |                              |
+   |                       POST /transition  review -> signed        |
+   |                       (blocker-resolution gate fires)           |
+   |                                  |                              |
+ GET /memo.pdf                        |                              |
+ GET /diff.xlsx, /diff.pdf            |                              |
+ GET /bundle.zip ------------------------------------------------&gt; |
+                                                                    |
+                                          offline recompute:
+                                          audit_log SHA-256 chain
+                                          per-file SHA-256 manifest
+                                          re-run pack vs head snapshot</div>
+
+<p class="footnote">
+  Every arrow is a real HTTP endpoint with role-based auth, optimistic
+  concurrency, a CSRF gate on cookie paths, and an audit-log event
+  appended to a per-engagement hash chain.
+</p>
+
+<h2>2. The posture: expert-led, not algorithm-only</h2>
+
+<p>
+  The tool is built around one founding constraint: the analyst keeps
+  the judgment. The engine never picks volatility. Never picks a DLOM.
+  Never decides whether a side-letter clause is material. Never
+  computes a fair-value opinion. When the input is too messy to
+  defensibly compute on, the tool refuses and writes the punch list.
+  That refusal is the deliverable.
+</p>
+
+<div class="two-col">
+  <div>
+    <h4>The engine DOES</h4>
+    <ul>
+      <li>Parse the messy <code>.xlsx</code> (date coercion, instrument-type aliases, embedded subtotals)</li>
+      <li>Run 60 deterministic rules with citations</li>
+      <li>Compute the breakpoint waterfall</li>
+      <li>Persist every snapshot immutably with a hash chain</li>
+      <li>Produce static + live-formula + DCF + memo + bundle exports</li>
+      <li>Run OPM Backsolve when the analyst hands it every market input</li>
+      <li>Track the chronological snapshot timeline with magnitude-tiered drift</li>
+    </ul>
+  </div>
+  <div>
+    <h4>The engine REFUSES to</h4>
+    <ul>
+      <li>Pick a volatility, TTL, or risk-free rate</li>
+      <li>Decide which AD variant the charter "really" means</li>
+      <li>Auto-convert SAFEs (too many opinions baked in)</li>
+      <li>Run an LLM over the side letter to extract terms</li>
+      <li>Compute a 409A opinion</li>
+      <li>Pass a sign-off if blocker findings stay unresolved</li>
+      <li>Render any field for a redacted snapshot, anywhere downstream</li>
+    </ul>
+  </div>
+</div>
+
+<h2>3. How a snapshot becomes a workpaper</h2>
+
+<h3>Step 1. Parse</h3>
+<p>
+  <code>src/parser.py</code> locates the cap-table tab by name pattern,
+  finds the header row inside the first dozen rows even when title rows
+  precede it, normalises eight common date formats to ISO, coerces
+  instrument-type aliases (<code>CCPS</code>, <code>RCPS</code>,
+  <code>Ordinary</code>) to the canonical enum, and skips embedded
+  subtotal rows. Returns a <code>CapTable</code> Pydantic v2 model and a
+  <code>ParseReport</code> listing every column it inferred and every
+  row it dropped.
+</p>
+
+<h3>Step 2. Run the rule pack</h3>
+<p>
+  60 hand-authored rules across six chronologically-pinned packs
+  (<code>v2026.1.0</code> through <code>v2026.6.0</code>). Each rule is
+  a <code>@rule</code>-decorated function with a stable id, a severity
+  tier (blocker / warning / info), and a citation. The engagement binds
+  the head pack at creation time and freezes the bytes
+  (<code>bound_pack_json</code>), so any later re-run uses the same pack
+  the engagement was originally judged under.
+</p>
+<div class="callout">
+  Examples: <code>G-AD-001</code> flags a preferred class with blank
+  anti-dilution. <code>G-WAR-002</code> flags a warrant past its expiry.
+  <code>G-SAFE-001</code> flags an unconverted SAFE past its trigger
+  threshold. <code>G-IN-002</code> flags a FEMA foreign-currency price-floor
+  breach. Each emits a <code>Finding</code> with the rule id, severity,
+  cited field paths, and the rule's citation.
+</div>
+
+<h3>Step 3. Adjudicate inline</h3>
+<p>
+  The HTMX UI surfaces every finding with an inline form. Decision
+  (free text or JSON) plus citation (required) lands as an immutable
+  <code>Resolution</code> linked to the snapshot id. The hash chain
+  appends a <code>resolution_recorded</code> event capturing who
+  resolved what with what citation.
+</p>
+
+<h3>Step 4. Persist the engagement</h3>
+<p>
+  Status lifecycle: <code>open</code> &rarr; <code>review</code> &rarr;
+  <code>signed</code> &rarr; <code>archived</code> (with controlled
+  90-day restore window). Every transition gated on role permission and
+  optimistic-concurrency version match. Every event appended to a
+  per-engagement SHA-256 hash chain. The chain looks like:
+</p>
+<pre><code>row_hash = SHA256(prev_row_hash || canonical_payload)
+canonical_payload = event_type | actor | ts_iso | payload_json
+genesis  = "00" * 32</code></pre>
+
+<h3>Step 5. Export the workpaper</h3>
+<p>Five artifacts ship out the analyst's door:</p>
+<table>
+  <thead>
+    <tr><th>Artifact</th><th>Purpose</th><th>Byte-stable?</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>memo.pdf</code></td>
+      <td>WeasyPrint audit memo with structured facts pre-filled and <code>[ANALYST]</code> placeholders where judgment belongs. New "Snapshot drift" section auto-embeds the magnitude-tiered drift table across the engagement's snapshot chain. New "Rule provenance" column shows each finding's <code>rule_id (pack_version) + citation</code>.</td>
+      <td>Cover timestamp pinned to <code>engagement.created_at</code>; rest of body byte-stable</td>
+    </tr>
+    <tr>
+      <td><code>diff.xlsx</code> + <code>diff.pdf</code></td>
+      <td>N-way snapshot diff workpaper. 3 tabs: Summary, Class Drift (one row per class × field with magnitude tier), Snapshots. Colour-coded fills mirror the HTML UI tiers.</td>
+      <td>Yes (workbook properties pinned + zip envelope rewritten + <code>core.xml</code> modified-timestamp scrubbed)</td>
+    </tr>
+    <tr>
+      <td><code>cap_table_clean.xlsx</code></td>
+      <td>Static structured output with cap-table / convertibles / side-letters / breakpoints / findings tabs.</td>
+      <td>Yes (same stability post-process)</td>
+    </tr>
+    <tr>
+      <td><code>cap_table_live.xlsx</code></td>
+      <td>Live-formula workbook. Edit a share count in Excel; breakpoints and chart redraw natively via IF + SUMPRODUCT against named input ranges.</td>
+      <td>Yes (same stability post-process)</td>
+    </tr>
+    <tr>
+      <td><code>bundle.zip</code></td>
+      <td>Portable Big 4 hand-off. Every snapshot, resolution, the bound pack bytes, the full audit log as JSONL, the memo, plus a SHA-256 manifest and a verification recipe in <code>README.md</code>.</td>
+      <td>Yes (every <code>ZipInfo.date_time</code> pinned to DOS epoch; <code>generated_at</code> sourced from <code>engagement.created_at</code>)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. The Big 4 hand-off</h2>
+<p>
+  A Big 4 reviewer downloads <code>bundle.zip</code>, opens it on their
+  laptop with no network, and verifies the engagement from genesis:
+</p>
+<ol>
+  <li>Read <code>audit_log.jsonl</code> line by line.</li>
+  <li>Start <code>prev = "00" * 32</code>.</li>
+  <li>For each event, recompute <code>SHA-256(prev_row_hash || canonical_payload)</code> and confirm it equals the stored <code>row_hash</code>.</li>
+  <li>Set <code>prev = row_hash</code> and continue.</li>
+  <li>The final event's <code>row_hash</code> MUST equal <code>manifest.audit_head_hash</code>.</li>
+  <li>For each file in the bundle, recompute SHA-256 and confirm it matches the manifest entry.</li>
+  <li>Re-load <code>rule_pack.json</code> and re-run it against the head snapshot's cap table. Compare findings to the memo + the resolution events.</li>
+</ol>
+<p>
+  If any step fails, the engagement has been tampered with after
+  generation. If every step passes, the reviewer has independently
+  re-proven the entire analyst workflow without access to the running
+  system.
+</p>
+
+<h2>5. The architecture</h2>
+
+<h3>What lives where</h3>
+<pre><code>src/
+  parser.py              # Excel -> CapTable (header inference, alias map, date coercion)
+  models.py              # Pydantic v2 schema (CapTable, ShareClass, LP, SAFE, ...)
+  checklist.py           # 60-rule registry with @rule decorator
+  rules_v2026_{1..6}.py  # six chronologically-pinned rule packs
+  rule_pack.py           # pack loading, head_pack(today), startup collision guard
+  waterfall.py           # breakpoint + allocation engine
+  diff.py                # pairwise cap-table diff
+  snapshot_timeline.py   # N-way diff primitive with magnitude tiers
+  diff_workpaper.py      # xlsx workpaper builder (byte-stable)
+  formula_workbook.py    # live-formula xlsx exporter
+  dcf_sidecar.py         # DCF input sidecar + vol-pack suggestions
+  dcf_template.py        # DCF template with external-link refs to sidecar
+  opm/backsolve.py       # OPM Backsolve solver (brentq + BSM allocation)
+  opm/vol_pack.py        # volatility input pack
+  audit_memo.py          # markdown memo skeleton
+  pdf_memo.py            # PDF memo + diff workpaper PDF (WeasyPrint)
+  engagement.py          # EngagementStore (SQLite), hash chain, redaction, archival
+  engagement_routes.py   # Flask blueprint: REST + HTMX UI
+  engagement_bundle.py   # Big-4-portable bundle.zip builder (byte-stable)
+  cookie_auth.py         # HMAC-signed session cookies + CSRF + Bearer revocation
+  token_deny.py          # Bearer revocation deny list (SQLite, WAL, 30d TTL)
+  xlsx_stability.py      # shared workbook-property pinning + zip post-process
+  identity.py            # IdentityProvider abstraction + StubSSOProvider
+  rate_limit.py          # per-user calendar-hour rate limiter
+  subsequent_events.py   # rollup of resolved findings across snapshots
+</code></pre>
+
+<h3>Two surfaces, one engine</h3>
+<p>
+  Every flow exists in both forms. The HTMX UI (<code>/engagement/...?html=1</code>)
+  is the browser-driven analyst path. The JSON API is the same routes
+  with <code>Accept: application/json</code> or no <code>?html=1</code>.
+  Content negotiation lives in one decorator
+  (<code>_engagement_errors</code>) so error responses render the
+  styled error page for the HTMX path and a stable error code body for
+  the API path.
+</p>
+
+<h2>6. The audit loop that built it</h2>
+
+<p>
+  Each wave shipped under the same six-step ritual:
+</p>
+<ol>
+  <li><strong>Build</strong> the planned items (5 to 13 per wave).</li>
+  <li><strong>Test</strong> with per-item regression coverage.</li>
+  <li><strong>Dispatch</strong> an independent auditor against ONLY the wave's deltas.</li>
+  <li><strong>Triage</strong> findings into fix-now vs defer with rationale.</li>
+  <li><strong>Fix</strong> with one regression test per audit finding code.</li>
+  <li><strong>Document</strong> in a <code>BUILD_WAVE_N.md</code> + <code>SYSTEM_AUDIT_WAVE_N.md</code> pair.</li>
+</ol>
+<p>
+  Every audit finding has a stable ID (<code>B-W7-1</code>,
+  <code>W8-M3</code>, <code>SD-AUD-W9-B1</code>, etc). Every fix has a
+  test named for the ID. When a future change reintroduces the bug, the
+  test fails with the finding code in its name, and the audit doc
+  explains the original context.
+</p>
+
+<h2>7. What each wave shipped</h2>
+
+<details>
+  <summary>Wave 1 (foundation): parse + checklist + waterfall + live-formula xlsx</summary>
+  <div>
+    <p>The walking skeleton. <code>parse_excel</code> turns a messy
+    workbook into a <code>CapTable</code>. The checklist runs 8 rules.
+    The waterfall computes breakpoints across non-participating,
+    participating-uncapped, and participating-capped (including the
+    senior-above-capped edge). The live-formula xlsx exporter writes a
+    workbook the analyst can edit in Excel with the breakpoints and
+    chart redrawing natively. 5 curated fixtures plus a holder-level
+    stress test.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 2: engagement model, hash chain, role-based auth, optimistic concurrency, PDPA redaction</summary>
+  <div>
+    <p>Turned the demo into a system. SQLite-backed
+    <code>EngagementStore</code> with a per-engagement append-only
+    SHA-256 hash chain. Four roles (analyst, reviewer, partner,
+    read-only auditor) with a permission matrix codifying SYSTEM_SPEC
+    §3.2. Optimistic concurrency on every mutation via atomic
+    conditional UPDATE plus rowcount check. PDPA right-to-erasure via a
+    redaction sentinel that overwrites <code>cap_table_json</code> but
+    preserves the audit log.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 3: PDF audit memo, byte-stable bundle, rate limiting, subsequent events</summary>
+  <div>
+    <p>The exporter half. WeasyPrint PDF memo with structured-fact
+    pre-fill and explicit <code>[ANALYST]</code> placeholders.
+    Portable <code>bundle.zip</code> with a SHA-256 manifest and an
+    offline-verification recipe. Per-user calendar-hour rate limit
+    (<code>ExportRateLimiter</code>) on memo + bundle. Subsequent-events
+    rollup that anchors against <code>engagement.head_snapshot_id</code>
+    so prior resolutions stay visible across snapshot uploads.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 4: HTMX UI, DCF sidecar + template, valuation_date typing, what-if scenarios</summary>
+  <div>
+    <p>The browser-driven surface. Content-negotiation per route so the
+    same endpoint serves JSON to API clients and HTML to browsers.
+    <code>dcf_sidecar.py</code> emits a named-range workbook the analyst
+    points their DCF model at. <code>dcf_template.py</code> consumes the
+    sidecar via Excel external-link references. <code>valuation_date</code>
+    typed as <code>date | None</code> at the API boundary. <code>/whatif</code>
+    HTMX panel for in-place sensitivity scenarios.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 5: cookie auth, snapshot-aware what-if form, inline resolution, snapshot diff, rule pack v6 (60 rules)</summary>
+  <div>
+    <p>HTMX usability + cookie auth + rule depth. HMAC-SHA256 signed
+    session cookies (httponly, SameSite=Strict). Inline finding
+    resolution form per row. Snapshot-aware /whatif form rendered per
+    preferred class. Separate compute rate limit for /whatif. Rule pack
+    grew to 60 across jurisdictional flags (FEMA, IRAS, §409A) and
+    structural checks. First stitched system audit found 6 blockers at
+    the wave seams; all closed in the same wave.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 6: CSRF protection, Bearer revocation, startup collision check, cross-wave integration tests</summary>
+  <div>
+    <p>The pre-prod hardening wave. Double-submit CSRF token pattern on
+    every cookie-authed POST (Bearer paths exempt). Server-side Bearer
+    revocation deny list (SQLite, WAL, 30-day TTL, hash-only storage).
+    Startup guard refuses to boot on duplicate <code>Finding.code</code>
+    across the rule registry. Cross-wave integration tests that drive
+    one engagement through every wave's surface end-to-end, the audit's
+    #1 ask after wave 5 caught 6 seam bugs that no unit test could find.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 7: multi-snapshot timeline + N-way diff + xlsx workpaper export</summary>
+  <div>
+    <p>The most analyst-visible wave. Chronological snapshot timeline
+    UI. N-way diff endpoint accepting 2+ snapshot ids. Magnitude
+    classification per (class, field) cell: <span class="pill ok">none</span>
+    <span class="pill accent">minor</span> <span class="pill warn">material</span>
+    <span class="pill block">major</span> based on percentage drift,
+    presence change, or categorical change. xlsx workpaper export with
+    3 tabs (Summary / Class Drift / Snapshots). Per-snapshot
+    <code>change_note</code> field carries analyst rationale through to
+    the workpaper.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 8: prod-readiness sweep (every deferred audit item that didn't need Evelyn)</summary>
+  <div>
+    <p>Demo-surface gates (<code>ALLOW_STUB_SSO</code>,
+    <code>ALLOW_PHASE_0_DEMO</code> env flags). OCI engine-version env
+    var (<code>QAPITA_ENGINE_COMMIT</code>). Three xlsx producers now
+    fully byte-stable via shared <code>xlsx_stability.py</code> helper
+    (pin workbook properties + rewrite zip envelope + scrub
+    <code>core.xml</code> modified-timestamp). <code>/readyz</code>
+    endpoint with SRE-grade state. Three ops CLI commands
+    (<code>prune-deny-list</code>, <code>prune-rate-limits</code>,
+    <code>hard-delete-archived</code>). Engagement archival with 90-day
+    restore window. PDF memo auto-embeds snapshot drift section.
+    Diff workpaper PDF (<code>/diff.pdf</code>) ships alongside the xlsx.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Wave 9: rule provenance in memo, OPM Backsolve route, vol-pack suggestions, CSRF rotation, snapshots pagination</summary>
+  <div>
+    <p>Three Evelyn-independent capabilities plus deferred-item cleanup.
+    PDF memo's findings table grew a "Rule provenance" column showing
+    each finding's <code>rule_id (pack_version) + citation</code>.
+    <code>POST /engagement/&lt;id&gt;/opm</code> runs OPM Backsolve
+    against the head snapshot with the analyst supplying every market
+    input (the tool refuses to pick volatility or DLOM). Vol-pack
+    readback surfaces as analyst-overridable suggestions in the DCF
+    sidecar Read-me sheet, not as defined names the DCF model
+    auto-pulls. CSRF tokens carry an issuance-time prefix and rotate
+    every hour. Snapshots pagination pushed into SQL. Rule-coverage CLI
+    reports rule_id → fixtures.</p>
+  </div>
+</details>
+
+<h2>8. The numbers</h2>
+
+<div class="grid-stats">
+  <div class="stat">
+    <div class="n">842</div>
+    <div class="label">Regression tests</div>
+  </div>
+  <div class="stat">
+    <div class="n">9</div>
+    <div class="label">Independent audits</div>
+  </div>
+  <div class="stat">
+    <div class="n">60</div>
+    <div class="label">Deterministic rules</div>
+  </div>
+  <div class="stat">
+    <div class="n">6</div>
+    <div class="label">Chronological packs</div>
+  </div>
+  <div class="stat">
+    <div class="n">~20k</div>
+    <div class="label">Lines of Python + Jinja</div>
+  </div>
+  <div class="stat">
+    <div class="n">9</div>
+    <div class="label">Build waves</div>
+  </div>
+  <div class="stat">
+    <div class="n">7</div>
+    <div class="label">Spec amendment rounds</div>
+  </div>
+  <div class="stat">
+    <div class="n">0</div>
+    <div class="label">LLMs in calc pipeline</div>
+  </div>
+</div>
+
+<p class="footnote">
+  Every audit finding ID is encoded into a regression test name. When a
+  future change re-introduces an old bug, the failing test name (e.g.
+  <code>test_w7b1_redaction_zeros_change_note_in_db</code>) traces back
+  to the exact section of the audit doc that originally caught it.
+</p>
+
+<h2>9. How it helps an international-valuations analyst</h2>
+
+<h3>Day 1 of a new engagement</h3>
+<p>
+  Drag the client's <code>.xlsx</code> into the upload form. The parse
+  report shows every column the engine inferred and every row it
+  dropped. The findings page lists every gap, ranked by severity, each
+  with a citation. The analyst goes through them in order. Within the
+  first sitting, the engagement either has a clean head snapshot ready
+  for downstream work, or a defensible refusal email to send back to
+  the CFO.
+</p>
+
+<h3>Subsequent rounds</h3>
+<p>
+  Every snapshot uploaded carries a <code>change_note</code>
+  ("Series C closing 2026-03-15", "Q1 cap update from finance team").
+  The snapshot timeline page shows them all chronologically. The
+  N-way diff endpoint compares any 2+ snapshots side-by-side with
+  magnitude tiers per (class, field) cell. The same diff exports as a
+  xlsx or PDF workpaper for the partner review meeting.
+</p>
+
+<h3>Sign-off</h3>
+<p>
+  Partner clicks "Move to signed." The lifecycle gate refuses if any
+  blocker finding is unresolved. PDF memo auto-generates with the
+  "Snapshot drift" section auto-embedded so the partner sees what
+  changed across the engagement's history without leaving the document.
+  The "Rule provenance" column tells the partner exactly which rule
+  caught what.
+</p>
+
+<h3>Big 4 review six months later</h3>
+<p>
+  Reviewer downloads <code>bundle.zip</code>. Recomputes the hash chain
+  offline. Re-runs the bound rule pack against the head snapshot
+  without the running system. Diffs the recomputed findings against the
+  memo. Every analyst decision shows up in the audit log as an
+  immutable event with citation. The reviewer either agrees or has a
+  surgical line to question, never a "the system did it" mystery.
+</p>
+
+<h2>10. What's done vs what waits for Evelyn</h2>
+
+<div class="two-col">
+  <div>
+    <h4>Done without her input</h4>
+    <ul>
+      <li>The full analyst workflow end-to-end</li>
+      <li>9 audit cycles + fix batches</li>
+      <li>Big 4 portable bundle with offline verification</li>
+      <li>Snapshot timeline + N-way diff + workpaper exports</li>
+      <li>OPM Backsolve engagement-bound route</li>
+      <li>CSRF, Bearer revocation, deny list, rate limiting</li>
+      <li>Archival lifecycle with 90-day restore window</li>
+      <li>Operational CLI (prune jobs, rule coverage, hard delete)</li>
+      <li>SRE-grade <code>/readyz</code> with auth-gated detailed variant</li>
+      <li>Spec round 7; 7 rounds of amendments since wave 1</li>
+    </ul>
+  </div>
+  <div>
+    <h4>Waiting on her input</h4>
+    <ul>
+      <li>Real OIDC/SAML endpoint and JWT claim mapping</li>
+      <li>Production database choice (Postgres swap is mechanical once she names it)</li>
+      <li>KMS / backup destination</li>
+      <li>Legal sign-off on the 90-day restore window number</li>
+      <li>Firm-specific rule pack content from her actual playbook</li>
+      <li>Reviewer-assignment table tied to her org structure</li>
+      <li>Tenancy isolation model (multi-firm vs single)</li>
+    </ul>
+  </div>
+</div>
+
+<h2>11. What it's not</h2>
+<ul>
+  <li>Not a 409A engine. No OPM allocation, no DLOM, no fair-value opinion.</li>
+  <li>Not an LLM tool. Zero language models in the calculation pipeline. Side letters stored verbatim; open-question lines surfaced for the analyst to adjudicate.</li>
+  <li>Not multi-tenant. Local-by-default with a documented production-cutover path.</li>
+  <li>Not a SAFE/note auto-converter. Too many opinions baked in (cap vs discount, pre vs post-money, MFN cascades). The analyst converts these to share classes during the mapping step.</li>
+</ul>
+
+<hr>
+
+<p class="footnote">
+  Source files: <code>SYSTEM_SPEC.md</code> (~1700 lines, 7 amendment
+  rounds), <code>OPERATIONS.md</code> (prod deploy checklist),
+  <code>BUILD_WAVE_{1..9}.md</code> (per-wave build notes),
+  <code>SYSTEM_AUDIT_WAVE_{5..9}.md</code> + <code>SYSTEM_AUDIT_STITCHED.md</code>
+  (independent audit reports), <code>README.md</code>
+  (onboarding + architecture map). Tests live in <code>tests/</code> and
+  run in ~60 seconds.
+</p>
+
+</div>
+</body>
+</html>

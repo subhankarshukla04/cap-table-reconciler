@@ -32,6 +32,7 @@ from .models import (
     ShareClass,
     ShareClassType,
 )
+from .rule_pack import rule
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,13 @@ class Finding:
 # ---- Individual rules --------------------------------------------------------
 
 
+@rule(
+    id="G-AD-001",
+    severity="blocker",
+    category="anti_dilution_unspecified",
+    summary="Anti-dilution variant blank on a preferred class.",
+    citation="NVCA Model Charter §4.4; AICPA Cheap Stock Guide Ch. 2.",
+)
 def _rule_anti_dilution_unspecified(cap_table: CapTable) -> list[Finding]:
     out = []
     for sc in cap_table.share_classes:
@@ -70,6 +78,13 @@ def _rule_anti_dilution_unspecified(cap_table: CapTable) -> list[Finding]:
     return out
 
 
+@rule(
+    id="G-AD-002",
+    severity="info",
+    category="anti_dilution_full_ratchet_documented",
+    summary="Full-ratchet anti-dilution requires explicit memo footnote.",
+    citation="AICPA Cheap Stock Guide §2.18; Cooley GO term sheet primer.",
+)
 def _rule_full_ratchet_documented(cap_table: CapTable) -> list[Finding]:
     out = []
     for sc in cap_table.share_classes:
@@ -95,6 +110,13 @@ def _rule_full_ratchet_documented(cap_table: CapTable) -> list[Finding]:
     return out
 
 
+@rule(
+    id="G-LP-001",
+    severity="info",
+    category="participating_with_cap_documented",
+    summary="Participating-with-cap preferred requires explicit waterfall walkthrough.",
+    citation="NVCA Model Charter §2.1.2(b); AICPA Cheap Stock Guide Ch. 4.",
+)
 def _rule_participating_with_cap_documented(cap_table: CapTable) -> list[Finding]:
     out = []
     for sc in cap_table.share_classes:
@@ -128,6 +150,13 @@ def _rule_participating_with_cap_documented(cap_table: CapTable) -> list[Finding
 _STALE_POOL_THRESHOLD_DAYS = 270  # ~9 months — beyond a typical pool-refresh window
 
 
+@rule(
+    id="G-POOL-001",
+    severity="warning",
+    category="stale_option_pool",
+    summary="Option pool last-grant date is older than the most recent round.",
+    citation="AICPA Cheap Stock Guide §3.42 (option grant pricing relative to round events).",
+)
 def _rule_stale_option_pool(cap_table: CapTable) -> list[Finding]:
     granted_pools = [
         sc for sc in cap_table.share_classes if sc.type == ShareClassType.option_pool_granted
@@ -170,6 +199,13 @@ def _rule_stale_option_pool(cap_table: CapTable) -> list[Finding]:
     return out
 
 
+@rule(
+    id="G-SAFE-001",
+    severity="blocker",
+    category="unrecorded_safe_conversion",
+    summary="SAFE listed as outstanding but a qualifying priced round has closed.",
+    citation="Y Combinator SAFE primer; AICPA Cheap Stock Guide §3.31.",
+)
 def _rule_unrecorded_safe_conversion(cap_table: CapTable) -> list[Finding]:
     """SAFEs outstanding whose trigger has been satisfied by a subsequent priced round."""
     out = []
@@ -202,11 +238,13 @@ def _rule_unrecorded_safe_conversion(cap_table: CapTable) -> list[Finding]:
         subsequent = [(d, raise_amt, name) for d, raise_amt, name in preferred_dates_amounts if d > safe.issue_date]
         if not subsequent:
             continue
-        first_after_date, first_after_amount, first_after_name = subsequent[0]
 
-        # If we have a conversion trigger threshold, check it; otherwise assume any priced round triggers
+        # Spec §1.5 rule 5: fire on *any* subsequent round meeting the threshold,
+        # not just the first. Cite the earliest qualifying round.
         threshold = safe.conversion_trigger_threshold or 0.0
-        if first_after_amount >= threshold:
+        qualifying = [(d, amt, name) for d, amt, name in subsequent if amt >= threshold]
+        if qualifying:
+            trig_date, trig_amount, trig_name = qualifying[0]
             out.append(
                 Finding(
                     code=f"SAFE-UNCONVERTED-{safe.id}",
@@ -215,8 +253,8 @@ def _rule_unrecorded_safe_conversion(cap_table: CapTable) -> list[Finding]:
                     summary=(
                         f"SAFE {safe.id} (issued {safe.issue_date.isoformat()}, "
                         f"principal {safe.principal:,.0f}) is listed as outstanding but its "
-                        f"conversion trigger appears to have been satisfied at the {first_after_name} "
-                        f"closing on {first_after_date.isoformat()}."
+                        f"conversion trigger appears to have been satisfied at the {trig_name} "
+                        f"closing on {trig_date.isoformat()}."
                     ),
                     detail=(
                         "Confirm whether the SAFE has been converted and add the resulting shares "
@@ -229,6 +267,13 @@ def _rule_unrecorded_safe_conversion(cap_table: CapTable) -> list[Finding]:
     return out
 
 
+@rule(
+    id="G-WAR-001",
+    severity="warning",
+    category="unrecorded_warrant",
+    summary="Warrant listed as outstanding but not represented on cap table.",
+    citation="AICPA Cheap Stock Guide §3.27 (deep-ITM warrants in fully-diluted count).",
+)
 def _rule_warrants_outstanding(cap_table: CapTable) -> list[Finding]:
     out = []
     for war in cap_table.warrants_outstanding:
@@ -252,6 +297,13 @@ def _rule_warrants_outstanding(cap_table: CapTable) -> list[Finding]:
     return out
 
 
+@rule(
+    id="G-SL-001",
+    severity="warning",
+    category="side_letter_terms_missing",
+    summary="Side letter exists but terms or scope are not fully entered.",
+    citation="NVCA Model Side Letter; AICPA Cheap Stock Guide §2.21.",
+)
 def _rule_side_letter_terms_missing(cap_table: CapTable) -> list[Finding]:
     out = []
     for sl in cap_table.side_letters:
@@ -290,6 +342,13 @@ def _rule_side_letter_terms_missing(cap_table: CapTable) -> list[Finding]:
     return out
 
 
+@rule(
+    id="G-VOTE-001",
+    severity="info",
+    category="dual_class_voting_documented",
+    summary="Class carries a voting differential and needs audit-memo disclosure.",
+    citation="VIMA model docs (Singapore); Cyril Amarchand Indian dual-class convention.",
+)
 def _rule_dual_class_voting_documented(cap_table: CapTable) -> list[Finding]:
     out = []
     for sc in cap_table.share_classes:
@@ -327,10 +386,18 @@ ALL_RULES = [
 ]
 
 
-def run_checklist(cap_table: CapTable) -> list[Finding]:
-    findings: list[Finding] = []
-    for rule in ALL_RULES:
-        findings.extend(rule(cap_table))
-    severity_order = {"blocker": 0, "warning": 1, "info": 2}
-    findings.sort(key=lambda f: (severity_order.get(f.severity, 99), f.code))
-    return findings
+def run_checklist(
+    cap_table: CapTable,
+    pack=None,
+    engagement_jurisdiction: Optional[str] = None,
+) -> list[Finding]:
+    """Run the checklist rules against a CapTable.
+
+    By default, runs the rule pack effective today. Pass `pack` to pin a
+    specific RulePack (engagement-bound or otherwise). Pass
+    `engagement_jurisdiction` to filter to rules tagged for that jurisdiction
+    (per GAP-26).
+    """
+    from .rule_pack import run_pack
+
+    return run_pack(cap_table, pack=pack, engagement_jurisdiction=engagement_jurisdiction)

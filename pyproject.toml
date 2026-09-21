@@ -9,6 +9,12 @@ dependencies = [
     "openpyxl>=3.1",
     "numpy>=1.26",
     "jinja2>=3.1",
+    "httpx>=0.27",
+    "selectolax>=0.3",
+    "feedparser>=6.0",
+    "apscheduler>=3.10",
+    "rapidfuzz>=3.6",
+    "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -20,3 +26,14 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+# W8.5: silence the unraisable-finaliser noise from third-party
+# C-extensions (weasyprint's fontconfig sqlite handle + openpyxl's
+# descriptor cleanup). These are framework-internal handles caught
+# during pytest's `gc_collect_harder` pass — not OUR connections.
+# Project-owned sqlite connections all close via `with closing(...)`.
+filterwarnings = [
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
