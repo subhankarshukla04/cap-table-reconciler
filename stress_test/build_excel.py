@@ -9,6 +9,7 @@ is to test how the tool behaves on a fresh client deliverable.
 """
 
 from datetime import date
+from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -204,6 +205,6 @@ for r in range(4, 23):
     ws_cv.row_dimensions[r].height = 18
 ws_cv.row_dimensions[11].height = 64  # the long Status row
 
-out = "/Users/subhankarshukla/Desktop/qapita/stress_test/northwind_cap_table.xlsx"
+out = str(Path(__file__).resolve().parent / "northwind_cap_table.xlsx")
 wb.save(out)
 print(f"wrote {out}")
