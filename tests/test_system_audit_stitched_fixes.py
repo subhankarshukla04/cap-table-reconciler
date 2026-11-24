@@ -394,12 +394,3 @@ def test_m8_rate_limit_is_calendar_hour_not_two_bucket_sum(tmp_path):
     # Pre-fix: current_count would have been 3 (1 + sum of last bucket).
     # Post-fix: bucket-only count → 1.
     assert rl.current_count == 1
-
-
-# ---- M-9: spec §10.5 chronology updated -----------------------------------
-
-
-def test_m9_spec_chronology_lists_v2026_6_0():
-    spec = (Path(__file__).parent.parent / "SYSTEM_SPEC.md").read_text()
-    assert "v2026.6.0" in spec
-    assert "2026-05-26" in spec

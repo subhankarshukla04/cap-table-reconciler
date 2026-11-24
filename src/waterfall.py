@@ -598,7 +598,7 @@ def breakpoint_explanations(cap_table: CapTable, result: WaterfallResult) -> lis
     Each entry: {id, value, event, formula, steps[]} where formula is the
     symbolic equation and steps are concrete numeric substitutions.
 
-    The walk-through is the transparency layer — Evelyn's team can audit the
+    The walk-through is the transparency layer — the valuations team can audit the
     math line by line rather than trust a black-box output.
     """
     out: list[dict] = []

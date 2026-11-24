@@ -11,7 +11,7 @@ flagged this. This module adds two pieces:
 
 The cookie is a Fernet-style signed token (HMAC-SHA256 by stdlib —
 no external dep) carrying (user_id, expiry_iso). The shim doesn't
-implement an SSO bridge; that's still Evelyn-blocked. What it DOES is
+implement an SSO bridge; that's still blocked on the client's infrastructure choice. What it DOES is
 let a developer or future Qapita-internal SSO callback issue a cookie
 that browser sessions can rely on.
 

@@ -28,7 +28,7 @@ In the modern venture market, participating-with-cap appears most often in:
 - Strategic-led rounds, where the strategic investor wants protection against their target's underperformance.
 - Bridge rounds with a "preferred stock junior" attached.
 
-The clause produces three additional breakpoints in any OPM/Backsolve waterfall, which is exactly the audit-memo-walkthrough complexity Evelyn's team handles regularly.
+The clause produces three additional breakpoints in any OPM/Backsolve waterfall, which is exactly the audit-memo-walkthrough complexity the valuations team handles regularly.
 
 **Sources:** NVCA Model Certificate of Incorporation, Article IV, Section 2.2(c); AICPA Practice Guide chapter on liquidation waterfalls; Aranca Backsolve whitepaper worked examples; Plante Moran 2015 worked example.
 

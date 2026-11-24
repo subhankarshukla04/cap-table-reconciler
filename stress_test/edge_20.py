@@ -1,6 +1,6 @@
 """20 hand-built edge-case probes against the engine + data model.
 
-Built blind. Each scenario tests a real-world edge the analyst at Evelyn's
+Built blind. Each scenario tests a real-world edge the analyst at the reviewer's
 team might hit: degenerate structures, boundary conditions, oddly-shaped
 cap tables. We do NOT design these to fit the engine.
 

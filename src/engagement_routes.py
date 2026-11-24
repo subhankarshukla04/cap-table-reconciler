@@ -1112,7 +1112,7 @@ def build_engagement_blueprint() -> Blueprint:
     def opm_backsolve_route(eng_id: str):
         """W9.2: run OPM Backsolve against the engagement's head snapshot.
 
-        Posture (per Evelyn's "expert-led" register): the tool does NOT
+        Posture (expert-led): the tool does NOT
         pick volatility, TTL, risk-free rate, DLOM, or the anchor — the
         analyst defends those numbers in the workpaper. This route is
         purely the solver wrapper that takes their numbers and returns

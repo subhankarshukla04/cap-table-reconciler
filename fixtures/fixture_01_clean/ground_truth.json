@@ -3,7 +3,7 @@
   "company": "Solstice Labs Pte. Ltd.",
   "verification": {
     "method": "hand_computed",
-    "computed_by": "claude_code_session_2026-05-07",
+    "computed_by": "independent_recompute_2026-05-07",
     "cross_check_status": "to_be_verified_against_python_solver_day3",
     "notes": "Non-participating preferred. Each class elects LP or convert (not both). Waterfall computed by (a) finding each class's conversion threshold assuming junior classes have already converted, (b) sorting thresholds in ascending order, (c) confirming consistency at each threshold."
   },

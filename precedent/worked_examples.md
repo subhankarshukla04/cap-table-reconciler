@@ -240,7 +240,7 @@ ELSE IF (exit_equity_value < total_LP):
 
 ### Why this example matters
 
-- Direct reference from Qapita's own marketing — terminology Evelyn's team uses.
+- Direct reference from Qapita's own marketing — terminology the valuations team uses.
 - 2x participating preferred is a more aggressive structure; the participation kicks in *after* the 2x preference, creating a follow-on tranche that flows pro-rata (not to common only).
 - Use this voice and framing in the demo narrative.
 

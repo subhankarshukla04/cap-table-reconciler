@@ -394,7 +394,7 @@ CREATE INDEX IF NOT EXISTS ix_resolution_snapshot ON resolution(snapshot_id);
 
 # W8.10: archival restore window. Engagements transitioned to `archived`
 # can be restored by a partner within this many days; afterwards the
-# hard-delete CLI cascades them. Hard-coded today; Evelyn picks the
+# hard-delete CLI cascades them. Hard-coded today; the client picks the
 # actual production number.
 ARCHIVAL_RESTORE_DAYS = 90
 
@@ -981,7 +981,7 @@ class EngagementStore:
         for any Big-4 inquiry. Returns the number of engagements deleted.
 
         Idempotent and safe to schedule daily. Engagement legal-erasure
-        contract (preserve audit metadata vs delete entirely) is Evelyn-
+        contract (preserve audit metadata vs delete entirely) is blocked on the client-
         blocked; current implementation chooses preservation.
         """
         deleted = 0

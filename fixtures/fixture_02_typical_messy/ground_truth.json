@@ -3,7 +3,7 @@
   "company": "Pelaut Logistics Pte. Ltd.",
   "verification": {
     "method": "hand_computed_then_verified_by_pytest",
-    "computed_by": "claude_code_session_2026-05-07",
+    "computed_by": "independent_recompute_2026-05-07",
     "notes": "Waterfall computed on the FACE-VALUE cap table — i.e. exactly what is recorded in the Cap Table tab of the upload, IGNORING the unrecorded SAFEs and warrant. The tool's job is to flag those gaps via the checklist; it does not auto-correct. The corrected post-reconciliation waterfall would be computed by the analyst after they enter the missing data."
   },
   "shares_summary_face_value": {

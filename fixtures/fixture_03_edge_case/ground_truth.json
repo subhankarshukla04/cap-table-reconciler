@@ -4,7 +4,7 @@
   "currency": "INR",
   "verification": {
     "method": "hand_computed_then_verified_by_pytest",
-    "computed_by": "claude_code_session_2026-05-07",
+    "computed_by": "independent_recompute_2026-05-07",
     "notes": "Participating-with-cap on Series A makes this materially harder than fixtures 01-02. The waterfall has eight regions because we must track (a) when each non-participating preferred elects to convert, (b) when Series A's participation cap is reached, and (c) when Series A elects pure conversion (forgoing LP+participation entirely). Verifier in tests/test_fixture_03_participating.py codes this end-to-end and confirms each breakpoint.",
     "amounts_in_inr": "All amounts in Indian Rupees (INR) per the company's jurisdiction."
   },

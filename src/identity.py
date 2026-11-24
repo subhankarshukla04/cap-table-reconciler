@@ -1,7 +1,7 @@
 """Identity layer for the cap-table reconciler (SYSTEM_SPEC §3.2).
 
 Abstract IdentityProvider + role enum + permission tables. The real Qapita
-SSO provider is Evelyn-blocked (we need their SSO endpoints + token format).
+SSO provider is blocked on the client's infrastructure choice (we need their SSO endpoints + token format).
 This module ships:
 
   - The role enum and the permission table the engine enforces.

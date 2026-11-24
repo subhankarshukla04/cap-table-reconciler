@@ -109,7 +109,7 @@ This is the gap a Big-Four valuations partner would find in the first 5 minutes 
 7. **Title-row company-name extraction.**
 8. **Sanitize pydantic errors** before showing them to users.
 
-The first three are the only ones that would make this safe to put in front of Evelyn. The rest are quality improvements.
+The first three are the only ones that would make this safe to put in front of a reviewer. The rest are quality improvements.
 
 ---
 

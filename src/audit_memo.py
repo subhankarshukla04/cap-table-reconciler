@@ -8,7 +8,7 @@ placeholders — the tool fills the structured-fact gaps, the analyst fills
 the judgment gaps.
 
 This artifact is the embodiment of the tool's positioning: the workpaper
-that makes Evelyn's team faster without taking over their judgment.
+that makes the valuations team faster without taking over their judgment.
 """
 
 from __future__ import annotations
